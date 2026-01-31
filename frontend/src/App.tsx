@@ -3,8 +3,9 @@ import './App.css'
 import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
+import WordCard from './components/WordCard'
 import { loadKnownWordsFromFile, getAllKnownWords } from './db'
-import { annotateWord } from './api'
+import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
   const {
@@ -30,7 +31,9 @@ function App() {
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
-  const [isAnnotating, setIsAnnotating] = useState(false);
+  const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
+  const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
+  
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
   // Handle word click
@@ -38,19 +41,20 @@ function App() {
     const normalizedWord = word.toLowerCase();
     
     // Check if already annotated
-    if (annotations.has(normalizedWord)) {
-      setSelectedWord(word);
+    const existingAnnotation = annotations.get(normalizedWord);
+    if (existingAnnotation && (existingAnnotation as any).definition) {
+      setCurrentAnnotation(existingAnnotation as WordAnnotation);
       return;
     }
 
     // Fetch annotation from API
-    setIsAnnotating(true);
-    setSelectedWord(word);
+    setIsLoadingAnnotation(true);
 
     const result = await annotateWord(word, level, context);
 
     if (result.success && result.data) {
       addAnnotation(word, result.data);
+      setCurrentAnnotation(result.data);
       console.log('Annotation fetched:', result.data);
       if (result.usage) {
         console.log('API usage:', result.usage);
@@ -60,12 +64,7 @@ function App() {
       alert(`Failed to annotate "${word}": ${result.error}`);
     }
 
-    setIsAnnotating(false);
-  };
-
-  // Load known words on mount
-  useEffect(() => {
-    const initKnownWords = async () => {
+    setIsLoadingAnnotation(false);
       try {
         // Load basic known words first (fast)
         const basicWords = ['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'to', 'of', 'in', 'for', 'on', 'with', 'and', 'or', 'but', 'not', 'at', 'by', 'from', 'as', 'if', 'this', 'that', 'it', 'they', 'we', 'you', 'he', 'she', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'can', 'could', 'should', 'may', 'might', 'must'];
@@ -311,14 +310,30 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             Cards
           </div>
           <div className="flex-1 p-3 overflow-auto">
-            <div className="border border-border rounded-2xl p-3 bg-white mb-3">
-              <div className="text-xs text-muted">Placeholder</div>
-              <div className="font-extrabold mt-1">Word / Paragraph Cards</div>
-              <div className="h-px bg-border my-2"></div>
-              <div className="text-sm leading-relaxed">
-                Click on an unknown word to see its annotation card.
+            {isLoadingAnnotation && (
+              <div className="text-center py-8 text-muted">
+                <div className="text-2xl mb-2">⏳</div>
+                <div>Loading annotation...</div>
               </div>
-            </div>
+            )}
+            
+            {!isLoadingAnnotation && currentAnnotation && (
+              <WordCard
+                annotation={currentAnnotation}
+                onClose={() => setCurrentAnnotation(null)}
+              />
+            )}
+            
+            {!isLoadingAnnotation && !currentAnnotation && (
+              <div className="border border-border rounded-2xl p-3 bg-white mb-3">
+                <div className="text-xs text-muted">Placeholder</div>
+                <div className="font-extrabold mt-1">Word / Paragraph Cards</div>
+                <div className="h-px bg-border my-2"></div>
+                <div className="text-sm leading-relaxed">
+                  Click on an unknown word to see its annotation card.
+                </div>
+              </div>
+            )}
           </div>
         </aside>
       </div>
