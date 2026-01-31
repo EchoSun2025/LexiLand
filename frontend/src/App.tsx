@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations } from './db'
 import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
@@ -41,26 +41,54 @@ function App() {
   const handleWordClick = async (word: string, context?: string) => {
     const normalizedWord = word.toLowerCase();
     
-    // Check if already annotated
+    // Check if already annotated in store
     const existingAnnotation = annotations.get(normalizedWord);
     if (existingAnnotation && (existingAnnotation as any).definition) {
       setCurrentAnnotation(existingAnnotation as WordAnnotation);
       return;
     }
 
-    // Fetch annotation from API
+    // Check IndexedDB cache
     setIsLoadingAnnotation(true);
+    try {
+      const cachedAnnotation = await getCachedAnnotation(normalizedWord);
+      if (cachedAnnotation) {
+        console.log(`Loaded annotation for "${word}" from cache`);
+        const annotation: WordAnnotation = {
+          word: cachedAnnotation.word,
+          baseForm: cachedAnnotation.baseForm,
+          ipa: cachedAnnotation.ipa,
+          chinese: cachedAnnotation.chinese,
+          definition: cachedAnnotation.definition,
+          example: cachedAnnotation.example,
+          level: cachedAnnotation.level,
+          partOfSpeech: cachedAnnotation.partOfSpeech,
+        };
+        addAnnotation(word, annotation);
+        setCurrentAnnotation(annotation);
+        setIsLoadingAnnotation(false);
+        return;
+      }
+    } catch (error) {
+      console.error('Failed to load from cache:', error);
+    }
 
+    // Fetch annotation from API
     const result = await annotateWord(word, level, context);
 
     if (result.success && result.data) {
       addAnnotation(word, result.data);
       setCurrentAnnotation(result.data);
-      console.log('Annotation fetched:', result.data);
-      if (result.usage) {
-        console.log('API usage:', result.usage);
+      
+      // Cache the annotation
+      try {
+        await cacheAnnotation(word, result.data);
+        console.log(`Cached annotation for "${word}"`);
+      } catch (error) {
+        console.error('Failed to cache annotation:', error);
       }
-    } else {
+      
+      console.log('Annotation fetched from API:', result.data);
       console.error('Failed to fetch annotation:', result.error);
       alert(`Failed to annotate "${word}": ${result.error}`);
     }
@@ -115,6 +143,33 @@ function App() {
     };
     
     initKnownWords();
+    
+    // Load cached annotations
+    const loadCachedAnnotations = async () => {
+      try {
+        const cached = await getAllCachedAnnotations();
+        console.log(`Loading ${cached.length} cached annotations from IndexedDB`);
+        cached.forEach(item => {
+          const annotation: WordAnnotation = {
+            word: item.word,
+            baseForm: item.baseForm,
+            ipa: item.ipa,
+            chinese: item.chinese,
+            definition: item.definition,
+            example: item.example,
+            level: item.level,
+            partOfSpeech: item.partOfSpeech,
+          };
+          addAnnotation(item.word, annotation);
+        });
+        if (cached.length > 0) {
+          console.log('✅ Cached annotations loaded');
+        }
+      } catch (error) {
+        console.error('Failed to load cached annotations:', error);
+      }
+    };
+    loadCachedAnnotations();
   }, [loadKnownWords]);
 
   const handleLoadSample = () => {

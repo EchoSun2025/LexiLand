@@ -104,3 +104,10 @@ export async function cacheAnnotation(word: string, annotation: Omit<CachedAnnot
 export async function getCachedAnnotation(word: string): Promise<CachedAnnotation | undefined> {
   return await db.annotations.get(word.toLowerCase());
 }
+
+/**
+ * Get all cached annotations from IndexedDB
+ */
+export async function getAllCachedAnnotations(): Promise<CachedAnnotation[]> {
+  return await db.annotations.toArray();
+}
