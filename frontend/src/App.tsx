@@ -199,6 +199,30 @@ function App() {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
       const filename = `lexiland-userdata-${timestamp}.json`;
       
+      // Try to use File System Access API if available
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await (window as any).showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: 'JSON Files',
+              accept: { 'application/json': ['.json'] }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(jsonData);
+          await writable.close();
+          console.log('User data exported successfully:', filename);
+          return;
+        } catch (err: any) {
+          if (err.name === 'AbortError') {
+            return; // User cancelled
+          }
+          throw err;
+        }
+      }
+      
+      // Fallback to download method
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -462,7 +486,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         
         <button
           onClick={() => setAutoMark(!autoMark)}
-          className={`px-3 py-1.5 border border-border rounded-lg text-sm font-semibold ${
+          className={`px-2 py-1 border border-border rounded-lg text-xs font-semibold ${
             autoMark ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'
           }`}
         >
@@ -471,10 +495,10 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         
         <button
           onClick={handleExportData}
-          className="px-3 py-1.5 border border-green-500 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-semibold"
+          className="px-2 py-1 border border-green-500 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-semibold"
           title="Export user data to JSON file"
         >
-          📥 Export Data
+          Export Data
         </button>
 
         <span className="text-xs text-muted">Level</span>
@@ -488,10 +512,6 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           <option value="B2">B2</option>
           <option value="C1">C1</option>
         </select>
-
-        <span className="text-xs text-muted">
-          {currentDocument ? `${currentDocument.title}` : 'Ready'}
-        </span>
       </div>
 
       {/* Main Layout: Three Columns */}

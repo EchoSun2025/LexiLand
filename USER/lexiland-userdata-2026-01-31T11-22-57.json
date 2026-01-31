@@ -1,0 +1,5714 @@
+{
+  "exportedAt": "2026-01-31T11:22:57.333Z",
+  "exportDate": "2026/2/1",
+  "version": "1.0",
+  "data": {
+    "knownWords": [
+      {
+        "word": "a",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "abandoned",
+        "addedAt": "2026-01-31T11:03:43.288Z"
+      },
+      {
+        "word": "able",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "about",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "above",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "act",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "add",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "afraid",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "after",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "again",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "against",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "age",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ago",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "agree",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "air",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "all",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "allow",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "almost",
+        "addedAt": "2026-01-31T11:16:59.131Z"
+      },
+      {
+        "word": "also",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "always",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "am",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "among",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "an",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "and",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "anger",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "animal",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "ankle",
+        "addedAt": "2026-01-31T11:17:00.718Z"
+      },
+      {
+        "word": "another",
+        "addedAt": "2026-01-31T11:17:00.538Z"
+      },
+      {
+        "word": "answer",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "answered",
+        "addedAt": "2026-01-31T11:03:43.331Z"
+      },
+      {
+        "word": "anticipated",
+        "addedAt": "2026-01-31T11:03:43.393Z"
+      },
+      {
+        "word": "any",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "anyone",
+        "addedAt": "2026-01-31T11:03:43.375Z"
+      },
+      {
+        "word": "appear",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "apple",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "are",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "area",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "arm",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "arrange",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "arrive",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "arrived",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:08:59.521Z"
+      },
+      {
+        "word": "art",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "as",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "ash",
+        "addedAt": "2026-01-31T11:10:18.974Z"
+      },
+      {
+        "word": "ask",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "at",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "atom",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "avoided",
+        "addedAt": "2026-01-31T11:03:42.786Z"
+      },
+      {
+        "word": "baby",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "back",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "bad",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ball",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "band",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "bank",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "bar",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "base",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "basic",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "bat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "be",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "bear",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "beat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "beauty",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "because",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "bed",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "been",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "before",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "began",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "begin",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "behind",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "being",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "believe",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "believing",
+        "addedAt": "2026-01-31T11:03:42.809Z"
+      },
+      {
+        "word": "bell",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "belt",
+        "addedAt": "2026-01-31T11:16:59.649Z"
+      },
+      {
+        "word": "beneath",
+        "addedAt": "2026-01-31T11:16:58.434Z"
+      },
+      {
+        "word": "best",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "better",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "between",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "big",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "bird",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "bit",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "black",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "blackwood",
+        "addedAt": "2026-01-31T11:03:42.733Z"
+      },
+      {
+        "word": "block",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "blood",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "blow",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "blue",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "board",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "boat",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "body",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "boldly",
+        "addedAt": "2026-01-31T11:17:00.060Z"
+      },
+      {
+        "word": "bone",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "book",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "born",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "borrowed",
+        "addedAt": "2026-01-31T11:16:58.298Z"
+      },
+      {
+        "word": "both",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "bottom",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "bought",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "box",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "branch",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "bread",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "break",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "bright",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "bring",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "broad",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "broke",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "brother",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "brought",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "brown",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "build",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "burn",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "busy",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "but",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "buy",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "by",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "camp",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "can",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "capital",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "captain",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "car",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "card",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "care",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "carry",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "carved",
+        "addedAt": "2026-01-31T11:16:59.876Z"
+      },
+      {
+        "word": "case",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "catch",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "catching",
+        "addedAt": "2026-01-31T11:17:00.265Z"
+      },
+      {
+        "word": "caught",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "caution",
+        "addedAt": "2026-01-31T11:16:59.557Z"
+      },
+      {
+        "word": "cautiously",
+        "addedAt": "2026-01-31T11:16:59.600Z"
+      },
+      {
+        "word": "cell",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cent",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "center",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "century",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "certain",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "chair",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "chance",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "change",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "character",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "charge",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "chart",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "check",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "chick",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "chief",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "child",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "children",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "chimney",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:29.598Z"
+      },
+      {
+        "word": "choose",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "chopped",
+        "addedAt": "2026-01-31T11:16:59.810Z"
+      },
+      {
+        "word": "chord",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "circle",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "city",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "claim",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "class",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "clean",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "clear",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "climb",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "clock",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "close",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "closed",
+        "addedAt": "2026-01-31T11:03:42.905Z"
+      },
+      {
+        "word": "clothe",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "clothes",
+        "addedAt": "2026-01-31T11:17:00.098Z"
+      },
+      {
+        "word": "cloud",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "coast",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "coat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cold",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "collect",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "colony",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "color",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "column",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "come",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "common",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "company",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "compare",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "complete",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "condition",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "connect",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "connection",
+        "addedAt": "2026-01-31T11:03:43.248Z"
+      },
+      {
+        "word": "consider",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "consonant",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "contain",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "continent",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "continue",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "control",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cook",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cool",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "copy",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "corn",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "corner",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "correct",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "corridors",
+        "addedAt": "2026-01-31T11:03:42.882Z"
+      },
+      {
+        "word": "cost",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cotton",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "could",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "count",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "country",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "course",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "cover",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "cow",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "crease",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "create",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "created",
+        "addedAt": "2026-01-31T11:17:00.011Z"
+      },
+      {
+        "word": "creeping",
+        "addedAt": "2026-01-31T11:16:59.062Z"
+      },
+      {
+        "word": "crop",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cross",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "crowd",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cry",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "curiosity",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:36.610Z"
+      },
+      {
+        "word": "current",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "cursed",
+        "addedAt": "2026-01-31T11:03:42.823Z"
+      },
+      {
+        "word": "curtains",
+        "addedAt": "2026-01-31T11:03:43.138Z"
+      },
+      {
+        "word": "cut",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "dad",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "dance",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "danger",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "dared",
+        "addedAt": "2026-01-31T11:09:12.899Z"
+      },
+      {
+        "word": "dark",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "day",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "dead",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "deal",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "dear",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "death",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "decades",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:21.327Z"
+      },
+      {
+        "word": "decide",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "decimal",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "deep",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "deepened",
+        "addedAt": "2026-01-31T11:03:43.044Z"
+      },
+      {
+        "word": "degree",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "depend",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "describe",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "desert",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "design",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "determine",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "develop",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "dictionary",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "did",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "die",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "difficult",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "direct",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "disappeared",
+        "addedAt": "2026-01-31T11:03:42.745Z"
+      },
+      {
+        "word": "discuss",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "distance",
+        "addedAt": "2026-01-31T11:10:02.340Z"
+      },
+      {
+        "word": "distant",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "divide",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "division",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "do",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "doctor",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "does",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "dog",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "dollar",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "don't",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "done",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "door",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "doors",
+        "addedAt": "2026-01-31T11:03:42.893Z"
+      },
+      {
+        "word": "double",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "draw",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "dream",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "dress",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "drink",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "drive",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "drop",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "droplet",
+        "addedAt": "2026-01-31T11:16:59.256Z"
+      },
+      {
+        "word": "dropped",
+        "addedAt": "2026-01-31T11:16:58.402Z"
+      },
+      {
+        "word": "dropping",
+        "addedAt": "2026-01-31T11:17:00.323Z"
+      },
+      {
+        "word": "dry",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "duck",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "during",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ear",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "early",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "earth",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "ease",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "east",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "eat",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "echoed",
+        "addedAt": "2026-01-31T11:03:42.867Z"
+      },
+      {
+        "word": "edge",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "effect",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "egg",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "eight",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "either",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "electric",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "element",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "else",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "empty",
+        "addedAt": "2026-01-31T11:03:42.612Z"
+      },
+      {
+        "word": "end",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "enemy",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "energy",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "engine",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "enough",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "enter",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "equal",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "equate",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "especially",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "even",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "evening",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "event",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ever",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "exact",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "example",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "except",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "excite",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "exercise",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "expect",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "experience",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "experiment",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "explanation",
+        "addedAt": "2026-01-31T11:00:15.953Z"
+      },
+      {
+        "word": "eye",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "face",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fact",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fair",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fall",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "family",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "famous",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "far",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "farm",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fast",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "father",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "favor",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fear",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "feed",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "feel",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "feeling",
+        "addedAt": "2026-01-31T11:16:59.621Z"
+      },
+      {
+        "word": "feet",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fell",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "felt",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "few",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "field",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fig",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fight",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "figure",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fill",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "final",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fine",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "finger",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "finish",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fire",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "first",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fish",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fit",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "five",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "flat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "flickered",
+        "addedAt": "2026-01-31T11:03:43.082Z"
+      },
+      {
+        "word": "floor",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "flow",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "flower",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fly",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "follow",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "food",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "foot",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "for",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "force",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "forest",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "forward",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "found",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "four",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fraction",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "free",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "fresh",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "friend",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "from",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "front",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "froze",
+        "addedAt": "2026-01-31T11:16:59.287Z"
+      },
+      {
+        "word": "fruit",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "full",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "fun",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "game",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "garden",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "gas",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "gasped",
+        "addedAt": "2026-01-31T11:17:00.296Z"
+      },
+      {
+        "word": "gather",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "gave",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "general",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "gentle",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "get",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "girl",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "girls",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:08:52.659Z"
+      },
+      {
+        "word": "give",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "glad",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "glass",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "go",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "gold",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "gone",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "good",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "got",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "govern",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "grand",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "grass",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "gray",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "green",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "grew",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ground",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "group",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "grow",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "guess",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "guide",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "gun",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "had",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "hair",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "half",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "hand",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "handful",
+        "addedAt": "2026-01-31T11:17:00.734Z"
+      },
+      {
+        "word": "happen",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "happy",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "hard",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "has",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "hat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "haunted",
+        "addedAt": "2026-01-31T11:03:42.833Z"
+      },
+      {
+        "word": "have",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "having",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "hazelwood",
+        "addedAt": "2026-01-31T11:16:58.919Z"
+      },
+      {
+        "word": "he",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "head",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "heads",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:14:54.031Z"
+      },
+      {
+        "word": "hear",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "heard",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "heart",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "heat",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "heavy",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "height",
+        "addedAt": "2026-01-31T11:16:59.742Z"
+      },
+      {
+        "word": "held",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "her",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "here",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "high",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "hill",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "him",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "his",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "history",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "hit",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "hold",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "hole",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "hollow",
+        "addedAt": "2026-01-31T11:16:59.948Z"
+      },
+      {
+        "word": "home",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "hope",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "horse",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "hot",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "hour",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "house",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "how",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "huge",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "human",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "hundred",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "hunt",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "hurry",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "i",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "ice",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "idea",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "if",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "ignore",
+        "addedAt": "2026-01-31T11:16:59.356Z"
+      },
+      {
+        "word": "imagine",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "impossible",
+        "addedAt": "2026-01-31T11:09:07.259Z"
+      },
+      {
+        "word": "in",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "inch",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "inched",
+        "addedAt": "2026-01-31T11:16:59.577Z"
+      },
+      {
+        "word": "include",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "increasingly",
+        "addedAt": "2026-01-31T11:03:42.997Z"
+      },
+      {
+        "word": "indicate",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "industry",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "insect",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "instant",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "instantly",
+        "addedAt": "2026-01-31T11:16:59.153Z"
+      },
+      {
+        "word": "instrument",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "interest",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "into",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "invent",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "investigate",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:32.308Z"
+      },
+      {
+        "word": "iron",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "is",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "island",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "it",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "its",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "jar",
+        "addedAt": "2026-01-31T11:16:58.490Z"
+      },
+      {
+        "word": "job",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "join",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "joy",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "jump",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "just",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "keep",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "kept",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "key",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "kill",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "kind",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "king",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "knew",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "know",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "lady",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "lake",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "land",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "language",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "large",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "last",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "late",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "laugh",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "law",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "lay",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "lead",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "leafy",
+        "addedAt": "2026-01-31T11:17:00.204Z"
+      },
+      {
+        "word": "learn",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "least",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "leave",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "led",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "left",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "leg",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "length",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "less",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "let",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "letter",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "level",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "licked",
+        "addedAt": "2026-01-31T11:14:17.240Z"
+      },
+      {
+        "word": "lie",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "life",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "lift",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "light",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "lightning",
+        "addedAt": "2026-01-31T11:17:00.584Z"
+      },
+      {
+        "word": "lights",
+        "addedAt": "2026-01-31T11:03:43.060Z"
+      },
+      {
+        "word": "like",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "lines",
+        "addedAt": "2026-01-31T11:09:26.485Z"
+      },
+      {
+        "word": "liquid",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "list",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "listen",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "lived",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:22.630Z"
+      },
+      {
+        "word": "locals",
+        "addedAt": "2026-01-31T11:03:42.770Z"
+      },
+      {
+        "word": "locate",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "log",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "lone",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "long",
+        "addedAt": "2026-01-31T11:03:43.269Z"
+      },
+      {
+        "word": "look",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "lord",
+        "addedAt": "2026-01-31T11:03:42.715Z"
+      },
+      {
+        "word": "lost",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "lot",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "loud",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "love",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "low",
+        "addedAt": "2026-01-31T11:16:59.524Z"
+      },
+      {
+        "word": "machine",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "magnet",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "main",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "major",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "make",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "map",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "mark",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "market",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "mass",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "master",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "match",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "material",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "matter",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "may",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "maze",
+        "addedAt": "2026-01-31T11:17:00.161Z"
+      },
+      {
+        "word": "me",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "mean",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "meant",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "measure",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "meat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "meet",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "melody",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "men",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "metal",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "method",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "middle",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "midnight",
+        "addedAt": "2026-01-31T11:09:56.075Z"
+      },
+      {
+        "word": "might",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "mile",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "milk",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "million",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "mind",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "mine",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "minute",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "miss",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "mix",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "modern",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "molecule",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "moment",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "money",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "month",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "moon",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "morning",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "most",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "mother",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "motion",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "motionless",
+        "addedAt": "2026-01-31T11:03:43.215Z"
+      },
+      {
+        "word": "mount",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "mountain",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "mouth",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "much",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "multiply",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "murmured",
+        "addedAt": "2026-01-31T11:16:58.792Z"
+      },
+      {
+        "word": "music",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "must",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "my",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "mysterious",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:03.796Z"
+      },
+      {
+        "word": "mystery",
+        "addedAt": "2026-01-31T11:03:43.021Z"
+      },
+      {
+        "word": "nation",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "natural",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "nature",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "near",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "necessary",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "neck",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "need",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "neighbor",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "never",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "new",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "next",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "night",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "nights",
+        "addedAt": "2026-01-31T11:16:58.651Z"
+      },
+      {
+        "word": "nine",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "no",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "nobody",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:24.661Z"
+      },
+      {
+        "word": "noise",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "noon",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "nor",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "north",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "nose",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "not",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "note",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "nothing",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "notice",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "noun",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "now",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "numeral",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "nut",
+        "addedAt": "2026-01-31T11:16:58.889Z"
+      },
+      {
+        "word": "object",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "observe",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "occur",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ocean",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "of",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "off",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "offer",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "office",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "often",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "oh",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "oil",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "old",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "on",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "once",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "one",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "only",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "open",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "operate",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "opposite",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "or",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "order",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "organ",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "original",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "other",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "others",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:42.763Z"
+      },
+      {
+        "word": "our",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "out",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "over",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "overcoming",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:39.440Z"
+      },
+      {
+        "word": "own",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "owner",
+        "addedAt": "2026-01-31T11:03:42.680Z"
+      },
+      {
+        "word": "oxygen",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "page",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "pain",
+        "addedAt": "2026-01-31T11:16:59.492Z"
+      },
+      {
+        "word": "paint",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "pair",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "paper",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "paragraph",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "parent",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "particular",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "party",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "pass",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "passing",
+        "addedAt": "2026-01-31T11:03:43.171Z"
+      },
+      {
+        "word": "past",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "path",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "paths",
+        "addedAt": "2026-01-31T11:09:20.243Z"
+      },
+      {
+        "word": "pattern",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "pay",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "people",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "perhaps",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "period",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "person",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "phrase",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "pick",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "picture",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "piece",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "pierced",
+        "addedAt": "2026-01-31T11:16:59.203Z"
+      },
+      {
+        "word": "pitch",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "place",
+        "addedAt": "2026-01-31T11:03:42.798Z"
+      },
+      {
+        "word": "plain",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "plan",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "plane",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "planet",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "planned",
+        "addedAt": "2026-01-31T11:08:46.075Z"
+      },
+      {
+        "word": "plant",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "play",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "please",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "plural",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "poem",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "point",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "poor",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "populate",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "port",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "pose",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "position",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "possible",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "post",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "pound",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "power",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "powerful",
+        "addedAt": "2026-01-31T11:17:00.701Z"
+      },
+      {
+        "word": "practice",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "precious",
+        "addedAt": "2026-01-31T11:17:00.114Z"
+      },
+      {
+        "word": "prepare",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "present",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "press",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "pretty",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "previous",
+        "addedAt": "2026-01-31T11:03:42.650Z"
+      },
+      {
+        "word": "print",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "probable",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "problem",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "process",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "produce",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "product",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "progressed",
+        "addedAt": "2026-01-31T11:03:42.846Z"
+      },
+      {
+        "word": "proper",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "property",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "protect",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "protest",
+        "addedAt": "2026-01-31T11:17:00.395Z"
+      },
+      {
+        "word": "prove",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "provide",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "pull",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "purest",
+        "addedAt": "2026-01-31T11:16:58.942Z"
+      },
+      {
+        "word": "push",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "pushed",
+        "addedAt": "2026-01-31T11:16:58.532Z"
+      },
+      {
+        "word": "put",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "quart",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "question",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "questions",
+        "addedAt": "2026-01-31T11:03:43.308Z"
+      },
+      {
+        "word": "quick",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "quiet",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "quite",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "quotient",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "race",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "racing",
+        "addedAt": "2026-01-31T11:08:55.405Z"
+      },
+      {
+        "word": "radio",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rail",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rain",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rainwater",
+        "addedAt": "2026-01-31T11:16:58.593Z"
+      },
+      {
+        "word": "raise",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ran",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "range",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rather",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "reach",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "read",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "ready",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "real",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "reason",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "receive",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "record",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "red",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "region",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "remember",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "repeat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "reply",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "represent",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "require",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rest",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "result",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "retrieved",
+        "addedAt": "2026-01-31T11:16:58.459Z"
+      },
+      {
+        "word": "rich",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ride",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "right",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "ring",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rise",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rising",
+        "addedAt": "2026-01-31T11:16:59.686Z"
+      },
+      {
+        "word": "river",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "road",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rock",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "roll",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "room",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "rooms",
+        "addedAt": "2026-01-31T11:03:42.927Z"
+      },
+      {
+        "word": "root",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rope",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rose",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "row",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rub",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "rule",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "run",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "safe",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "safely",
+        "addedAt": "2026-01-31T11:16:58.994Z"
+      },
+      {
+        "word": "said",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "sail",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "salt",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "same",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "sand",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "save",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "saw",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "say",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "scale",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "school",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "science",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "score",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sea",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "sealed",
+        "addedAt": "2026-01-31T11:03:42.944Z"
+      },
+      {
+        "word": "search",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "season",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "seat",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "second",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "secrets",
+        "addedAt": "2026-01-31T11:03:43.233Z"
+      },
+      {
+        "word": "section",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "see",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "seed",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "seem",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "segment",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "select",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "self",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "sell",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "send",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sense",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sent",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "separate",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "servants",
+        "addedAt": "2026-01-31T11:03:42.977Z"
+      },
+      {
+        "word": "serve",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "serving",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:51.499Z"
+      },
+      {
+        "word": "set",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "settle",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "seven",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "several",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "shadows",
+        "addedAt": "2026-01-31T11:03:43.108Z"
+      },
+      {
+        "word": "shall",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "shape",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "share",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sharp",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "she",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "sheet",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "shell",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "shine",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ship",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "shoe",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "shooting",
+        "addedAt": "2026-01-31T11:16:59.423Z"
+      },
+      {
+        "word": "shop",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "shore",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "short",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "shot",
+        "addedAt": "2026-01-31T11:17:00.625Z"
+      },
+      {
+        "word": "should",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "shoulder",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "shout",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "shut",
+        "addedAt": "2026-01-31T11:03:42.962Z"
+      },
+      {
+        "word": "sight",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sign",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "silent",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "silk",
+        "addedAt": "2026-01-31T11:16:58.748Z"
+      },
+      {
+        "word": "silver",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "similar",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "simple",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "since",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "sing",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "single",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sister",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sit",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "six",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "size",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "skill",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "skin",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sky",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "slave",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sleep",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sliced",
+        "addedAt": "2026-01-31T11:16:59.781Z"
+      },
+      {
+        "word": "slip",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "slow",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "small",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "smell",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "smile",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "smoke",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:14.681Z"
+      },
+      {
+        "word": "snow",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "so",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "soaked",
+        "addedAt": "2026-01-31T11:16:58.560Z"
+      },
+      {
+        "word": "soft",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "soil",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "soldier",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "solution",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "solve",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "some",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "son",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "song",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "soon",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "soundlessly",
+        "addedAt": "2026-01-31T11:10:09.821Z"
+      },
+      {
+        "word": "sounds",
+        "addedAt": "2026-01-31T11:03:42.855Z"
+      },
+      {
+        "word": "south",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "space",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "speak",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "special",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "speech",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "speed",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "spell",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "spend",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "spider",
+        "addedAt": "2026-01-31T11:16:58.718Z"
+      },
+      {
+        "word": "spoke",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "spot",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "spread",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "spring",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "square",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "stand",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "standing",
+        "addedAt": "2026-01-31T11:03:43.190Z"
+      },
+      {
+        "word": "star",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "starlight",
+        "addedAt": "2026-01-31T11:16:58.624Z"
+      },
+      {
+        "word": "start",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "state",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "station",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "stay",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "stead",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "steam",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "steel",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "step",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "stepping",
+        "addedAt": "2026-01-31T11:17:00.047Z"
+      },
+      {
+        "word": "stick",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "still",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "stone",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "stood",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "stop",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "store",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "story",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "straight",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "strange",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "stranger",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:05.132Z"
+      },
+      {
+        "word": "stream",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "street",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "stretch",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "string",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "strong",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "student",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "study",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "subject",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "substance",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "subtract",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "success",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "such",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "sudden",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "suddenly",
+        "addedAt": "2026-01-31T11:17:00.503Z"
+      },
+      {
+        "word": "suffix",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sugar",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "suggest",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "suggested",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:33.454Z"
+      },
+      {
+        "word": "suit",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "summer",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sun",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "supply",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "support",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "sure",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "surface",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "surprise",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "surrender",
+        "addedAt": "2026-01-31T11:17:00.139Z"
+      },
+      {
+        "word": "swallowing",
+        "addedAt": "2026-01-31T11:17:00.184Z"
+      },
+      {
+        "word": "swept",
+        "addedAt": "2026-01-31T11:03:42.916Z"
+      },
+      {
+        "word": "swiftly",
+        "addedAt": "2026-01-31T11:17:00.673Z"
+      },
+      {
+        "word": "swim",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "syllable",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "symbol",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "system",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "table",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "tail",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "take",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "talk",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "tall",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "teach",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "team",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "teeth",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "tell",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "temperature",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "ten",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "term",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "test",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "than",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "thank",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "that",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "the",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "their",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "them",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "then",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "there",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "these",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "they",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "thick",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "thin",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "thing",
+        "addedAt": "2026-01-31T11:16:58.357Z"
+      },
+      {
+        "word": "think",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "third",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "this",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "thorn",
+        "addedAt": "2026-01-31T11:16:58.852Z"
+      },
+      {
+        "word": "those",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "though",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "thought",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "thousand",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "three",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "through",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "throw",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "thus",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "tie",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "time",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "tiny",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "tire",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "to",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "together",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "told",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "tone",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "too",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "took",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "tool",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "top",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "total",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "touch",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "toward",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "town",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "track",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "trade",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "train",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "trapped",
+        "addedAt": "2026-01-31T11:16:53.177Z"
+      },
+      {
+        "word": "travel",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "tree",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "triangle",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "trip",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "trouble",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "truck",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "true",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "try",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "trying",
+        "addedAt": "2026-01-31T11:16:59.305Z"
+      },
+      {
+        "word": "tube",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "twenty",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "twisted",
+        "addedAt": "2026-01-31T11:17:00.230Z"
+      },
+      {
+        "word": "two",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "type",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "uncles",
+        "addedAt": "2026-01-31T11:08:39.747Z"
+      },
+      {
+        "word": "under",
+        "addedAt": "2026-01-31T11:03:42.757Z"
+      },
+      {
+        "word": "unit",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "until",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "unwelcoming",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:26.702Z"
+      },
+      {
+        "word": "up",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "us",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "use",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "usual",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "valley",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "value",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "vary",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "verb",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "very",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "view",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "village",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "visit",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "voice",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "vowel",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "waist",
+        "addedAt": "2026-01-31T11:16:58.692Z"
+      },
+      {
+        "word": "wait",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "walk",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "wall",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "want",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "war",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "warm",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "was",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "wash",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "watch",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "watchman",
+        "addedAt": "2026-01-31T11:03:43.153Z"
+      },
+      {
+        "word": "wave",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "way",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "ways",
+        "addedAt": "2026-01-31T11:03:43.345Z"
+      },
+      {
+        "word": "we",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "wear",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "weather",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "week",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "weight",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "well",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "went",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "were",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "west",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "what",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "wheel",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "when",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "where",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "whether",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "which",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "while",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "whispering",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:08:56.731Z"
+      },
+      {
+        "word": "white",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "who",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "whole",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "whose",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "why",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "wide",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "wife",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "wild",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "will",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "win",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "wind",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "window",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "windows",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:09.959Z"
+      },
+      {
+        "word": "wing",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "winter",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "wire",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "wish",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "with",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "woman",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "women",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "won't",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "wonder",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "wood",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "work",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "world",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "would",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "written",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "wrong",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "wrote",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "yard",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "year",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "yellow",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "yes",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "yet",
+        "addedAt": "2026-01-31T07:46:37.430Z"
+      },
+      {
+        "word": "you",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "young",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      },
+      {
+        "word": "youngest",
+        "level": "B2",
+        "addedAt": "2026-01-31T09:09:34.579Z"
+      },
+      {
+        "word": "your",
+        "addedAt": "2026-01-31T07:46:37.429Z"
+      }
+    ],
+    "learntWords": [
+      {
+        "word": "already",
+        "learntAt": "2026-01-31T10:11:07.951Z"
+      },
+      {
+        "word": "ancient",
+        "learntAt": "2026-01-31T10:08:43.404Z"
+      },
+      {
+        "word": "arms",
+        "learntAt": "2026-01-31T10:11:00.404Z"
+      },
+      {
+        "word": "assured",
+        "learntAt": "2026-01-31T10:11:06.653Z"
+      },
+      {
+        "word": "aunts",
+        "learntAt": "2026-01-31T10:10:35.005Z"
+      },
+      {
+        "word": "axe",
+        "learntAt": "2026-01-31T10:10:43.046Z"
+      },
+      {
+        "word": "babe",
+        "learntAt": "2026-01-31T10:16:15.139Z"
+      },
+      {
+        "word": "barely",
+        "learntAt": "2026-01-31T10:15:55.092Z"
+      },
+      {
+        "word": "beautiful",
+        "learntAt": "2026-01-31T10:10:54.840Z"
+      },
+      {
+        "word": "belonged",
+        "learntAt": "2026-01-31T10:10:44.335Z"
+      },
+      {
+        "word": "bend",
+        "learntAt": "2026-01-31T10:09:13.109Z"
+      },
+      {
+        "word": "beyond",
+        "learntAt": "2026-01-31T10:10:20.034Z"
+      },
+      {
+        "word": "bones",
+        "learntAt": "2026-01-31T10:11:19.428Z"
+      },
+      {
+        "word": "breathing",
+        "learntAt": "2026-01-31T10:11:01.950Z"
+      },
+      {
+        "word": "calm",
+        "learntAt": "2026-01-31T10:17:55.567Z"
+      },
+      {
+        "word": "calmed",
+        "learntAt": "2026-01-31T10:12:56.337Z"
+      },
+      {
+        "word": "came",
+        "learntAt": "2026-01-31T10:09:11.961Z"
+      },
+      {
+        "word": "canter",
+        "learntAt": "2026-01-31T10:08:26.194Z"
+      },
+      {
+        "word": "castle",
+        "learntAt": "2026-01-31T10:10:17.317Z"
+      },
+      {
+        "word": "clearing",
+        "learntAt": "2026-01-31T10:15:46.041Z"
+      },
+      {
+        "word": "clouds",
+        "learntAt": "2026-01-31T10:10:27.162Z"
+      },
+      {
+        "word": "continued",
+        "learntAt": "2026-01-31T10:16:01.189Z"
+      },
+      {
+        "word": "crossed",
+        "learntAt": "2026-01-31T10:06:29.164Z"
+      },
+      {
+        "word": "darker",
+        "learntAt": "2026-01-31T10:11:38.487Z"
+      },
+      {
+        "word": "darkness",
+        "learntAt": "2026-01-31T10:09:28.282Z"
+      },
+      {
+        "word": "dawn",
+        "learntAt": "2026-01-31T10:50:14.718Z"
+      },
+      {
+        "word": "dismounted",
+        "learntAt": "2026-01-31T10:11:31.615Z"
+      },
+      {
+        "word": "down",
+        "learntAt": "2026-01-31T10:17:57.052Z"
+      },
+      {
+        "word": "dreamed",
+        "learntAt": "2026-01-31T10:10:00.997Z"
+      },
+      {
+        "word": "dreams",
+        "learntAt": "2026-01-31T10:10:23.498Z"
+      },
+      {
+        "word": "drew",
+        "learntAt": "2026-01-31T10:06:19.728Z"
+      },
+      {
+        "word": "entering",
+        "learntAt": "2026-01-31T10:17:46.562Z"
+      },
+      {
+        "word": "eve",
+        "learntAt": "2026-01-31T10:07:52.872Z"
+      },
+      {
+        "word": "eyed",
+        "learntAt": "2026-01-31T10:10:33.801Z"
+      },
+      {
+        "word": "eyes",
+        "learntAt": "2026-01-31T10:05:58.804Z"
+      },
+      {
+        "word": "familiar",
+        "learntAt": "2026-01-31T10:16:28.566Z"
+      },
+      {
+        "word": "fearlessly",
+        "learntAt": "2026-01-31T10:06:30.717Z"
+      },
+      {
+        "word": "fierce",
+        "learntAt": "2026-01-31T10:15:50.409Z"
+      },
+      {
+        "word": "fist",
+        "learntAt": "2026-01-31T10:16:21.478Z"
+      },
+      {
+        "word": "flame",
+        "learntAt": "2026-01-31T10:06:34.535Z"
+      },
+      {
+        "word": "fur",
+        "learntAt": "2026-01-31T10:08:34.708Z"
+      },
+      {
+        "word": "glance",
+        "learntAt": "2026-01-31T10:08:54.291Z"
+      },
+      {
+        "word": "going",
+        "learntAt": "2026-01-31T10:11:25.702Z"
+      },
+      {
+        "word": "guard",
+        "learntAt": "2026-01-31T10:10:37.666Z"
+      },
+      {
+        "word": "guarding",
+        "learntAt": "2026-01-31T10:16:11.421Z"
+      },
+      {
+        "word": "gurgled",
+        "learntAt": "2026-01-31T10:08:08.302Z"
+      },
+      {
+        "word": "halted",
+        "learntAt": "2026-01-31T10:13:08.141Z"
+      },
+      {
+        "word": "he's",
+        "learntAt": "2026-01-31T10:18:06.578Z"
+      },
+      {
+        "word": "hearted",
+        "learntAt": "2026-01-31T10:05:50.304Z"
+      },
+      {
+        "word": "hidden",
+        "learntAt": "2026-01-31T10:12:02.332Z"
+      },
+      {
+        "word": "housekeeper",
+        "learntAt": "2026-01-31T10:17:51.099Z"
+      },
+      {
+        "word": "howls",
+        "learntAt": "2026-01-31T10:15:58.429Z"
+      },
+      {
+        "word": "jet",
+        "learntAt": "2026-01-31T10:11:41.576Z"
+      },
+      {
+        "word": "kitchen",
+        "learntAt": "2026-01-31T10:17:38.385Z"
+      },
+      {
+        "word": "lantern",
+        "learntAt": "2026-01-31T10:06:33.485Z"
+      },
+      {
+        "word": "later",
+        "learntAt": "2026-01-31T10:50:04.804Z"
+      },
+      {
+        "word": "laughter",
+        "learntAt": "2026-01-31T10:08:21.801Z"
+      },
+      {
+        "word": "lavender",
+        "learntAt": "2026-01-31T10:16:33.364Z"
+      },
+      {
+        "word": "leaned",
+        "learntAt": "2026-01-31T10:09:25.828Z"
+      },
+      {
+        "word": "leaving",
+        "learntAt": "2026-01-31T10:50:10.843Z"
+      },
+      {
+        "word": "lifted",
+        "learntAt": "2026-01-31T10:16:13.797Z"
+      },
+      {
+        "word": "little",
+        "learntAt": "2026-01-31T10:08:03.801Z"
+      },
+      {
+        "word": "living",
+        "learntAt": "2026-01-31T10:09:37.431Z"
+      },
+      {
+        "word": "ll",
+        "learntAt": "2026-01-31T10:11:04.313Z"
+      },
+      {
+        "word": "luce",
+        "learntAt": "2026-01-31T10:11:55.778Z"
+      },
+      {
+        "word": "made",
+        "learntAt": "2026-01-31T10:10:22.215Z"
+      },
+      {
+        "word": "maid",
+        "learntAt": "2026-01-31T10:18:14.919Z"
+      },
+      {
+        "word": "manor",
+        "learntAt": "2026-01-31T11:11:00.002Z"
+      },
+      {
+        "word": "many",
+        "learntAt": "2026-01-31T10:08:36.468Z"
+      },
+      {
+        "word": "mapped",
+        "learntAt": "2026-01-31T10:09:53.363Z"
+      },
+      {
+        "word": "midsummer",
+        "learntAt": "2026-01-31T10:07:51.853Z"
+      },
+      {
+        "word": "moonlight",
+        "learntAt": "2026-01-31T10:06:02.163Z"
+      },
+      {
+        "word": "moonlit",
+        "learntAt": "2026-01-31T10:15:47.468Z"
+      },
+      {
+        "word": "more",
+        "learntAt": "2026-01-31T10:09:16.126Z"
+      },
+      {
+        "word": "morn",
+        "learntAt": "2026-01-31T10:07:57.928Z"
+      },
+      {
+        "word": "mountains",
+        "learntAt": "2026-01-31T10:06:03.229Z"
+      },
+      {
+        "word": "moved",
+        "learntAt": "2026-01-31T10:11:15.100Z"
+      },
+      {
+        "word": "name",
+        "learntAt": "2026-01-31T10:08:02.451Z"
+      },
+      {
+        "word": "named",
+        "learntAt": "2026-01-31T10:09:18.905Z"
+      },
+      {
+        "word": "nervously",
+        "learntAt": "2026-01-31T10:17:40.772Z"
+      },
+      {
+        "word": "noticeable",
+        "learntAt": "2026-01-31T10:15:53.381Z"
+      },
+      {
+        "word": "opened",
+        "learntAt": "2026-01-31T10:15:51.431Z"
+      },
+      {
+        "word": "optimistic",
+        "learntAt": "2026-01-31T10:18:36.089Z"
+      },
+      {
+        "word": "owl",
+        "learntAt": "2026-01-31T10:09:31.829Z"
+      },
+      {
+        "word": "pack",
+        "learntAt": "2026-01-31T10:16:06.371Z"
+      },
+      {
+        "word": "pale",
+        "learntAt": "2026-01-31T10:06:00.928Z"
+      },
+      {
+        "word": "palm",
+        "learntAt": "2026-01-31T10:06:15.828Z"
+      },
+      {
+        "word": "pines",
+        "learntAt": "2026-01-31T10:08:46.987Z"
+      },
+      {
+        "word": "presence",
+        "learntAt": "2026-01-31T10:17:31.529Z"
+      },
+      {
+        "word": "promises",
+        "learntAt": "2026-01-31T10:10:24.681Z"
+      },
+      {
+        "word": "protection",
+        "learntAt": "2026-01-31T10:16:09.426Z"
+      },
+      {
+        "word": "proud",
+        "learntAt": "2026-01-31T10:10:57.988Z"
+      },
+      {
+        "word": "raised",
+        "learntAt": "2026-01-31T10:16:27.119Z"
+      },
+      {
+        "word": "rat",
+        "learntAt": "2026-01-31T10:09:34.786Z"
+      },
+      {
+        "word": "reached",
+        "learntAt": "2026-01-31T10:10:59.154Z"
+      },
+      {
+        "word": "readiness",
+        "learntAt": "2026-01-31T10:15:41.781Z"
+      },
+      {
+        "word": "realigned",
+        "learntAt": "2026-01-31T10:06:25.622Z"
+      },
+      {
+        "word": "reported",
+        "learntAt": "2026-01-31T10:50:03.727Z"
+      },
+      {
+        "word": "ribbons",
+        "learntAt": "2026-01-31T10:11:46.377Z"
+      },
+      {
+        "word": "rider",
+        "learntAt": "2026-01-31T10:10:30.323Z"
+      },
+      {
+        "word": "rode",
+        "learntAt": "2026-01-31T10:06:38.121Z"
+      },
+      {
+        "word": "royal",
+        "learntAt": "2026-01-31T10:10:36.223Z"
+      },
+      {
+        "word": "safety",
+        "learntAt": "2026-01-31T10:11:03.383Z"
+      },
+      {
+        "word": "scent",
+        "learntAt": "2026-01-31T10:08:58.543Z"
+      },
+      {
+        "word": "schemed",
+        "learntAt": "2026-01-31T10:09:57.072Z"
+      },
+      {
+        "word": "seeing",
+        "learntAt": "2026-01-31T10:50:02.578Z"
+      },
+      {
+        "word": "seeking",
+        "learntAt": "2026-01-31T10:18:11.483Z"
+      },
+      {
+        "word": "seemed",
+        "learntAt": "2026-01-31T10:17:59.023Z"
+      },
+      {
+        "word": "seen",
+        "learntAt": "2026-01-31T10:17:43.435Z"
+      },
+      {
+        "word": "sensing",
+        "learntAt": "2026-01-31T10:09:29.412Z"
+      },
+      {
+        "word": "sharpest",
+        "learntAt": "2026-01-31T10:10:41.925Z"
+      },
+      {
+        "word": "shelter",
+        "learntAt": "2026-01-31T10:18:12.636Z"
+      },
+      {
+        "word": "slowed",
+        "learntAt": "2026-01-31T10:08:23.871Z"
+      },
+      {
+        "word": "smooth",
+        "learntAt": "2026-01-31T10:11:32.898Z"
+      },
+      {
+        "word": "somewhere",
+        "learntAt": "2026-01-31T10:09:36.274Z"
+      },
+      {
+        "word": "sorrow",
+        "learntAt": "2026-01-31T10:09:01.296Z"
+      },
+      {
+        "word": "spindle",
+        "learntAt": "2026-01-31T11:18:42.390Z"
+      },
+      {
+        "word": "stared",
+        "learntAt": "2026-01-31T10:10:56.666Z"
+      },
+      {
+        "word": "staring",
+        "learntAt": "2026-01-31T10:50:08.427Z"
+      },
+      {
+        "word": "stars",
+        "learntAt": "2026-01-31T10:06:17.346Z"
+      },
+      {
+        "word": "steal",
+        "learntAt": "2026-01-31T10:10:40.271Z"
+      },
+      {
+        "word": "stepped",
+        "learntAt": "2026-01-31T10:15:48.793Z"
+      },
+      {
+        "word": "stolen",
+        "learntAt": "2026-01-31T10:06:32.508Z"
+      },
+      {
+        "word": "surrounding",
+        "learntAt": "2026-01-31T10:16:08.027Z"
+      },
+      {
+        "word": "sweet",
+        "learntAt": "2026-01-31T10:07:59.211Z"
+      },
+      {
+        "word": "sweetness",
+        "learntAt": "2026-01-31T10:09:21.620Z"
+      },
+      {
+        "word": "taking",
+        "learntAt": "2026-01-31T10:16:35.833Z"
+      },
+      {
+        "word": "themselves",
+        "learntAt": "2026-01-31T10:06:27.807Z"
+      },
+      {
+        "word": "towards",
+        "learntAt": "2026-01-31T10:11:11.123Z"
+      },
+      {
+        "word": "traveler",
+        "learntAt": "2026-01-31T10:18:10.295Z"
+      },
+      {
+        "word": "trees",
+        "learntAt": "2026-01-31T10:06:18.401Z"
+      },
+      {
+        "word": "tried",
+        "learntAt": "2026-01-31T10:17:53.806Z"
+      },
+      {
+        "word": "troubled",
+        "learntAt": "2026-01-31T10:18:00.714Z"
+      },
+      {
+        "word": "turned",
+        "learntAt": "2026-01-31T10:11:29.821Z"
+      },
+      {
+        "word": "turning",
+        "learntAt": "2026-01-31T10:11:10.088Z"
+      },
+      {
+        "word": "uncle",
+        "learntAt": "2026-01-31T10:10:46.088Z"
+      },
+      {
+        "word": "unconvinced",
+        "learntAt": "2026-01-31T10:18:30.975Z"
+      },
+      {
+        "word": "unease",
+        "learntAt": "2026-01-31T10:17:34.214Z"
+      },
+      {
+        "word": "unexpected",
+        "learntAt": "2026-01-31T10:18:02.983Z"
+      },
+      {
+        "word": "upon",
+        "learntAt": "2026-01-31T10:05:52.587Z"
+      },
+      {
+        "word": "upstairs",
+        "learntAt": "2026-01-31T10:50:07.190Z"
+      },
+      {
+        "word": "visitor",
+        "learntAt": "2026-01-31T10:18:05.195Z"
+      },
+      {
+        "word": "water",
+        "learntAt": "2026-01-31T10:09:33.959Z"
+      },
+      {
+        "word": "weaved",
+        "learntAt": "2026-01-31T10:08:41.465Z"
+      },
+      {
+        "word": "whisper",
+        "learntAt": "2026-01-31T10:09:17.309Z"
+      },
+      {
+        "word": "whispered",
+        "learntAt": "2026-01-31T10:11:49.195Z"
+      },
+      {
+        "word": "wilder",
+        "learntAt": "2026-01-31T10:07:45.539Z"
+      },
+      {
+        "word": "wise",
+        "learntAt": "2026-01-31T10:08:17.017Z"
+      },
+      {
+        "word": "witch",
+        "learntAt": "2026-01-31T10:08:18.127Z"
+      },
+      {
+        "word": "within",
+        "learntAt": "2026-01-31T10:09:04.664Z"
+      },
+      {
+        "word": "wolf",
+        "learntAt": "2026-01-31T10:08:27.242Z"
+      },
+      {
+        "word": "wolves",
+        "learntAt": "2026-01-31T10:07:46.439Z"
+      },
+      {
+        "word": "woodland",
+        "learntAt": "2026-01-31T10:09:27.129Z"
+      },
+      {
+        "word": "woven",
+        "learntAt": "2026-01-31T10:11:47.550Z"
+      },
+      {
+        "word": "years",
+        "learntAt": "2026-01-31T10:09:51.914Z"
+      }
+    ],
+    "annotations": [
+      {
+        "word": "Carriages",
+        "ipa": "ˈkærɪdʒɪz",
+        "chinese": "马车",
+        "definition": "A wheeled vehicle for conveying people or goods, often pulled by horses or used in trains.",
+        "cachedAt": "2026-01-31T10:13:23.739Z"
+      },
+      {
+        "word": "Impossible",
+        "ipa": "ɪmˈpɒsəbl",
+        "chinese": "不可能",
+        "definition": "Not able to occur, exist, or be done.",
+        "cachedAt": "2026-01-31T10:13:03.611Z"
+      },
+      {
+        "word": "Journeying",
+        "ipa": "ˈdʒɜːrniɪŋ",
+        "chinese": "旅行",
+        "definition": "The act of traveling from one place to another, especially over a long distance.",
+        "cachedAt": "2026-01-31T10:09:10.423Z"
+      },
+      {
+        "word": "Lullaby",
+        "ipa": "ˈlʌləbaɪ",
+        "chinese": "摇篮曲",
+        "definition": "A gentle song sung to soothe a child to sleep.",
+        "cachedAt": "2026-01-31T10:12:45.951Z"
+      },
+      {
+        "word": "Spindle",
+        "ipa": "ˈspɪndəl",
+        "chinese": "纺锤",
+        "definition": "A spindle is a slender, rounded rod or pin used in spinning to twist fibers into thread or yarn.",
+        "cachedAt": "2026-01-31T10:00:32.586Z"
+      },
+      {
+        "word": "Tobias",
+        "ipa": "təˈbaɪəs",
+        "chinese": "托比亚斯",
+        "definition": "A male given name of Hebrew origin, often associated with the biblical figure Tobias.",
+        "cachedAt": "2026-01-31T10:13:53.978Z"
+      },
+      {
+        "word": "afresh",
+        "ipa": "əˈfrɛʃ",
+        "chinese": "重新",
+        "definition": "In a new or different way; starting again.",
+        "cachedAt": "2026-01-31T11:15:37.159Z"
+      },
+      {
+        "word": "authority",
+        "ipa": "əˈθɔːrɪti",
+        "chinese": "权威",
+        "definition": "The power or right to give orders, make decisions, and enforce obedience.",
+        "cachedAt": "2026-01-31T10:13:41.088Z"
+      },
+      {
+        "word": "beech",
+        "ipa": "biːtʃ",
+        "chinese": "山毛榉",
+        "definition": "A type of tree that has smooth gray bark and produces small, edible nuts.",
+        "cachedAt": "2026-01-31T11:12:24.027Z"
+      },
+      {
+        "word": "bewitching",
+        "ipa": "bɪˈwɪtʃɪŋ",
+        "chinese": "迷人的",
+        "definition": "Charming or enchanting in a way that attracts attention.",
+        "cachedAt": "2026-01-31T10:12:35.530Z"
+      },
+      {
+        "word": "blotting",
+        "ipa": "ˈblɒtɪŋ",
+        "chinese": "吸墨纸",
+        "definition": "The act of absorbing or soaking up liquid, especially ink, using a material like paper.",
+        "cachedAt": "2026-01-31T11:15:45.702Z"
+      },
+      {
+        "word": "boughs",
+        "ipa": "baʊz",
+        "chinese": "树枝",
+        "definition": "The main branches of a tree.",
+        "cachedAt": "2026-01-31T09:51:36.911Z"
+      },
+      {
+        "word": "bound",
+        "ipa": "baʊnd",
+        "chinese": "界限",
+        "definition": "to be tied or secured; to move with a leap or spring; also refers to a limit or boundary.",
+        "cachedAt": "2026-01-31T11:12:53.658Z"
+      },
+      {
+        "word": "briar",
+        "ipa": "ˈbraɪər",
+        "chinese": "荆棘",
+        "definition": "A thorny plant or bush, often used to refer to wild roses or similar plants.",
+        "cachedAt": "2026-01-31T10:13:14.213Z"
+      },
+      {
+        "word": "burrowed",
+        "ipa": "ˈbɜːroʊd",
+        "chinese": "挖洞",
+        "definition": "To make a hole or tunnel in the ground, often for shelter or to hide.",
+        "cachedAt": "2026-01-31T11:16:23.687Z"
+      },
+      {
+        "word": "calmed",
+        "ipa": "kɑːmd",
+        "chinese": "平静",
+        "definition": "made someone or something less agitated or excited; soothed",
+        "cachedAt": "2026-01-31T10:12:43.516Z"
+      },
+      {
+        "word": "carts",
+        "ipa": "kɑrts",
+        "chinese": "手推车",
+        "definition": "A cart is a vehicle with either two or four wheels that is used for carrying goods or people.",
+        "cachedAt": "2026-01-31T10:13:26.384Z"
+      },
+      {
+        "word": "cinnamon",
+        "ipa": "ˈsɪnəmən",
+        "chinese": "肉桂",
+        "definition": "A spice made from the inner bark of trees from the genus Cinnamomum, used in cooking and baking.",
+        "cachedAt": "2026-01-31T10:12:38.626Z"
+      },
+      {
+        "word": "circumstances",
+        "ipa": "ˈsɜːrkəmstænsɪz",
+        "chinese": "情况",
+        "definition": "The conditions or facts that are connected to a particular situation.",
+        "cachedAt": "2026-01-31T11:01:36.090Z"
+      },
+      {
+        "word": "clasped",
+        "ipa": "klæst",
+        "chinese": "握住",
+        "definition": "held something tightly in one's hand or arms",
+        "cachedAt": "2026-01-31T10:16:42.848Z"
+      },
+      {
+        "word": "copper",
+        "ipa": "ˈkɒp.ər",
+        "chinese": "铜",
+        "definition": "A reddish-brown metal that is a good conductor of heat and electricity, often used in electrical wiring and plumbing.",
+        "cachedAt": "2026-01-31T11:12:21.120Z"
+      },
+      {
+        "word": "cottage",
+        "ipa": "ˈkɒtɪdʒ",
+        "chinese": "小屋",
+        "definition": "A small house, usually in the countryside.",
+        "cachedAt": "2026-01-31T10:13:56.228Z"
+      },
+      {
+        "word": "courtyard",
+        "ipa": "ˈkɔːrtyɑːrd",
+        "chinese": "庭院",
+        "definition": "An open area surrounded by walls or buildings, often found in a house or a larger complex.",
+        "cachedAt": "2026-01-31T10:00:36.646Z"
+      },
+      {
+        "word": "criss",
+        "ipa": "krɪs",
+        "chinese": "交叉",
+        "definition": "To form a pattern or shape by crossing lines or paths.",
+        "cachedAt": "2026-01-31T09:51:31.771Z"
+      },
+      {
+        "word": "crown",
+        "ipa": "kraʊn",
+        "chinese": "王冠",
+        "definition": "A circular ornamental headdress worn by a monarch as a symbol of authority.",
+        "cachedAt": "2026-01-31T10:16:40.417Z"
+      },
+      {
+        "word": "curled",
+        "ipa": "kɜrld",
+        "chinese": "卷曲",
+        "definition": "to form into a spiral or curved shape",
+        "cachedAt": "2026-01-31T09:33:13.445Z"
+      },
+      {
+        "word": "daggers",
+        "ipa": "ˈdæɡərz",
+        "chinese": "匕首",
+        "definition": "A type of knife with a pointed and double-edged blade, often used as a weapon.",
+        "cachedAt": "2026-01-31T10:13:21.006Z"
+      },
+      {
+        "word": "dawn",
+        "ipa": "dɔːn",
+        "chinese": "黎明",
+        "definition": "The time of day when light first appears; the beginning of the day.",
+        "cachedAt": "2026-01-31T09:33:01.407Z"
+      },
+      {
+        "word": "doorway",
+        "ipa": "ˈdɔːrweɪ",
+        "chinese": "门口",
+        "definition": "An opening in a wall that leads from one room to another, typically framed by a door.",
+        "cachedAt": "2026-01-31T10:16:52.856Z"
+      },
+      {
+        "word": "drafts",
+        "ipa": "dræfts",
+        "chinese": "草稿",
+        "definition": "Preliminary versions of a piece of writing or plans.",
+        "cachedAt": "2026-01-31T11:02:05.677Z"
+      },
+      {
+        "word": "dragging",
+        "ipa": "ˈdræɡɪŋ",
+        "chinese": "拖",
+        "definition": "Pulling something along the ground or through the air with effort.",
+        "cachedAt": "2026-01-31T11:16:44.753Z"
+      },
+      {
+        "word": "drawing",
+        "ipa": "ˈdrɔːɪŋ",
+        "chinese": "绘画",
+        "definition": "The act of making a picture or design by marking a surface with a pencil, pen, or other tool.",
+        "cachedAt": "2026-01-31T10:16:55.241Z"
+      },
+      {
+        "word": "drifted",
+        "ipa": "drɪftɪd",
+        "chinese": "漂流",
+        "definition": "To be carried slowly by a current of air or water.",
+        "cachedAt": "2026-01-31T10:12:41.038Z"
+      },
+      {
+        "word": "feral",
+        "ipa": "ˈfɛrəl",
+        "chinese": "野生",
+        "definition": "Existing in a wild or untamed state, especially referring to domesticated animals that have returned to the wild.",
+        "cachedAt": "2026-01-31T09:51:47.608Z"
+      },
+      {
+        "word": "flanked",
+        "ipa": "flæŋkt",
+        "chinese": "侧面",
+        "definition": "To be situated on either side of something or someone.",
+        "cachedAt": "2026-01-31T10:12:31.701Z"
+      },
+      {
+        "word": "frightened",
+        "ipa": "ˈfraɪtənd",
+        "chinese": "害怕的",
+        "definition": "feeling fear or anxiety; scared",
+        "cachedAt": "2026-01-31T11:02:32.314Z"
+      },
+      {
+        "word": "galloped",
+        "ipa": "ˈɡæl.əpt",
+        "chinese": "疾驰",
+        "definition": "to run fast, often used to describe the way a horse moves",
+        "cachedAt": "2026-01-31T09:51:29.036Z"
+      },
+      {
+        "word": "glade",
+        "ipa": "ɡleɪd",
+        "chinese": "林间空地",
+        "definition": "A clearing in a forest or wooded area.",
+        "cachedAt": "2026-01-31T09:58:12.991Z"
+      },
+      {
+        "word": "growl",
+        "ipa": "ɡraʊl",
+        "chinese": "低吼",
+        "definition": "to make a low, guttural sound, often as a sign of anger or warning",
+        "cachedAt": "2026-01-31T11:13:58.766Z"
+      },
+      {
+        "word": "halted",
+        "ipa": "hɔːltɪd",
+        "chinese": "停止",
+        "definition": "to stop something from continuing or happening",
+        "cachedAt": "2026-01-31T10:12:50.795Z"
+      },
+      {
+        "word": "hawthorn",
+        "ipa": "ˈhɔːθɔːrn",
+        "chinese": "山楂",
+        "definition": "A type of shrub or small tree that produces white or pink flowers and small red berries, commonly found in Europe and North America.",
+        "cachedAt": "2026-01-31T09:58:57.856Z"
+      },
+      {
+        "word": "hazelnuts",
+        "ipa": "ˈheɪ.zəl.nʌts",
+        "chinese": "榛子",
+        "definition": "A type of nut that comes from the hazel tree, often used in cooking and baking.",
+        "cachedAt": "2026-01-31T11:12:38.167Z"
+      },
+      {
+        "word": "howl",
+        "ipa": "haʊl",
+        "chinese": "嚎叫",
+        "definition": "to make a long, loud, mournful sound, typically associated with wolves or dogs",
+        "cachedAt": "2026-01-31T10:12:48.432Z"
+      },
+      {
+        "word": "howled",
+        "ipa": "haʊld",
+        "chinese": "嚎叫",
+        "definition": "to make a long, loud cry, usually associated with animals like wolves or dogs",
+        "cachedAt": "2026-01-31T09:51:44.758Z"
+      },
+      {
+        "word": "howls",
+        "ipa": "haʊlz",
+        "chinese": "嚎叫",
+        "definition": "To make a long, loud cry, often associated with animals like wolves or dogs.",
+        "cachedAt": "2026-01-31T10:15:59.671Z"
+      },
+      {
+        "word": "huddled",
+        "ipa": "ˈhʌdld",
+        "chinese": "蜷缩",
+        "definition": "To gather closely together, often for warmth or protection.",
+        "cachedAt": "2026-01-31T09:32:55.221Z"
+      },
+      {
+        "word": "impassable",
+        "ipa": "ɪmˈpæsəbl",
+        "chinese": "无法通行的",
+        "definition": "Not able to be traveled or crossed.",
+        "cachedAt": "2026-01-31T10:13:08.703Z"
+      },
+      {
+        "word": "incantation",
+        "ipa": "ɪnˌkænˈteɪʃən",
+        "chinese": "咒语",
+        "definition": "A series of words said as a magic spell or charm.",
+        "cachedAt": "2026-01-31T11:13:10.651Z"
+      },
+      {
+        "word": "jaws",
+        "ipa": "dʒɔːz",
+        "chinese": "下颚",
+        "definition": "The lower part of the face that moves when you open and close your mouth, used for biting and chewing.",
+        "cachedAt": "2026-01-31T10:16:45.543Z"
+      },
+      {
+        "word": "laced",
+        "ipa": "leɪst",
+        "chinese": "系带",
+        "definition": "to fasten or secure with a lace or string; can also mean to add something to enhance or improve, often used in a figurative sense.",
+        "cachedAt": "2026-01-31T10:13:16.375Z"
+      },
+      {
+        "word": "mane",
+        "ipa": "meɪn",
+        "chinese": "鬃毛",
+        "definition": "The long hair that grows from the top of the head and neck of certain animals, especially horses and lions.",
+        "cachedAt": "2026-01-31T10:13:38.506Z"
+      },
+      {
+        "word": "manor",
+        "ipa": "ˈmænər",
+        "chinese": "庄园",
+        "definition": "A large country house with lands, often the residence of a lord or noble.",
+        "cachedAt": "2026-01-31T09:33:08.496Z"
+      },
+      {
+        "word": "matted",
+        "ipa": "mætɪd",
+        "chinese": "纠结的",
+        "definition": "tangled or knotted together, often used to describe hair or fur that is not smooth",
+        "cachedAt": "2026-01-31T11:15:05.867Z"
+      },
+      {
+        "word": "moonstruck",
+        "ipa": "ˈmuːnstrʌk",
+        "chinese": "月亮迷",
+        "definition": "Having a dreamy or romantic quality, often as if influenced by the moon.",
+        "cachedAt": "2026-01-31T11:15:09.835Z"
+      },
+      {
+        "word": "mottled",
+        "ipa": "ˈmɒt.əld",
+        "chinese": "斑驳",
+        "definition": "having spots or patches of color",
+        "cachedAt": "2026-01-31T10:08:32.644Z"
+      },
+      {
+        "word": "nightfall",
+        "ipa": "ˈnaɪt.fɔːl",
+        "chinese": "夜幕",
+        "definition": "The time of day when it becomes dark because the sun has set.",
+        "cachedAt": "2026-01-31T11:02:45.601Z"
+      },
+      {
+        "word": "palm",
+        "ipa": "pɑːm",
+        "chinese": "手掌",
+        "definition": "The inner surface of the hand between the wrist and the fingers.",
+        "cachedAt": "2026-01-31T09:51:34.404Z"
+      },
+      {
+        "word": "petal",
+        "ipa": "ˈpɛtəl",
+        "chinese": "花瓣",
+        "definition": "One of the colorful parts of a flower that are often arranged in a circle around the center.",
+        "cachedAt": "2026-01-31T11:13:20.348Z"
+      },
+      {
+        "word": "pledge",
+        "ipa": "plɛdʒ",
+        "chinese": "承诺",
+        "definition": "A serious promise or commitment to do something.",
+        "cachedAt": "2026-01-31T10:00:39.380Z"
+      },
+      {
+        "word": "posts",
+        "ipa": "poʊsts",
+        "chinese": "帖子",
+        "definition": "Messages or content shared on social media or online platforms.",
+        "cachedAt": "2026-01-31T11:02:37.040Z"
+      },
+      {
+        "word": "ragged",
+        "ipa": "ˈræɡɪd",
+        "chinese": "破烂的",
+        "definition": "Having a rough, uneven, or torn edge or surface; in poor condition.",
+        "cachedAt": "2026-01-31T11:15:00.891Z"
+      },
+      {
+        "word": "realigned",
+        "ipa": "ˌriːəˈlaɪnd",
+        "chinese": "重新调整",
+        "definition": "To change the position or direction of something to make it more accurate or effective.",
+        "cachedAt": "2026-01-31T09:51:39.671Z"
+      },
+      {
+        "word": "round",
+        "ipa": "raʊnd",
+        "chinese": "圆",
+        "definition": "having a shape that is like a circle or a sphere; not sharp or angular",
+        "cachedAt": "2026-01-31T09:58:20.713Z"
+      },
+      {
+        "word": "rounds",
+        "ipa": "raʊndz",
+        "chinese": "轮次",
+        "definition": "Plural form of 'round', which can refer to a circular shape, a stage in a competition, or a series of actions.",
+        "cachedAt": "2026-01-31T11:03:10.807Z"
+      },
+      {
+        "word": "scraping",
+        "ipa": "ˈskreɪpɪŋ",
+        "chinese": "刮",
+        "definition": "The act of removing a layer from a surface by rubbing or pulling something sharp across it.",
+        "cachedAt": "2026-01-31T11:15:52.854Z"
+      },
+      {
+        "word": "scuffling",
+        "ipa": "ˈskʌf.əl",
+        "chinese": "打斗",
+        "definition": "A short, confused fight or struggle.",
+        "cachedAt": "2026-01-31T10:12:56.642Z"
+      },
+      {
+        "word": "shades",
+        "ipa": "ʃeɪdz",
+        "chinese": "阴影",
+        "definition": "A pair of dark glasses worn to protect the eyes from sunlight.",
+        "cachedAt": "2026-01-31T10:12:26.915Z"
+      },
+      {
+        "word": "shimmer",
+        "ipa": "ˈʃɪmər",
+        "chinese": "闪烁",
+        "definition": "To shine with a soft, wavering light.",
+        "cachedAt": "2026-01-31T10:13:47.962Z"
+      },
+      {
+        "word": "shook",
+        "ipa": "ʃʊk",
+        "chinese": "摇动",
+        "definition": "to move something or someone up and down or from side to side with quick movements",
+        "cachedAt": "2026-01-31T09:21:06.417Z"
+      },
+      {
+        "word": "silken",
+        "ipa": "ˈsɪlkən",
+        "chinese": "丝绸的",
+        "definition": "made of silk; smooth and soft in texture",
+        "cachedAt": "2026-01-31T10:13:36.000Z"
+      },
+      {
+        "word": "snare",
+        "ipa": "snɛr",
+        "chinese": "陷阱",
+        "definition": "A trap for capturing animals or a situation that entangles or traps someone.",
+        "cachedAt": "2026-01-31T11:14:56.314Z"
+      },
+      {
+        "word": "solidness",
+        "ipa": "ˈsɒlɪdnəs",
+        "chinese": "坚固",
+        "definition": "The quality or state of being solid; firmness or stability.",
+        "cachedAt": "2026-01-31T10:13:00.882Z"
+      },
+      {
+        "word": "stallion",
+        "ipa": "ˈstæljən",
+        "chinese": "种马",
+        "definition": "A male horse that is not castrated and is used for breeding.",
+        "cachedAt": "2026-01-31T10:13:30.657Z"
+      },
+      {
+        "word": "stems",
+        "ipa": "stɛmz",
+        "chinese": "茎",
+        "definition": "The main part of a plant that supports leaves, flowers, or fruits.",
+        "cachedAt": "2026-01-31T11:15:28.297Z"
+      },
+      {
+        "word": "stroked",
+        "ipa": "stroʊkt",
+        "chinese": "抚摸",
+        "definition": "To move your hand gently over something, often in a caring or affectionate way.",
+        "cachedAt": "2026-01-31T10:13:33.543Z"
+      },
+      {
+        "word": "summon",
+        "ipa": "ˈsʌmən",
+        "chinese": "召唤",
+        "definition": "To call upon someone to be present, especially in a formal way.",
+        "cachedAt": "2026-01-31T10:13:43.532Z"
+      },
+      {
+        "word": "tangled",
+        "ipa": "ˈtæŋɡəld",
+        "chinese": "纠缠",
+        "definition": "twisted together in a confused way; not straight or orderly",
+        "cachedAt": "2026-01-31T10:13:11.293Z"
+      },
+      {
+        "word": "tenderly",
+        "ipa": "ˈtɛndərli",
+        "chinese": "温柔地",
+        "definition": "In a gentle, loving, or caring manner.",
+        "cachedAt": "2026-01-31T10:16:48.018Z"
+      },
+      {
+        "word": "thorns",
+        "ipa": "θɔrnz",
+        "chinese": "刺",
+        "definition": "Sharp, pointed projections that grow on the stems of some plants, often as a defense mechanism.",
+        "cachedAt": "2026-01-31T10:13:19.088Z"
+      },
+      {
+        "word": "tingling",
+        "ipa": "ˈtɪŋɡlɪŋ",
+        "chinese": "刺痛",
+        "definition": "A sensation of slight prickling or stinging, often felt in the skin.",
+        "cachedAt": "2026-01-31T10:13:50.756Z"
+      },
+      {
+        "word": "tipped",
+        "ipa": "tɪpt",
+        "chinese": "小费",
+        "definition": "to give a small amount of money to someone for their service, in addition to the regular payment",
+        "cachedAt": "2026-01-31T09:51:42.348Z"
+      },
+      {
+        "word": "tunnel",
+        "ipa": "ˈtʌnəl",
+        "chinese": "隧道",
+        "definition": "A long, narrow passage that goes underground or through a mountain.",
+        "cachedAt": "2026-01-31T09:58:54.207Z"
+      },
+      {
+        "word": "twine",
+        "ipa": "twaɪn",
+        "chinese": "细绳",
+        "definition": "A strong thread or string made of two or more strands twisted together.",
+        "cachedAt": "2026-01-31T11:13:05.649Z"
+      },
+      {
+        "word": "unfathomable",
+        "ipa": "ʌnˈfæðəməbl",
+        "chinese": "不可测量的",
+        "definition": "Impossible to understand or measure; incomprehensible.",
+        "cachedAt": "2026-01-31T10:13:06.433Z"
+      },
+      {
+        "word": "vigorously",
+        "ipa": "ˈvɪɡərəsli",
+        "chinese": "有力地",
+        "definition": "In a way that involves physical strength, effort, or energy.",
+        "cachedAt": "2026-01-31T09:21:18.401Z"
+      },
+      {
+        "word": "watchful",
+        "ipa": "ˈwɒtʃfəl",
+        "chinese": "警惕的",
+        "definition": "Being alert and paying attention to possible dangers or problems.",
+        "cachedAt": "2026-01-31T10:12:54.041Z"
+      },
+      {
+        "word": "wicked",
+        "ipa": "ˈwɪkɪd",
+        "chinese": "邪恶",
+        "definition": "morally bad or evil; also used informally to mean excellent or impressive",
+        "cachedAt": "2026-01-31T10:12:58.636Z"
+      },
+      {
+        "word": "woodcutter",
+        "ipa": "ˈwʊdˌkʌtər",
+        "chinese": "伐木工",
+        "definition": "A person whose job is to cut down trees for wood.",
+        "cachedAt": "2026-01-31T11:14:35.680Z"
+      }
+    ]
+  },
+  "statistics": {
+    "totalKnownWords": 1110,
+    "totalLearntWords": 155,
+    "totalAnnotations": 88
+  }
+}
