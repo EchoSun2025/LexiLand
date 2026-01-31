@@ -8,6 +8,7 @@ interface ParagraphProps {
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
   showChinese: boolean;
+  autoMark: boolean;
   onWordClick?: (word: string) => void;
   onMarkKnown?: (word: string) => void;
   onParagraphAction?: () => void;
@@ -20,6 +21,7 @@ export default function Paragraph({
   annotations,
   showIPA,
   showChinese,
+  autoMark,
   onWordClick,
   onMarkKnown,
   onParagraphAction
@@ -43,6 +45,7 @@ export default function Paragraph({
           annotations={annotations}
           showIPA={showIPA}
           showChinese={showChinese}
+          autoMark={autoMark}
           onWordClick={onWordClick}
           onMarkKnown={onMarkKnown}
         />

@@ -11,11 +11,12 @@ interface WordProps {
   };
   showIPA: boolean;
   showChinese: boolean;
+  autoMark: boolean;
   onClick?: () => void;
   onMarkKnown?: (word: string) => void;
 }
 
-export default function Word({ token, isKnown, isLearnt, annotation, showIPA, showChinese, onClick, onMarkKnown }: WordProps) {
+export default function Word({ token, isKnown, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown }: WordProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   if (token.type !== 'word') {
@@ -25,6 +26,9 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
   const isUnknown = !isKnown && !isLearnt && token.text.length > 1;
   // 淡橙色高亮: 已学习且有注释数据的单词
   const showLearnt = isLearnt && annotation && (annotation as any).definition;
+  
+  // 可点击条件：autoMark模式下只有未知词和learnt可点，非autoMark模式下所有词都可点
+  const isClickable = autoMark ? (isUnknown || showLearnt) : token.text.length > 1;
 
   const handleMarkKnown = (e: React.MouseEvent) => {
     e.stopPropagation(); // 防止触发 onClick
@@ -39,19 +43,21 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
     >
       <span
         className={`${
-          isUnknown
+          autoMark && isUnknown
             ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'
             : showLearnt
             ? 'bg-orange-100 rounded px-0.5 cursor-pointer hover:bg-orange-200'
+            : isClickable && !autoMark
+            ? 'cursor-pointer hover:bg-yellow-50'
             : ''
         }`}
-        onClick={isUnknown || showLearnt ? onClick : undefined}
+        onDoubleClick={isClickable ? onClick : undefined}
       >
         {token.text}
       </span>
 
       {/* × 按钮 - 悬停时显示 */}
-      {isUnknown && isHovered && (
+      {autoMark && isUnknown && isHovered && (
         <button
           onClick={handleMarkKnown}
           className="absolute -top-1 -right-3 w-5 h-5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-600 hover:text-gray-800 rounded text-sm flex items-center justify-center shadow-sm transition-all"
@@ -61,7 +67,7 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
         </button>
       )}
       
-      {isUnknown && annotation && (
+      {autoMark && isUnknown && annotation && (
         <>
           {showIPA && annotation.ipa && (
             <span className="text-[10px] text-muted ml-1 whitespace-nowrap">

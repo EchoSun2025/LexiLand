@@ -3,9 +3,16 @@ import type { WordAnnotation } from '../api';
 interface WordCardProps {
   annotation: WordAnnotation;
   onClose: () => void;
+  onDelete?: (word: string) => void;
 }
 
-export default function WordCard({ annotation, onClose }: WordCardProps) {
+export default function WordCard({ annotation, onClose, onDelete }: WordCardProps) {
+  const handleDelete = () => {
+    if (confirm(`Delete "${annotation.word}" from cards?`)) {
+      onDelete?.(annotation.word);
+    }
+  };
+
   return (
     <div className="bg-white border border-border rounded-2xl p-4 mb-3 shadow-sm">
       {/* Header */}
@@ -64,6 +71,14 @@ export default function WordCard({ annotation, onClose }: WordCardProps) {
         <button className="flex-1 px-3 py-2 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-semibold">
           🔊 Pronounce
         </button>
+        {onDelete && (
+          <button 
+            onClick={handleDelete}
+            className="flex-1 px-3 py-2 text-sm bg-red-50 text-red-700 hover:bg-red-100 rounded-lg font-semibold"
+          >
+            🗑️ Delete
+          </button>
+        )}
       </div>
     </div>
   );

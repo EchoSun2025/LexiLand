@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation } from './db'
 import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
@@ -18,6 +18,7 @@ function App() {
     showIPA,
     showChinese,
     level,
+    autoMark,
     addDocument,
     setCurrentDocument,
     setSelectedWord,
@@ -25,9 +26,11 @@ function App() {
     addKnownWord,
     addLearntWord,
     removeLearntWord,
+    removeAnnotation,
     setShowIPA,
     setShowChinese,
     setLevel,
+    setAutoMark,
     loadKnownWords,
   } = useAppStore();
 
@@ -125,6 +128,70 @@ function App() {
       console.error('Failed to mark word as learnt:', error);
     }
   };
+
+  // Handle delete from cards
+  const handleDeleteFromCards = async (word: string) => {
+    try {
+      // Remove annotation from store
+      removeAnnotation(word);
+      
+      // Remove from IndexedDB
+      await deleteAnnotation(word);
+      
+      // Add to known words
+      addKnownWord(word);
+      await addKnownWordToDB(word);
+      
+      // Close the card
+      setCurrentAnnotation(null);
+      
+      console.log(`Deleted "${word}" from cards and added to known words`);
+    } catch (error) {
+      console.error('Failed to delete from cards:', error);
+    }
+  };
+
+  // Handle mark all unmarked words as known
+  const handleMarkAllUnmarkedAsKnown = async () => {
+    if (!currentDocument) return;
+    
+    // Collect all words that are not in knownWords, learntWords, or annotations
+    const allWords = new Set<string>();
+    currentDocument.paragraphs.forEach(p => {
+      p.sentences.forEach(s => {
+        s.tokens.forEach(t => {
+          if (t.text.length > 1) {
+            allWords.add(t.text.toLowerCase());
+          }
+        });
+      });
+    });
+    
+    const unmarkedWords = Array.from(allWords).filter(
+      word => !knownWords.has(word) && !learntWords.has(word) && !annotations.has(word)
+    );
+    
+    if (unmarkedWords.length === 0) {
+      alert('No unmarked words found!');
+      return;
+    }
+    
+    if (!confirm(`Add ${unmarkedWords.length} unmarked words to known words?`)) {
+      return;
+    }
+    
+    try {
+      for (const word of unmarkedWords) {
+        addKnownWord(word);
+        await addKnownWordToDB(word);
+      }
+      alert(`Successfully added ${unmarkedWords.length} words to known words!`);
+    } catch (error) {
+      console.error('Failed to mark words as known:', error);
+      alert('Operation failed, please try again');
+    }
+  };
+
   // Handle batch annotate all unknown words
   const handleBatchAnnotate = async () => {
     if (!currentDocument) return;
@@ -371,6 +438,15 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           <input type="checkbox" checked={showChinese} onChange={(e) => setShowChinese(e.target.checked)} />
           中文
         </label>
+        
+        <button
+          onClick={() => setAutoMark(!autoMark)}
+          className={`px-3 py-1.5 border border-border rounded-lg text-sm font-semibold ${
+            autoMark ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'
+          }`}
+        >
+          {autoMark ? 'ON' : 'OFF'} Auto-mark
+        </button>
 
         <span className="text-xs text-muted">Level</span>
         <select 
@@ -440,10 +516,20 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     learntWords={learntWords}
                     annotations={annotations}
                     showIPA={showIPA}
-                    showChinese={showChinese}
-                    onWordClick={handleWordClick}                      onMarkKnown={handleMarkKnown}                    onParagraphAction={handleParagraphAction}
+                    showChinese={showChinese}                    autoMark={autoMark}                    onWordClick={handleWordClick}                      onMarkKnown={handleMarkKnown}                    onParagraphAction={handleParagraphAction}
                   />
                 ))}
+                
+                {!autoMark && (
+                  <div className="mt-8 flex justify-center">
+                    <button
+                      onClick={handleMarkAllUnmarkedAsKnown}
+                      className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm shadow-md"
+                    >
+                      ✓ Done - Mark All Unmarked as Known
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <>
@@ -476,6 +562,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               <WordCard
                 annotation={currentAnnotation}
                 onClose={() => setCurrentAnnotation(null)}
+                onDelete={handleDeleteFromCards}
               />
             )}
             

@@ -31,6 +31,7 @@ interface AppState {
   showIPA: boolean;
   showChinese: boolean;
   level: string;
+  autoMark: boolean;
   
   // Actions
   addDocument: (doc: Document) => void;
@@ -39,11 +40,13 @@ interface AppState {
   addKnownWord: (word: string) => void;
   addLearntWord: (word: string) => void;
   removeLearntWord: (word: string) => void;
+  removeAnnotation: (word: string) => void;
   addAnnotation: (word: string, annotation: WordAnnotation) => void;
   setSelectedWord: (word: string | null) => void;
   setShowIPA: (show: boolean) => void;
   setShowChinese: (show: boolean) => void;
   setLevel: (level: string) => void;
+  setAutoMark: (autoMark: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -56,6 +59,7 @@ export const useAppStore = create<AppState>((set) => ({
   showIPA: true,
   showChinese: true,
   level: 'B2',
+  autoMark: true,
   
   addDocument: (doc) => set((state) => ({
     documents: [...state.documents, doc],
@@ -84,6 +88,12 @@ export const useAppStore = create<AppState>((set) => ({
     return { learntWords: newLearntWords };
   }),
 
+  removeAnnotation: (word) => set((state) => {
+    const newAnnotations = new Map(state.annotations);
+    newAnnotations.delete(word.toLowerCase());
+    return { annotations: newAnnotations };
+  }),
+
   addAnnotation: (word, annotation) => set((state) => {
     const newAnnotations = new Map(state.annotations);
     newAnnotations.set(word.toLowerCase(), annotation);
@@ -95,4 +105,5 @@ export const useAppStore = create<AppState>((set) => ({
   setShowIPA: (show) => set({ showIPA: show }),
   setShowChinese: (show) => set({ showChinese: show }),
   setLevel: (level) => set({ level }),
+  setAutoMark: (autoMark) => set({ autoMark }),
 }));

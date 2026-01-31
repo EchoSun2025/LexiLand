@@ -143,3 +143,10 @@ export async function getAllLearntWords(): Promise<string[]> {
   const words = await db.learntWords.toArray();
   return words.map(w => w.word);
 }
+
+/**
+ * Delete an annotation from IndexedDB
+ */
+export async function deleteAnnotation(word: string): Promise<void> {
+  await db.annotations.delete(word.toLowerCase());
+}

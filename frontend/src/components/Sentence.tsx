@@ -8,11 +8,12 @@ interface SentenceProps {
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
   showChinese: boolean;
+  autoMark: boolean;
   onWordClick?: (word: string) => void;
   onMarkKnown?: (word: string) => void;
 }
 
-export default function Sentence({ sentence, knownWords, learntWords, annotations, showIPA, showChinese, onWordClick, onMarkKnown }: SentenceProps) {
+export default function Sentence({ sentence, knownWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown }: SentenceProps) {
   return (
     <span className="inline">
       {sentence.tokens.map((token, index) => (
@@ -24,6 +25,7 @@ export default function Sentence({ sentence, knownWords, learntWords, annotation
           annotation={annotations.get(token.text.toLowerCase())}
           showIPA={showIPA}
           showChinese={showChinese}
+          autoMark={autoMark}
           onClick={() => onWordClick?.(token.text)}
           onMarkKnown={onMarkKnown}
         />
