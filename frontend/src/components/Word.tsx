@@ -14,9 +14,10 @@ interface WordProps {
   autoMark: boolean;
   onClick?: () => void;
   onMarkKnown?: (word: string) => void;
+  isCurrentWord?: boolean;
 }
 
-export default function Word({ token, isKnown, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown }: WordProps) {
+export default function Word({ token, isKnown, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   if (token.type !== 'word') {
@@ -45,7 +46,9 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
     >
       <span
         className={`${
-          showLearnt
+          isCurrentWord
+            ? 'bg-yellow-300 font-bold rounded px-0.5 border-2 border-yellow-500'
+            : showLearnt
             ? 'bg-orange-100 rounded px-0.5 cursor-pointer hover:bg-orange-200'
             : (autoMark && isUnknown) || hasAnnotation
             ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'

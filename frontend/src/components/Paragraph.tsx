@@ -12,6 +12,10 @@ interface ParagraphProps {
   onWordClick?: (word: string) => void;
   onMarkKnown?: (word: string) => void;
   onParagraphAction?: () => void;
+  paragraphIndex?: number;
+  currentSentenceIndex?: number | null;
+  currentWordIndex?: number;
+  sentencesBeforeThisPara?: number;
 }
 
 export default function Paragraph({
@@ -24,7 +28,11 @@ export default function Paragraph({
   autoMark,
   onWordClick,
   onMarkKnown,
-  onParagraphAction
+  onParagraphAction,
+  paragraphIndex = 0,
+  currentSentenceIndex = null,
+  currentWordIndex = -1,
+  sentencesBeforeThisPara = 0
 }: ParagraphProps) {
   return (
     <div className="relative leading-relaxed mb-4 rounded-lg p-1.5 hover:bg-gray-50 group">
@@ -36,20 +44,32 @@ export default function Paragraph({
           &gt;
         </button>
       </div>
-      {paragraph.sentences.map((sentence, index) => (
-        <Sentence
-          key={sentence.id}
-          sentence={sentence}
-          knownWords={knownWords}
-          learntWords={learntWords}
-          annotations={annotations}
-          showIPA={showIPA}
-          showChinese={showChinese}
-          autoMark={autoMark}
-          onWordClick={onWordClick}
-          onMarkKnown={onMarkKnown}
-        />
-      ))}
+      {paragraph.sentences.map((sentence, index) => {
+        // Calculate global sentence index
+        const globalSentenceIndex = sentencesBeforeThisPara + index;
+        const isCurrentSentence = currentSentenceIndex === globalSentenceIndex;
+        
+        if (isCurrentSentence) {
+          console.log('[Paragraph] Current sentence:', globalSentenceIndex, 'wordIndex:', currentWordIndex, 'text:', sentence.text);
+        }
+        
+        return (
+          <Sentence
+            key={sentence.id}
+            sentence={sentence}
+            knownWords={knownWords}
+            learntWords={learntWords}
+            annotations={annotations}
+            showIPA={showIPA}
+            showChinese={showChinese}
+            autoMark={autoMark}
+            onWordClick={onWordClick}
+            onMarkKnown={onMarkKnown}
+            isCurrentSentence={isCurrentSentence}
+            currentWordIndex={currentWordIndex}
+          />
+        );
+      })}
     </div>
   );
 }

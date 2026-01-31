@@ -45,11 +45,33 @@ function App() {
   // Speech synthesis state
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState<number | null>(null);
+  const [currentWordIndex, setCurrentWordIndex] = useState<number>(-1);
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [speechRate, setSpeechRate] = useState(0.9);
+  const [speechPitch, setSpeechPitch] = useState(1.0);
+  const [selectedVoice, setSelectedVoice] = useState<string>('');
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [showSpeedControl, setShowSpeedControl] = useState(false);
+  const [showPitchControl, setShowPitchControl] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
+
+  // Load available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const enVoices = voices.filter(v => v.lang.startsWith('en'));
+      setAvailableVoices(enVoices);
+      if (enVoices.length > 0 && !selectedVoice) {
+        setSelectedVoice(enVoices[0].name);
+      }
+    };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }, [selectedVoice]);
 
   // Handle word click
   const handleWordClick = async (word: string, context?: string) => {
@@ -497,20 +519,48 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
     if (isSpeaking) {
       // Pause
+      console.log('[TTS] Pausing...');
+      setIsPaused(true);
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
-      setCurrentSentenceIndex(null);
+      // Don't clear currentSentenceIndex so we can resume from same position
     } else {
       // Start/Resume playing from current position or beginning
+      console.log('[TTS] Resuming from:', currentSentenceIndex);
+      setIsPaused(false);
       const startIndex = currentSentenceIndex ?? 0;
       speakFromSentence(startIndex);
     }
   };
 
   const handleStop = () => {
+    console.log('[TTS] Stopping...');
+    setIsPaused(false);
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
     setCurrentSentenceIndex(null);
+    setCurrentWordIndex(-1);
+    if (speechSynthesisRef.current) {
+      speechSynthesisRef.current = null;
+    }
+  };
+
+  const handlePrevSentence = () => {
+    if (currentSentenceIndex !== null && currentSentenceIndex > 0) {
+      console.log('[TTS] Going to previous sentence');
+      setIsPaused(false);
+      window.speechSynthesis.cancel();
+      speakFromSentence(currentSentenceIndex - 1);
+    }
+  };
+
+  const handleNextSentence = () => {
+    if (currentSentenceIndex !== null) {
+      console.log('[TTS] Going to next sentence');
+      setIsPaused(false);
+      window.speechSynthesis.cancel();
+      speakFromSentence(currentSentenceIndex + 1);
+    }
   };
 
   const speakFromSentence = (startIndex: number) => {
@@ -536,17 +586,57 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     const utterance = new SpeechSynthesisUtterance(sentence.text);
     
     // Configure speech
-    utterance.rate = 0.9; // Slightly slower for clarity
-    utterance.pitch = 1.0;
+    utterance.rate = speechRate;
+    utterance.pitch = speechPitch;
     utterance.volume = 1.0;
     utterance.lang = 'en-US';
+    
+    // Set voice if selected
+    if (selectedVoice) {
+      const voice = availableVoices.find(v => v.name === selectedVoice);
+      if (voice) {
+        utterance.voice = voice;
+      }
+    }
 
     utterance.onstart = () => {
+      console.log('[TTS] Started speaking sentence:', startIndex);
       setIsSpeaking(true);
       setCurrentSentenceIndex(startIndex);
+      setCurrentWordIndex(0);
+    };
+
+    // Track word-level progress
+    utterance.onboundary = (event) => {
+      if (event.name === 'word') {
+        const charIndex = event.charIndex;
+        console.log('[TTS] Word boundary at charIndex:', charIndex, 'sentence text:', sentence.text);
+        
+        // Find which word index corresponds to this character position
+        const sentenceData = currentDocument.paragraphs
+          .flatMap(p => p.sentences)[startIndex];
+        if (sentenceData && sentenceData.words) {
+          let currentChar = 0;
+          for (let i = 0; i < sentenceData.words.length; i++) {
+            const wordLength = sentenceData.words[i].length;
+            if (charIndex >= currentChar && charIndex < currentChar + wordLength) {
+              console.log('[TTS] Setting currentWordIndex to:', i, 'word:', sentenceData.words[i]);
+              setCurrentWordIndex(i);
+              break;
+            }
+            currentChar += wordLength + 1; // +1 for space
+          }
+        }
+      }
     };
 
     utterance.onend = () => {
+      console.log('[TTS] onend triggered, isPaused:', isPaused);
+      // Don't continue if user paused
+      if (isPaused) {
+        console.log('[TTS] Paused, not continuing');
+        return;
+      }
       // Move to next sentence
       const nextIndex = startIndex + 1;
       if (nextIndex < allSentences.length) {
@@ -595,6 +685,14 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         >
           ⏹
         </button>
+        <button
+          className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
+          title="Previous sentence"
+          onClick={handlePrevSentence}
+          disabled={!currentDocument || currentSentenceIndex === null || currentSentenceIndex === 0}
+        >
+          &lt;
+        </button>
         <button 
           className={`px-3 py-2 border rounded-lg text-sm ${
             isSpeaking 
@@ -607,12 +705,77 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         >
           {isSpeaking ? '⏸' : '▶'}
         </button>
-        <button className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm" title="Next sentence" disabled>
-          ⏭
+        <button
+          className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
+          title="Next sentence"
+          onClick={handleNextSentence}
+          disabled={!currentDocument || currentSentenceIndex === null}
+        >
+          &gt;
         </button>
 
-        <select className="px-3 py-2 border border-border rounded-lg bg-white text-sm" title="Voice">
-          <option value="">Voice (placeholder)</option>
+        {/* Speed control */}
+        <div className="relative">
+          <button
+            className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
+            title="Speed"
+            onClick={() => setShowSpeedControl(!showSpeedControl)}
+          >
+            Speed {speechRate.toFixed(1)}x
+          </button>
+          {showSpeedControl && (
+            <div className="absolute top-full mt-2 p-3 bg-white border border-border rounded-lg shadow-lg z-10 min-w-[200px]">
+              <label className="block text-sm mb-2">Speed: {speechRate.toFixed(1)}x</label>
+              <input
+                type="range"
+                min="0.5"
+                max="2.0"
+                step="0.1"
+                value={speechRate}
+                onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Pitch control */}
+        <div className="relative">
+          <button
+            className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
+            title="Pitch"
+            onClick={() => setShowPitchControl(!showPitchControl)}
+          >
+            Pitch {speechPitch.toFixed(1)}
+          </button>
+          {showPitchControl && (
+            <div className="absolute top-full mt-2 p-3 bg-white border border-border rounded-lg shadow-lg z-10 min-w-[200px]">
+              <label className="block text-sm mb-2">Pitch: {speechPitch.toFixed(1)}</label>
+              <input
+                type="range"
+                min="0.5"
+                max="2.0"
+                step="0.1"
+                value={speechPitch}
+                onChange={(e) => setSpeechPitch(parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Voice selector */}
+        <select
+          className="px-3 py-2 border border-border rounded-lg bg-white text-sm"
+          title="Voice"
+          value={selectedVoice}
+          onChange={(e) => setSelectedVoice(e.target.value)}
+        >
+          {availableVoices.map((voice) => (
+            <option key={voice.name} value={voice.name}>
+              {voice.name}
+            </option>
+          ))}
         </select>
 
         <button 

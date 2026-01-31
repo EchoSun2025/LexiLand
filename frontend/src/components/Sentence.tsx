@@ -11,15 +11,28 @@ interface SentenceProps {
   autoMark: boolean;
   onWordClick?: (word: string) => void;
   onMarkKnown?: (word: string) => void;
+  isCurrentSentence?: boolean;
+  currentWordIndex?: number;
 }
 
-export default function Sentence({ sentence, knownWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown }: SentenceProps) {
+export default function Sentence({ sentence, knownWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
+  let wordCount = 0; // Track word index within this sentence
+  
   return (
-    <span className="inline whitespace-pre-wrap">
+    <span className={`inline whitespace-pre-wrap ${isCurrentSentence ? 'bg-blue-100 rounded px-1' : ''}`}>
       {sentence.tokens.map((token, index) => {
         // For word tokens, render Word component followed by space if next token is not whitespace/punctuation
         const nextToken = sentence.tokens[index + 1];
         const needsSpace = token.type === 'word' && nextToken && nextToken.type === 'word';
+        const isWordToken = token.type === 'word';
+        
+        // Calculate isCurrentWord BEFORE incrementing wordCount
+        const isCurrentWord = isCurrentSentence && isWordToken && wordCount === currentWordIndex;
+        
+        // Increment wordCount AFTER checking
+        if (isWordToken) {
+          wordCount++;
+        }
         
         return (
           <span key={`${token.id}-${index}`}>
@@ -33,6 +46,7 @@ export default function Sentence({ sentence, knownWords, learntWords, annotation
               autoMark={autoMark}
               onClick={() => onWordClick?.(token.text)}
               onMarkKnown={onMarkKnown}
+              isCurrentWord={isCurrentWord}
             />
             {needsSpace && ' '}
           </span>
