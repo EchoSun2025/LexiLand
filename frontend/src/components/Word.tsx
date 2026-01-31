@@ -22,7 +22,7 @@ export default function Word({ token, isKnown, annotation, showIPA, showChinese,
   return (
     <>
       <span
-        className={`${isUnknown ? 'font-bold border-b border-gray-300 rounded px-0.5 cursor-pointer hover:bg-gray-100' : ''}`}
+        className={`${isUnknown ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100' : ''}`}
         onClick={isUnknown ? onClick : undefined}
       >
         {token.text}
@@ -31,7 +31,7 @@ export default function Word({ token, isKnown, annotation, showIPA, showChinese,
         <>
           {showIPA && annotation.ipa && (
             <span className="text-[10px] text-muted ml-1 whitespace-nowrap">
-              /{annotation.ipa}/
+              /{annotation.ipa.replace(/^\/+|\/+$/g, '')}/
             </span>
           )}
           {showChinese && annotation.chinese && (

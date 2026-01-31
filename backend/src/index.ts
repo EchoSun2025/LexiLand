@@ -51,8 +51,8 @@ ${context ? `\nContext: "${context}"` : ''}
 Please provide the following information in JSON format:
 {
   "word": "${word}",
-  "ipa": "International Phonetic Alphabet pronunciation",
-  "chinese": "Chinese translation (简体中文)",
+  "ipa": "International Phonetic Alphabet pronunciation (without slashes)",
+  "chinese": "Concise Chinese translation - ONE SHORT WORD OR PHRASE ONLY, no semicolons, no extra explanations (简体中文)",
   "definition": "Clear English definition",
   "example": "A natural example sentence using this word",
   "level": "CEFR level (A1/A2/B1/B2/C1/C2)",
