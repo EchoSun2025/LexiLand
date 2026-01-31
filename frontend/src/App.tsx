@@ -418,10 +418,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         >
           Load sample
         </button>
-        <button className="px-2 py-1 border border-active bg-active rounded-lg hover:bg-indigo-100 text-xs">
-          Auto-mark
-        </button>
-        <button 
+<button
           className="px-2 py-1 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 text-xs"
           onClick={handleBatchAnnotate}
           disabled={!currentDocument}
