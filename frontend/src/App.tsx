@@ -82,11 +82,16 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     const title = prompt('Enter document title:', 'Untitled Document');
     if (!title) return;
 
+    const content = prompt('Paste or enter your text content:\n(You can paste multiple paragraphs)', '');
+    if (content === null) return; // User clicked cancel
+    
+    const paragraphs = content.trim() ? tokenizeParagraphs(content) : [];
+
     addDocument({
       id: `doc-${Date.now()}`,
       title,
-      content: '',
-      paragraphs: [],
+      content: content.trim(),
+      paragraphs,
       createdAt: Date.now(),
     });
   };
