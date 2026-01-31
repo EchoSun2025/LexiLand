@@ -41,6 +41,11 @@ function App() {
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
+  
+  // Speech synthesis state
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState<number | null>(null);
+  const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   
@@ -486,6 +491,80 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     // TODO: Show paragraph card
   };
 
+  // Speech synthesis handlers
+  const handlePlayPause = () => {
+    if (!currentDocument) return;
+
+    if (isSpeaking) {
+      // Pause
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setCurrentSentenceIndex(null);
+    } else {
+      // Start/Resume playing from current position or beginning
+      const startIndex = currentSentenceIndex ?? 0;
+      speakFromSentence(startIndex);
+    }
+  };
+
+  const handleStop = () => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    setCurrentSentenceIndex(null);
+  };
+
+  const speakFromSentence = (startIndex: number) => {
+    if (!currentDocument) return;
+
+    const allSentences: { paragraphIndex: number; sentenceIndex: number; text: string }[] = [];
+    currentDocument.paragraphs.forEach((para, pIdx) => {
+      para.sentences.forEach((sent, sIdx) => {
+        allSentences.push({
+          paragraphIndex: pIdx,
+          sentenceIndex: sIdx,
+          text: sent.text
+        });
+      });
+    });
+
+    if (startIndex >= allSentences.length) {
+      handleStop();
+      return;
+    }
+
+    const sentence = allSentences[startIndex];
+    const utterance = new SpeechSynthesisUtterance(sentence.text);
+    
+    // Configure speech
+    utterance.rate = 0.9; // Slightly slower for clarity
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    utterance.lang = 'en-US';
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      setCurrentSentenceIndex(startIndex);
+    };
+
+    utterance.onend = () => {
+      // Move to next sentence
+      const nextIndex = startIndex + 1;
+      if (nextIndex < allSentences.length) {
+        speakFromSentence(nextIndex);
+      } else {
+        handleStop();
+      }
+    };
+
+    utterance.onerror = (error) => {
+      console.error('Speech synthesis error:', error);
+      handleStop();
+    };
+
+    speechSynthesisRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <input
@@ -507,14 +586,29 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-border px-4 py-2.5 flex items-center gap-3 flex-wrap">
         <div className="font-bold mr-2">LexiLand Read</div>
         
-        <button className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm" title="Previous sentence">
-          ⟨
+
+        <button 
+          className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm" 
+          title="Stop"
+          onClick={handleStop}
+          disabled={!isSpeaking}
+        >
+          ⏹
         </button>
-        <button className="px-3 py-2 border border-active bg-active rounded-lg hover:bg-indigo-100 text-sm" title="Play from cursor">
-          ▶
+        <button 
+          className={`px-3 py-2 border rounded-lg text-sm ${
+            isSpeaking 
+              ? 'border-active bg-active hover:bg-indigo-100' 
+              : 'border-border hover:bg-hover'
+          }`}
+          title={isSpeaking ? "Pause" : "Play"}
+          onClick={handlePlayPause}
+          disabled={!currentDocument}
+        >
+          {isSpeaking ? '⏸' : '▶'}
         </button>
-        <button className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm" title="Next sentence">
-          ⟩
+        <button className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm" title="Next sentence" disabled>
+          ⏭
         </button>
 
         <select className="px-3 py-2 border border-border rounded-lg bg-white text-sm" title="Voice">
