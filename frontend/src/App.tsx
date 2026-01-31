@@ -207,7 +207,10 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             ))}
 
             <div className="text-xs text-muted mt-3 mb-1">Documents</div>
-            <div className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm">
+            <div 
+              className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
+              onClick={handleNewDocument}
+            >
               <span>＋ New document</span>
             </div>
             <div 
