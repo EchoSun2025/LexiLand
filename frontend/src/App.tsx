@@ -65,6 +65,11 @@ function App() {
     }
 
     setIsLoadingAnnotation(false);
+  };
+
+  // Load known words on mount
+  useEffect(() => {
+    const initKnownWords = async () => {
       try {
         // Load basic known words first (fast)
         const basicWords = ['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'to', 'of', 'in', 'for', 'on', 'with', 'and', 'or', 'but', 'not', 'at', 'by', 'from', 'as', 'if', 'this', 'that', 'it', 'they', 'we', 'you', 'he', 'she', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'can', 'could', 'should', 'may', 'might', 'must'];
