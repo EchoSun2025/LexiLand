@@ -23,6 +23,8 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
   }
 
   const isUnknown = !isKnown && !isLearnt && token.text.length > 1;
+  // 淡橙色高亮: 已学习且有注释数据的单词
+  const showLearnt = isLearnt && annotation && (annotation as any).definition;
 
   const handleMarkKnown = (e: React.MouseEvent) => {
     e.stopPropagation(); // 防止触发 onClick
@@ -37,17 +39,17 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
     >
       <span
         className={`${
-          isUnknown 
-            ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100' 
-            : isLearnt 
-            ? 'bg-orange-100 rounded px-0.5' 
+          isUnknown
+            ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'
+            : showLearnt
+            ? 'bg-orange-100 rounded px-0.5'
             : ''
         }`}
         onClick={isUnknown ? onClick : undefined}
       >
         {token.text}
       </span>
-      
+
       {/* × 按钮 - 悬停时显示 */}
       {isUnknown && isHovered && (
         <button

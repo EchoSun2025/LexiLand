@@ -116,9 +116,6 @@ function App() {
   const handleBatchAnnotate = async () => {
     if (!currentDocument) return;
 
-    const confirmMsg = '确定要为所有加粗单词生成注释吗？这可能需要一些时间和API费用。';
-    if (!confirm(confirmMsg)) return;
-
     const unknownWords = new Set<string>();
     
     // Collect all unknown words from document
@@ -326,17 +323,26 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         >
           Load sample
         </button>
-        <button className="px-3 py-2 border border-active bg-active rounded-lg hover:bg-indigo-100 text-sm">
+        <button className="px-2 py-1 border border-active bg-active rounded-lg hover:bg-indigo-100 text-xs">
           Auto-mark
         </button>
         <button 
-          className="px-3 py-2 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 text-sm"
+          className="px-2 py-1 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 text-xs"
           onClick={handleBatchAnnotate}
           disabled={!currentDocument}
           title="Batch annotate all unknown words"
         >
-          📝 Batch Annotate
+          Batch Annotate
         </button>
+
+        <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
+          <input type="checkbox" checked={showIPA} onChange={(e) => setShowIPA(e.target.checked)} />
+          IPA
+        </label>
+        <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
+          <input type="checkbox" checked={showChinese} onChange={(e) => setShowChinese(e.target.checked)} />
+          中文
+        </label>
 
         <span className="text-xs text-muted">Level</span>
         <select 
