@@ -45,10 +45,10 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
     >
       <span
         className={`${
-          (autoMark && isUnknown) || hasAnnotation
-            ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'
-            : showLearnt
+          showLearnt
             ? 'bg-orange-100 rounded px-0.5 cursor-pointer hover:bg-orange-200'
+            : (autoMark && isUnknown) || hasAnnotation
+            ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'
             : isClickable && !autoMark
             ? 'cursor-pointer hover:bg-yellow-50'
             : ''
