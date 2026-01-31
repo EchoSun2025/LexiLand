@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
@@ -23,7 +23,9 @@ function App() {
   } = useAppStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+  const [showNewDocModal, setShowNewDocModal] = useState(false);
+  const [newDocTitle, setNewDocTitle] = useState('');
+  const [newDocContent, setNewDocContent] = useState('');
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
   // Load known words on mount
@@ -79,21 +81,30 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
   };
 
   const handleNewDocument = () => {
-    const title = prompt('Enter document title:', 'Untitled Document');
-    if (!title) return;
+    setNewDocTitle('Untitled Document');
+    setNewDocContent('');
+    setShowNewDocModal(true);
+  };
 
-    const content = prompt('Paste or enter your text content:\n(You can paste multiple paragraphs)', '');
-    if (content === null) return; // User clicked cancel
+  const handleCreateDocument = () => {
+    if (!newDocTitle.trim()) {
+      alert('Please enter a document title');
+      return;
+    }
     
-    const paragraphs = content.trim() ? tokenizeParagraphs(content) : [];
+    const paragraphs = newDocContent.trim() ? tokenizeParagraphs(newDocContent) : [];
 
     addDocument({
       id: `doc-${Date.now()}`,
-      title,
-      content: content.trim(),
+      title: newDocTitle.trim(),
+      content: newDocContent.trim(),
       paragraphs,
       createdAt: Date.now(),
     });
+
+    setShowNewDocModal(false);
+    setNewDocTitle('');
+    setNewDocContent('');
   };
 
   const handleFileImport = () => {
@@ -281,6 +292,52 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           </div>
         </aside>
       </div>
+
+      {/* New Document Modal */}
+      {showNewDocModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-[600px] max-h-[80vh] flex flex-col shadow-2xl">
+            <h2 className="text-xl font-bold mb-4">Create New Document</h2>
+            
+            <label className="text-sm font-semibold mb-2 block">Title</label>
+            <input
+              type="text"
+              value={newDocTitle}
+              onChange={(e) => setNewDocTitle(e.target.value)}
+              className="border border-border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter document title..."
+              autoFocus
+            />
+
+            <label className="text-sm font-semibold mb-2 block">Content</label>
+            <textarea
+              value={newDocContent}
+              onChange={(e) => setNewDocContent(e.target.value)}
+              className="border border-border rounded-lg px-3 py-2 flex-1 min-h-[300px] resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              placeholder="Paste or type your text here...&#10;&#10;You can use multiple paragraphs.&#10;Press Enter to create new lines."
+            />
+
+            <div className="flex gap-3 mt-4 justify-end">
+              <button
+                onClick={() => {
+                  setShowNewDocModal(false);
+                  setNewDocTitle('');
+                  setNewDocContent('');
+                }}
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateDocument}
+                className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold"
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
