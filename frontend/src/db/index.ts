@@ -193,3 +193,91 @@ export async function exportUserData(): Promise<string> {
 
   return JSON.stringify(exportData, null, 2);
 }
+
+/**
+ * Import user data from JSON and merge with existing data
+ */
+export async function importUserData(jsonData: string): Promise<{ imported: number; skipped: number; errors: string[] }> {
+  const result = {
+    imported: 0,
+    skipped: 0,
+    errors: [] as string[]
+  };
+
+  try {
+    const data = JSON.parse(jsonData);
+    
+    if (!data.data || !data.version) {
+      throw new Error('Invalid data format');
+    }
+
+    // Import known words
+    if (data.data.knownWords && Array.isArray(data.data.knownWords)) {
+      for (const item of data.data.knownWords) {
+        try {
+          const existing = await db.knownWords.get(item.word);
+          if (!existing) {
+            await db.knownWords.add({
+              word: item.word,
+              level: item.level,
+              addedAt: new Date(item.addedAt).getTime()
+            });
+            result.imported++;
+          } else {
+            result.skipped++;
+          }
+        } catch (err: any) {
+          result.errors.push(`Known word "${item.word}": ${err.message}`);
+        }
+      }
+    }
+
+    // Import learnt words
+    if (data.data.learntWords && Array.isArray(data.data.learntWords)) {
+      for (const item of data.data.learntWords) {
+        try {
+          const existing = await db.learntWords.get(item.word);
+          if (!existing) {
+            await db.learntWords.add({
+              word: item.word,
+              learntAt: new Date(item.learntAt).getTime()
+            });
+            result.imported++;
+          } else {
+            result.skipped++;
+          }
+        } catch (err: any) {
+          result.errors.push(`Learnt word "${item.word}": ${err.message}`);
+        }
+      }
+    }
+
+    // Import annotations
+    if (data.data.annotations && Array.isArray(data.data.annotations)) {
+      for (const item of data.data.annotations) {
+        try {
+          const existing = await db.annotations.get(item.word);
+          if (!existing) {
+            await db.annotations.add({
+              word: item.word,
+              ipa: item.ipa,
+              chinese: item.chinese,
+              definition: item.definition,
+              examples: item.examples,
+              cachedAt: new Date(item.cachedAt).getTime()
+            });
+            result.imported++;
+          } else {
+            result.skipped++;
+          }
+        } catch (err: any) {
+          result.errors.push(`Annotation "${item.word}": ${err.message}`);
+        }
+      }
+    }
+
+    return result;
+  } catch (error: any) {
+    throw new Error(`Failed to parse import data: ${error.message}`);
+  }
+}

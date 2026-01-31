@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, exportUserData } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, exportUserData, importUserData } from './db'
 import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
@@ -35,6 +35,7 @@ function App() {
   } = useAppStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
@@ -240,6 +241,57 @@ function App() {
     }
   };
 
+  // Handle import user data
+  const handleImportData = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const result = await importUserData(text);
+      
+      // Reload data into state
+      const [newKnownWords, newLearntWords, newAnnotations] = await Promise.all([
+        getAllKnownWords(),
+        getAllLearntWords(),
+        getAllCachedAnnotations()
+      ]);
+      
+      setKnownWords(new Set(newKnownWords));
+      setLearntWords(new Set(newLearntWords));
+      
+      const annotationsMap = new Map();
+      newAnnotations.forEach(a => {
+        annotationsMap.set(a.word, {
+          ipa: a.ipa,
+          chinese: a.chinese
+        });
+      });
+      setAnnotations(annotationsMap);
+
+      let message = `Import completed!\nImported: ${result.imported} items\nSkipped (already exists): ${result.skipped} items`;
+      if (result.errors.length > 0) {
+        message += `\n\nErrors: ${result.errors.length}\n${result.errors.slice(0, 5).join('\n')}`;
+        if (result.errors.length > 5) {
+          message += `\n... and ${result.errors.length - 5} more errors`;
+        }
+      }
+      alert(message);
+      
+      console.log('Import result:', result);
+    } catch (error: any) {
+      console.error('Failed to import user data:', error);
+      alert(`Import failed: ${error.message}`);
+    } finally {
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
   // Handle batch annotate all unknown words
   const handleBatchAnnotate = async () => {
     if (!currentDocument) return;
@@ -441,6 +493,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         onChange={handleFileChange}
         className="hidden"
       />
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleImportFileChange}
+        className="hidden"
+      />
 
       {/* Top Bar */}
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-border px-4 py-2.5 flex items-center gap-3 flex-wrap">
@@ -499,6 +558,14 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           title="Export user data to JSON file"
         >
           Export Data
+        </button>
+        
+        <button
+          onClick={handleImportData}
+          className="px-2 py-1 border border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold"
+          title="Import user data from JSON file"
+        >
+          Import Data
         </button>
 
         <span className="text-xs text-muted">Level</span>
