@@ -42,6 +42,8 @@ interface AppState {
   removeLearntWord: (word: string) => void;
   removeAnnotation: (word: string) => void;
   addAnnotation: (word: string, annotation: WordAnnotation) => void;
+  loadLearntWords: (words: string[]) => void;
+  loadAnnotations: (annotations: Map<string, WordAnnotation>) => void;
   setSelectedWord: (word: string | null) => void;
   setShowIPA: (show: boolean) => void;
   setShowChinese: (show: boolean) => void;
@@ -99,6 +101,10 @@ export const useAppStore = create<AppState>((set) => ({
     newAnnotations.set(word.toLowerCase(), annotation);
     return { annotations: newAnnotations };
   }),
+
+  loadLearntWords: (words) => set({ learntWords: new Set(words.map(w => w.toLowerCase())) }),
+
+  loadAnnotations: (annotations) => set({ annotations }),
 
   setSelectedWord: (word) => set({ selectedWord: word }),
 

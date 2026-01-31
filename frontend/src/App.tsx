@@ -32,6 +32,8 @@ function App() {
     setLevel,
     setAutoMark,
     loadKnownWords,
+    loadLearntWords,
+    loadAnnotations,
   } = useAppStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -261,8 +263,8 @@ function App() {
         getAllCachedAnnotations()
       ]);
       
-      setKnownWords(new Set(newKnownWords));
-      setLearntWords(new Set(newLearntWords));
+      loadKnownWords(newKnownWords);
+      loadLearntWords(newLearntWords);
       
       const annotationsMap = new Map();
       newAnnotations.forEach(a => {
@@ -271,7 +273,7 @@ function App() {
           chinese: a.chinese
         });
       });
-      setAnnotations(annotationsMap);
+      loadAnnotations(annotationsMap);
 
       let message = `Import completed!\nImported: ${result.imported} items\nSkipped (already exists): ${result.skipped} items`;
       if (result.errors.length > 0) {
