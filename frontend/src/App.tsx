@@ -896,17 +896,33 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   {currentDocument.paragraphs.length} paragraphs
                 </div>
 
-                {currentDocument.paragraphs.map(paragraph => (
-                  <Paragraph
-                    key={paragraph.id}
-                    paragraph={paragraph}
-                    knownWords={knownWords}
-                    learntWords={learntWords}
-                    annotations={annotations}
-                    showIPA={showIPA}
-                    showChinese={showChinese}                    autoMark={autoMark}                    onWordClick={handleWordClick}                      onMarkKnown={handleMarkKnown}                    onParagraphAction={handleParagraphAction}
-                  />
-                ))}
+                {currentDocument.paragraphs.map((paragraph, pIdx) => {
+                  // Calculate global sentence indices for this paragraph
+                  let sentencesBeforeThisPara = 0;
+                  for (let i = 0; i < pIdx; i++) {
+                    sentencesBeforeThisPara += currentDocument.paragraphs[i].sentences.length;
+                  }
+                  
+                  return (
+                    <Paragraph
+                      key={paragraph.id}
+                      paragraph={paragraph}
+                      paragraphIndex={pIdx}
+                      knownWords={knownWords}
+                      learntWords={learntWords}
+                      annotations={annotations}
+                      showIPA={showIPA}
+                      showChinese={showChinese}
+                      autoMark={autoMark}
+                      onWordClick={handleWordClick}
+                      onMarkKnown={handleMarkKnown}
+                      onParagraphAction={handleParagraphAction}
+                      currentSentenceIndex={currentSentenceIndex}
+                      currentWordIndex={currentWordIndex}
+                      sentencesBeforeThisPara={sentencesBeforeThisPara}
+                    />
+                  );
+                })}
                 
                 {!autoMark && (
                   <div className="mt-8 flex justify-center">
