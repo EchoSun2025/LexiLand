@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, exportUserData } from './db'
 import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
@@ -189,6 +189,30 @@ function App() {
     } catch (error) {
       console.error('Failed to mark words as known:', error);
       alert('Operation failed, please try again');
+    }
+  };
+
+  // Handle export user data
+  const handleExportData = async () => {
+    try {
+      const jsonData = await exportUserData();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const filename = `lexiland-userdata-${timestamp}.json`;
+      
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      console.log('User data exported successfully:', filename);
+    } catch (error) {
+      console.error('Failed to export user data:', error);
+      alert('Export failed, please try again');
     }
   };
 
@@ -443,6 +467,14 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           }`}
         >
           {autoMark ? 'ON' : 'OFF'} Auto-mark
+        </button>
+        
+        <button
+          onClick={handleExportData}
+          className="px-3 py-1.5 border border-green-500 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-semibold"
+          title="Export user data to JSON file"
+        >
+          📥 Export Data
         </button>
 
         <span className="text-xs text-muted">Level</span>

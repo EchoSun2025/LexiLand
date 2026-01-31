@@ -150,3 +150,46 @@ export async function getAllLearntWords(): Promise<string[]> {
 export async function deleteAnnotation(word: string): Promise<void> {
   await db.annotations.delete(word.toLowerCase());
 }
+
+/**
+ * Export all user data as JSON with timestamp
+ */
+export async function exportUserData(): Promise<string> {
+  const [knownWords, learntWords, annotations] = await Promise.all([
+    db.knownWords.toArray(),
+    db.learntWords.toArray(),
+    db.annotations.toArray()
+  ]);
+
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    exportDate: new Date().toLocaleDateString('zh-CN'),
+    version: '1.0',
+    data: {
+      knownWords: knownWords.map(w => ({
+        word: w.word,
+        level: w.level,
+        addedAt: new Date(w.addedAt).toISOString()
+      })),
+      learntWords: learntWords.map(w => ({
+        word: w.word,
+        learntAt: new Date(w.learntAt).toISOString()
+      })),
+      annotations: annotations.map(a => ({
+        word: a.word,
+        ipa: a.ipa,
+        chinese: a.chinese,
+        definition: a.definition,
+        examples: a.examples,
+        cachedAt: new Date(a.cachedAt).toISOString()
+      }))
+    },
+    statistics: {
+      totalKnownWords: knownWords.length,
+      totalLearntWords: learntWords.length,
+      totalAnnotations: annotations.length
+    }
+  };
+
+  return JSON.stringify(exportData, null, 2);
+}
