@@ -621,21 +621,27 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     utterance.onboundary = (event) => {
       if (event.name === 'word') {
         const charIndex = event.charIndex;
-        console.log('[TTS] Word boundary at charIndex:', charIndex, 'sentence text:', sentence.text);
+        console.log('[TTS] Word boundary at charIndex:', charIndex, 'in sentence:', sentence.text);
         
         // Find which word index corresponds to this character position
         const sentenceData = currentDocument.paragraphs
           .flatMap(p => p.sentences)[startIndex];
-        if (sentenceData && sentenceData.words) {
-          let currentChar = 0;
-          for (let i = 0; i < sentenceData.words.length; i++) {
-            const wordLength = sentenceData.words[i].length;
-            if (charIndex >= currentChar && charIndex < currentChar + wordLength) {
-              console.log('[TTS] Setting currentWordIndex to:', i, 'word:', sentenceData.words[i]);
+        if (sentenceData && sentenceData.tokens) {
+          // Extract only word tokens
+          const wordTokens = sentenceData.tokens.filter(t => t.type === 'word');
+          
+          // Find the word that contains this character index
+          for (let i = 0; i < wordTokens.length; i++) {
+            const token = wordTokens[i];
+            // startIndex and endIndex are relative to the sentence
+            const tokenStart = token.startIndex - sentenceData.startIndex;
+            const tokenEnd = token.endIndex - sentenceData.startIndex;
+            
+            if (charIndex >= tokenStart && charIndex < tokenEnd) {
+              console.log('[TTS] Setting currentWordIndex to:', i, 'word:', token.text, 'tokenStart:', tokenStart, 'tokenEnd:', tokenEnd);
               setCurrentWordIndex(i);
               break;
             }
-            currentChar += wordLength + 1; // +1 for space
           }
         }
       }
