@@ -1,9 +1,15 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import 'dotenv/config';
+import OpenAI from 'openai';
 
 const fastify = Fastify({
   logger: true
+});
+
+// 初始化 OpenAI 客户端
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // 注册 CORS
@@ -22,6 +28,65 @@ fastify.get('/health', async (request, reply) => {
 // 测试路由
 fastify.get('/api/test', async (request, reply) => {
   return { message: 'LexiLand Read Backend is running!' };
+});
+
+// 生词注释 API
+interface AnnotateRequest {
+  word: string;
+  level?: string;
+  context?: string;
+}
+
+fastify.post<{ Body: AnnotateRequest }>('/api/annotate', async (request, reply) => {
+  const { word, level = 'B2', context } = request.body;
+
+  if (!word || typeof word !== 'string') {
+    return reply.code(400).send({ error: 'Word is required' });
+  }
+
+  try {
+    const prompt = `You are a language learning assistant. Provide comprehensive annotation for the English word "${word}" suitable for a ${level} level learner.
+${context ? `\nContext: "${context}"` : ''}
+
+Please provide the following information in JSON format:
+{
+  "word": "${word}",
+  "ipa": "International Phonetic Alphabet pronunciation",
+  "chinese": "Chinese translation (简体中文)",
+  "definition": "Clear English definition",
+  "example": "A natural example sentence using this word",
+  "level": "CEFR level (A1/A2/B1/B2/C1/C2)",
+  "partOfSpeech": "Part of speech (noun/verb/adjective/etc.)"
+}
+
+Important: Return ONLY the JSON object, no additional text.`;
+
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      response_format: { type: 'json_object' },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No response from OpenAI');
+    }
+
+    const annotation = JSON.parse(content);
+
+    return {
+      success: true,
+      data: annotation,
+      usage: completion.usage,
+    };
+  } catch (error: any) {
+    fastify.log.error('Annotation error:', error);
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to generate annotation',
+    });
+  }
 });
 
 // 启动服务器

@@ -4,6 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import { loadKnownWordsFromFile, getAllKnownWords } from './db'
+import { annotateWord } from './api'
 
 function App() {
   const {
@@ -11,11 +12,14 @@ function App() {
     currentDocumentId,
     knownWords,
     annotations,
+    selectedWord,
     showIPA,
     showChinese,
     level,
     addDocument,
     setCurrentDocument,
+    setSelectedWord,
+    addAnnotation,
     setShowIPA,
     setShowChinese,
     setLevel,
@@ -26,7 +30,38 @@ function App() {
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
+  const [isAnnotating, setIsAnnotating] = useState(false);
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
+
+  // Handle word click
+  const handleWordClick = async (word: string, context?: string) => {
+    const normalizedWord = word.toLowerCase();
+    
+    // Check if already annotated
+    if (annotations.has(normalizedWord)) {
+      setSelectedWord(word);
+      return;
+    }
+
+    // Fetch annotation from API
+    setIsAnnotating(true);
+    setSelectedWord(word);
+
+    const result = await annotateWord(word, level, context);
+
+    if (result.success && result.data) {
+      addAnnotation(word, result.data);
+      console.log('Annotation fetched:', result.data);
+      if (result.usage) {
+        console.log('API usage:', result.usage);
+      }
+    } else {
+      console.error('Failed to fetch annotation:', result.error);
+      alert(`Failed to annotate "${word}": ${result.error}`);
+    }
+
+    setIsAnnotating(false);
+  };
 
   // Load known words on mount
   useEffect(() => {
@@ -129,11 +164,6 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
       });
     };
     reader.readAsText(file);
-  };
-
-  const handleWordClick = (word: string) => {
-    console.log('Word clicked:', word);
-    // TODO: Fetch annotation from backend API
   };
 
   const handleParagraphAction = () => {
