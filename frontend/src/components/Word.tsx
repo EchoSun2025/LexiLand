@@ -69,7 +69,7 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
         </button>
       )}
 
-      {hasAnnotation && (
+      {hasAnnotation && isUnknown && (
         <>
           {showIPA && annotation.ipa && (
             <span className="text-[10px] text-muted ml-1 whitespace-nowrap">
