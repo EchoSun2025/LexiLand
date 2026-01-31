@@ -15,7 +15,7 @@ interface SentenceProps {
 
 export default function Sentence({ sentence, knownWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown }: SentenceProps) {
   return (
-    <span className="inline">
+    <span className="inline whitespace-pre-wrap">
       {sentence.tokens.map((token, index) => (
         <Word
           key={`${token.id}-${index}`}
