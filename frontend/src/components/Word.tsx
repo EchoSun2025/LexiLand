@@ -42,10 +42,10 @@ export default function Word({ token, isKnown, isLearnt, annotation, showIPA, sh
           isUnknown
             ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'
             : showLearnt
-            ? 'bg-orange-100 rounded px-0.5'
+            ? 'bg-orange-100 rounded px-0.5 cursor-pointer hover:bg-orange-200'
             : ''
         }`}
-        onClick={isUnknown ? onClick : undefined}
+        onClick={isUnknown || showLearnt ? onClick : undefined}
       >
         {token.text}
       </span>

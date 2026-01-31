@@ -7,6 +7,11 @@ export interface KnownWord {
   addedAt: number;
 }
 
+export interface LearntWord {
+  word: string;
+  learntAt: number;
+}
+
 export interface CachedAnnotation {
   word: string;
   ipa?: string;
@@ -26,13 +31,15 @@ export interface SavedDocument {
 
 export class LexiLandDB extends Dexie {
   knownWords!: Table<KnownWord, string>;
+  learntWords!: Table<LearntWord, string>;
   annotations!: Table<CachedAnnotation, string>;
   documents!: Table<SavedDocument, string>;
 
   constructor() {
     super('LexiLandDB');
-    this.version(1).stores({
+    this.version(2).stores({
       knownWords: 'word, level, addedAt',
+      learntWords: 'word, learntAt',
       annotations: 'word, cachedAt',
       documents: 'id, createdAt, lastOpenedAt',
     });
@@ -110,4 +117,29 @@ export async function getCachedAnnotation(word: string): Promise<CachedAnnotatio
  */
 export async function getAllCachedAnnotations(): Promise<CachedAnnotation[]> {
   return await db.annotations.toArray();
+}
+
+/**
+ * Add a learnt word to IndexedDB
+ */
+export async function addLearntWordToDB(word: string): Promise<void> {
+  await db.learntWords.put({
+    word: word.toLowerCase(),
+    learntAt: Date.now(),
+  });
+}
+
+/**
+ * Remove a learnt word from IndexedDB
+ */
+export async function removeLearntWordFromDB(word: string): Promise<void> {
+  await db.learntWords.delete(word.toLowerCase());
+}
+
+/**
+ * Get all learnt words from IndexedDB
+ */
+export async function getAllLearntWords(): Promise<string[]> {
+  const words = await db.learntWords.toArray();
+  return words.map(w => w.word);
 }

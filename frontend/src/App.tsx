@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords } from './db'
 import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
@@ -24,6 +24,7 @@ function App() {
     addAnnotation,
     addKnownWord,
     addLearntWord,
+    removeLearntWord,
     setShowIPA,
     setShowChinese,
     setLevel,
@@ -42,7 +43,18 @@ function App() {
   // Handle word click
   const handleWordClick = async (word: string, context?: string) => {
     const normalizedWord = word.toLowerCase();
-    
+
+    // If word is learnt, remove from learnt list (restore to unknown)
+    if (learntWords.has(normalizedWord)) {
+      try {
+        removeLearntWord(word);
+        await removeLearntWordFromDB(word);
+        console.log(`Restored "${word}" to unknown state`);
+      } catch (error) {
+        console.error('Failed to restore word:', error);
+      }
+    }
+
     // Check if already annotated in store
     const existingAnnotation = annotations.get(normalizedWord);
     if (existingAnnotation && (existingAnnotation as any).definition) {
@@ -106,12 +118,13 @@ function App() {
       // Add to learntWords (keeps annotation but changes display)
       addLearntWord(word);
 
+      // Save to IndexedDB
+      await addLearntWordToDB(word);
       console.log(`Marked "${word}" as learnt`);
     } catch (error) {
       console.error('Failed to mark word as learnt:', error);
     }
   };
-
   // Handle batch annotate all unknown words
   const handleBatchAnnotate = async () => {
     if (!currentDocument) return;
@@ -212,7 +225,22 @@ function App() {
         console.error('Failed to load cached annotations:', error);
       }
     };
+
+    // Load learnt words
+    const loadLearntWordsFromDB = async () => {
+      try {
+        const learnt = await getAllLearntWords();
+        learnt.forEach(word => addLearntWord(word));
+        if (learnt.length > 0) {
+          console.log(`✅ Loaded ${learnt.length} learnt words from IndexedDB`);
+        }
+      } catch (error) {
+        console.error('Failed to load learnt words:', error);
+      }
+    };
+
     loadCachedAnnotations();
+    loadLearntWordsFromDB();
   }, [loadKnownWords]);
 
   const handleLoadSample = () => {
