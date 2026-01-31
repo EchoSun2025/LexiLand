@@ -1,0 +1,65 @@
+import { create } from 'zustand';
+import type { Paragraph } from '../utils/tokenize';
+
+interface Document {
+  id: string;
+  title: string;
+  content: string;
+  paragraphs: Paragraph[];
+  createdAt: number;
+}
+
+interface AppState {
+  // Documents
+  documents: Document[];
+  currentDocumentId: string | null;
+  
+  // Known words
+  knownWords: Set<string>;
+  
+  // Annotations (word -> {ipa, chinese})
+  annotations: Map<string, { ipa?: string; chinese?: string }>;
+  
+  // UI settings
+  showIPA: boolean;
+  showChinese: boolean;
+  level: string;
+  
+  // Actions
+  addDocument: (doc: Document) => void;
+  setCurrentDocument: (id: string) => void;
+  loadKnownWords: (words: string[]) => void;
+  addAnnotation: (word: string, annotation: { ipa?: string; chinese?: string }) => void;
+  setShowIPA: (show: boolean) => void;
+  setShowChinese: (show: boolean) => void;
+  setLevel: (level: string) => void;
+}
+
+export const useAppStore = create<AppState>((set) => ({
+  documents: [],
+  currentDocumentId: null,
+  knownWords: new Set(),
+  annotations: new Map(),
+  showIPA: true,
+  showChinese: true,
+  level: 'B2',
+  
+  addDocument: (doc) => set((state) => ({
+    documents: [...state.documents, doc],
+    currentDocumentId: doc.id,
+  })),
+  
+  setCurrentDocument: (id) => set({ currentDocumentId: id }),
+  
+  loadKnownWords: (words) => set({ knownWords: new Set(words.map(w => w.toLowerCase())) }),
+  
+  addAnnotation: (word, annotation) => set((state) => {
+    const newAnnotations = new Map(state.annotations);
+    newAnnotations.set(word.toLowerCase(), annotation);
+    return { annotations: newAnnotations };
+  }),
+  
+  setShowIPA: (show) => set({ showIPA: show }),
+  setShowChinese: (show) => set({ showChinese: show }),
+  setLevel: (level) => set({ level }),
+}));

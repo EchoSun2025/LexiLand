@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LexiLand_Read – Layout Only (Outline + Reader + Cards)</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111111;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --panel:#f9fafb;
+      --hover:#f3f4f6;
+      --active:#eef2ff;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    /* ===== Top bar ===== */
+    .topbar{
+      position:sticky; top:0; z-index:10;
+      background:rgba(255,255,255,.92);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+      padding:10px 14px;
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+    .brand{ font-weight:700; margin-right:6px; }
+
+    .btn{
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:13px;
+      user-select:none;
+    }
+    .btn:hover{ background:var(--hover); }
+    .btn.primary{ border-color:#c7d2fe; background:var(--active); }
+    .btn.icon{ min-width:38px; text-align:center; padding:8px 10px; }
+
+    .toggle{
+      display:flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:#fff;
+      font-size:13px;
+    }
+    select{
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:8px 10px;
+      background:#fff;
+      font-size:13px;
+    }
+    .meta{ font-size:12px; color:var(--muted); }
+
+    /* ===== Main layout ===== */
+    .wrap{
+      height: calc(100% - 56px);
+      display:grid;
+      grid-template-columns: 260px 1fr 360px;
+      gap:12px;
+      padding:12px;
+      min-height:0;
+    }
+    .panel{
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      min-height:0;
+      background:#fff;
+      display:flex;
+      flex-direction:column;
+    }
+    .panelHeader{
+      padding:12px;
+      border-bottom:1px solid var(--border);
+      background:var(--panel);
+      display:flex; align-items:center; justify-content:space-between;
+      font-weight:700;
+    }
+    .panelBody{
+      padding:12px;
+      overflow:auto;
+      flex:1;
+      min-height:0;
+    }
+
+    /* ===== Outline (left) ===== */
+    .outline-item{
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .outline-item:hover{ background:var(--hover); }
+    .outline-item.active{ background:var(--active); font-weight:700; }
+    .outline-muted{
+      font-size:12px;
+      color:var(--muted);
+      margin:8px 0 4px;
+    }
+
+    /* ===== Reader (center) ===== */
+    .doc-title{
+      font-size:22px;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+    .doc-sub{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:14px;
+      line-height:1.4;
+    }
+
+    .para{
+      position:relative;
+      line-height:1.6;
+      margin-bottom:14px;
+      border-radius:10px;
+      padding:6px 6px;
+    }
+    .para:hover{ background:#fafafa; }
+
+    /* paragraph hover action (placeholder) */
+    .paraActions{
+      position:absolute;
+      right:8px;
+      top:8px;
+      opacity:0;
+      transition:opacity .15s ease;
+    }
+    .para:hover .paraActions{ opacity:1; }
+    .miniBtn{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:4px 8px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:12px;
+    }
+    .miniBtn:hover{ background:var(--hover); }
+
+    .sentence{ border-radius:6px; padding:0 .06em; }
+
+    .word{
+      font-size:16px;
+      font-weight:700;
+      border-bottom:1px solid #d1d5db;
+      border-radius:6px;
+      padding:0 .12em;
+    }
+    .ann{
+      font-size:10px;
+      color:var(--muted);
+      margin-left:4px;
+      white-space:nowrap;
+    }
+    .token{ font-size:16px; }
+
+    /* ===== Cards (right) ===== */
+    .card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      margin-bottom:10px;
+    }
+    .card .kicker{ font-size:12px; color:var(--muted); }
+    .card .h{ font-weight:800; margin-top:4px; }
+    .card .small{ font-size:13px; line-height:1.55; margin-top:10px; }
+    .hr{ height:1px; background:var(--border); margin:10px 0; }
+
+    @media (max-width: 1100px){
+      .wrap{ grid-template-columns: 1fr; height:auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">LexiLand_Read · Preview</div>
+
+    <!-- Article read controls (placeholders) -->
+    <button class="btn icon" id="btnPrevSent" title="Previous sentence">⟨</button>
+    <button class="btn primary icon" id="btnPlayArticle" title="Play from cursor">▶</button>
+    <button class="btn icon" id="btnNextSent" title="Next sentence">⟩</button>
+
+    <select id="voiceSel" title="Voice (placeholder)">
+      <option value="">Voice (placeholder)</option>
+    </select>
+
+    <button class="btn" id="btnLoadSample">Load sample</button>
+    <button class="btn primary" id="btnAutoMark">Auto-mark</button>
+
+    <div class="toggle"><input id="tgIPA" type="checkbox" checked> <label for="tgIPA">IPA</label></div>
+    <div class="toggle"><input id="tgZH" type="checkbox" checked> <label for="tgZH">中文</label></div>
+
+    <span class="meta">Level</span>
+    <select id="level">
+      <option value="A2">A2</option>
+      <option value="B1">B1</option>
+      <option value="B2" selected>B2</option>
+      <option value="C1">C1</option>
+    </select>
+
+    <span class="meta" id="status">Ready</span>
+  </div>
+
+  <div class="wrap">
+    <!-- Outline -->
+    <aside class="panel" id="outlinePanel">
+      <div class="panelHeader">Outline</div>
+      <div class="panelBody">
+        <div class="outline-item active">
+          <span>Sample Document</span><span class="meta">›</span>
+        </div>
+
+        <div class="outline-muted">Documents</div>
+        <div class="outline-item"><span>＋ New document</span><span class="meta">(placeholder)</span></div>
+        <div class="outline-item"><span>Import file</span><span class="meta">(placeholder)</span></div>
+      </div>
+    </aside>
+
+    <!-- Reader -->
+    <main class="panel" id="readerPanel">
+      <div class="panelBody">
+        <div class="doc-title" id="docTitle">Sample Document</div>
+        <div class="doc-sub">
+          Layout-only: rendering + interactions will be implemented by AI agent later.
+        </div>
+
+        <!-- Agent will render paragraphs/sentences/words into this container -->
+        <div id="content">
+          <!-- Example static placeholder paragraph -->
+          <div class="para">
+            <div class="paraActions"><button class="miniBtn" title="Paragraph actions (placeholder)">&gt;</button></div>
+            Three serving girls
+            <span class="word">huddled</span><span class="ann">/ˈhʌd(ə)ld/ · 聚拢</span>
+            together.
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Cards -->
+    <aside class="panel" id="rightPanel">
+      <div class="panelHeader">Cards</div>
+      <div class="panelBody" id="cards">
+        <div class="card">
+          <div class="kicker">Placeholder</div>
+          <div class="h">Word / Paragraph Cards</div>
+          <div class="hr"></div>
+          <div class="small">AI agent will append cards here.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- No JS on purpose (layout-only) -->
+</body>
+</html>
