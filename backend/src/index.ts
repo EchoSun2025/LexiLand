@@ -51,6 +51,7 @@ ${context ? `\nContext: "${context}"` : ''}
 Please provide the following information in JSON format:
 {
   "word": "${word}",
+  "baseForm": "base form of the word if it's an inflected form (e.g., 'run' for 'ran', 'be' for 'was'), otherwise leave empty",
   "ipa": "International Phonetic Alphabet pronunciation (without slashes)",
   "chinese": "Concise Chinese translation - ONE SHORT WORD OR PHRASE ONLY, no semicolons, no extra explanations (简体中文)",
   "definition": "Clear English definition",
@@ -59,7 +60,9 @@ Please provide the following information in JSON format:
   "partOfSpeech": "Part of speech (noun/verb/adjective/etc.)"
 }
 
-Important: Return ONLY the JSON object, no additional text.`;
+Important: 
+- If the word is an irregular past tense (e.g., 'ran'), past participle (e.g., 'spoken'), or other inflected form, provide the baseForm.
+- Return ONLY the JSON object, no additional text.`;
 
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-4o-mini',

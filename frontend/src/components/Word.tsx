@@ -45,7 +45,7 @@ export default function Word({ token, isKnown, annotation, showIPA, showChinese,
       {isUnknown && isHovered && (
         <button
           onClick={handleMarkKnown}
-          className="absolute -top-1 -right-3 w-5 h-5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-600 hover:text-gray-800 rounded-full text-sm flex items-center justify-center shadow-sm transition-all"
+          className="absolute -top-1 -right-3 w-5 h-5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-600 hover:text-gray-800 rounded text-sm flex items-center justify-center shadow-sm transition-all"
           title="Mark as known"
         >
           ×
