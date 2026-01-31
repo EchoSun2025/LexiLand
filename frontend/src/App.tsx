@@ -47,6 +47,7 @@ function App() {
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState<number | null>(null);
   const [currentWordIndex, setCurrentWordIndex] = useState<number>(-1);
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const shouldStopRef = useRef(false);
   const [speechRate, setSpeechRate] = useState(0.9);
   const [speechPitch, setSpeechPitch] = useState(1.0);
   const [selectedVoice, setSelectedVoice] = useState<string>('');
@@ -518,24 +519,23 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     if (!currentDocument) return;
 
     if (isSpeaking) {
-      // Pause
-      console.log('[TTS] Pausing...');
-      setIsPaused(true);
+      // Stop current playback
+      console.log('[TTS] Stopping current playback...');
+      shouldStopRef.current = true;
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
-      // Don't clear currentSentenceIndex so we can resume from same position
+      // Don't clear currentSentenceIndex so next play starts from here
     } else {
       // Start/Resume playing from current position or beginning
-      console.log('[TTS] Resuming from:', currentSentenceIndex);
-      setIsPaused(false);
+      console.log('[TTS] Starting playback from:', currentSentenceIndex);
       const startIndex = currentSentenceIndex ?? 0;
       speakFromSentence(startIndex);
     }
   };
 
   const handleStop = () => {
-    console.log('[TTS] Stopping...');
-    setIsPaused(false);
+    console.log('[TTS] Stopping and resetting...');
+    shouldStopRef.current = true;
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
     setCurrentSentenceIndex(null);
@@ -548,23 +548,34 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
   const handlePrevSentence = () => {
     if (currentSentenceIndex !== null && currentSentenceIndex > 0) {
       console.log('[TTS] Going to previous sentence');
+      shouldStopRef.current = true;
       setIsPaused(false);
       window.speechSynthesis.cancel();
-      speakFromSentence(currentSentenceIndex - 1);
+      setTimeout(() => {
+        shouldStopRef.current = false;
+        speakFromSentence(currentSentenceIndex - 1);
+      }, 50);
     }
   };
 
   const handleNextSentence = () => {
     if (currentSentenceIndex !== null) {
       console.log('[TTS] Going to next sentence');
+      shouldStopRef.current = true;
       setIsPaused(false);
       window.speechSynthesis.cancel();
-      speakFromSentence(currentSentenceIndex + 1);
+      setTimeout(() => {
+        shouldStopRef.current = false;
+        speakFromSentence(currentSentenceIndex + 1);
+      }, 50);
     }
   };
 
   const speakFromSentence = (startIndex: number) => {
     if (!currentDocument) return;
+    
+    // Reset stop flag when starting new speech
+    shouldStopRef.current = false;
 
     const allSentences: { paragraphIndex: number; sentenceIndex: number; text: string }[] = [];
     currentDocument.paragraphs.forEach((para, pIdx) => {
@@ -631,12 +642,14 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     };
 
     utterance.onend = () => {
-      console.log('[TTS] onend triggered, isPaused:', isPaused);
-      // Don't continue if user paused
-      if (isPaused) {
-        console.log('[TTS] Paused, not continuing');
+      console.log('[TTS] onend triggered, shouldStop:', shouldStopRef.current);
+      
+      // Check stop flag first (most reliable)
+      if (shouldStopRef.current) {
+        console.log('[TTS] Stopped by user');
         return;
       }
+      
       // Move to next sentence
       const nextIndex = startIndex + 1;
       if (nextIndex < allSentences.length) {
@@ -693,17 +706,17 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         >
           &lt;
         </button>
-        <button 
+        <button
           className={`px-3 py-2 border rounded-lg text-sm ${
-            isSpeaking 
-              ? 'border-active bg-active hover:bg-indigo-100' 
+            isSpeaking
+              ? 'border-active bg-active hover:bg-indigo-100'
               : 'border-border hover:bg-hover'
           }`}
-          title={isSpeaking ? "Pause" : "Play"}
+          title="Play"
           onClick={handlePlayPause}
           disabled={!currentDocument}
         >
-          {isSpeaking ? '⏸' : '▶'}
+          ▶
         </button>
         <button
           className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
