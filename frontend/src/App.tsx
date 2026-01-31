@@ -12,6 +12,7 @@ function App() {
     documents,
     currentDocumentId,
     knownWords,
+    learntWords,
     annotations,
     selectedWord,
     showIPA,
@@ -22,6 +23,7 @@ function App() {
     setSelectedWord,
     addAnnotation,
     addKnownWord,
+    addLearntWord,
     setShowIPA,
     setShowChinese,
     setLevel,
@@ -79,7 +81,7 @@ function App() {
     if (result.success && result.data) {
       addAnnotation(word, result.data);
       setCurrentAnnotation(result.data);
-      
+
       // Cache the annotation
       try {
         await cacheAnnotation(word, result.data);
@@ -87,8 +89,10 @@ function App() {
       } catch (error) {
         console.error('Failed to cache annotation:', error);
       }
-      
+
       console.log('Annotation fetched from API:', result.data);
+      console.log('API usage:', result.usage);
+    } else {
       console.error('Failed to fetch annotation:', result.error);
       alert(`Failed to annotate "${word}": ${result.error}`);
     }
@@ -96,19 +100,61 @@ function App() {
     setIsLoadingAnnotation(false);
   };
 
-  // Handle mark word as known
+// Handle mark word as known (mark as learnt)
   const handleMarkKnown = async (word: string) => {
     try {
-      // Add to store (updates UI immediately)
-      addKnownWord(word);
-      
-      // Save to IndexedDB
-      await addKnownWordToDB(word, level);
-      
-      console.log(`Marked "${word}" as known`);
+      // Add to learntWords (keeps annotation but changes display)
+      addLearntWord(word);
+
+      console.log(`Marked "${word}" as learnt`);
     } catch (error) {
-      console.error('Failed to mark word as known:', error);
+      console.error('Failed to mark word as learnt:', error);
     }
+  };
+
+  // Handle batch annotate all unknown words
+  const handleBatchAnnotate = async () => {
+    if (!currentDocument) return;
+
+    const confirmMsg = '确定要为所有加粗单词生成注释吗？这可能需要一些时间和API费用。';
+    if (!confirm(confirmMsg)) return;
+
+    const unknownWords = new Set<string>();
+    
+    // Collect all unknown words from document
+    currentDocument.paragraphs.forEach(paragraph => {
+      paragraph.sentences.forEach(sentence => {
+        sentence.tokens.forEach(token => {
+          if (token.type === 'word' && token.text.length > 1) {
+            const normalized = token.text.toLowerCase();
+            if (!knownWords.has(normalized) && !learntWords.has(normalized)) {
+              unknownWords.add(token.text);
+            }
+          }
+        });
+      });
+    });
+
+    const totalWords = unknownWords.size;
+    console.log(`Starting batch annotation for ${totalWords} words...`);
+    
+    let completed = 0;
+    let failed = 0;
+
+    for (const word of unknownWords) {
+      try {
+        await handleWordClick(word);
+        completed++;
+        console.log(`Progress: ${completed}/${totalWords}`);
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } catch (error) {
+        failed++;
+        console.error(`Failed to annotate "${word}":`, error);
+      }
+    }
+
+    alert(`批量注释完成！\\n成功: ${completed}\\n失败: ${failed}`);
   };
 
   // Load known words on mount
@@ -283,15 +329,14 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         <button className="px-3 py-2 border border-active bg-active rounded-lg hover:bg-indigo-100 text-sm">
           Auto-mark
         </button>
-
-        <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
-          <input type="checkbox" checked={showIPA} onChange={(e) => setShowIPA(e.target.checked)} />
-          IPA
-        </label>
-        <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
-          <input type="checkbox" checked={showChinese} onChange={(e) => setShowChinese(e.target.checked)} />
-          中文
-        </label>
+        <button 
+          className="px-3 py-2 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 text-sm"
+          onClick={handleBatchAnnotate}
+          disabled={!currentDocument}
+          title="Batch annotate all unknown words"
+        >
+          📝 Batch Annotate
+        </button>
 
         <span className="text-xs text-muted">Level</span>
         <select 
@@ -358,6 +403,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     key={paragraph.id}
                     paragraph={paragraph}
                     knownWords={knownWords}
+                    learntWords={learntWords}
                     annotations={annotations}
                     showIPA={showIPA}
                     showChinese={showChinese}

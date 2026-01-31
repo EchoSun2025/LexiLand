@@ -4,6 +4,7 @@ import type { Token } from '../utils/tokenize';
 interface WordProps {
   token: Token;
   isKnown: boolean;
+  isLearnt: boolean;
   annotation?: {
     ipa?: string;
     chinese?: string;
@@ -14,14 +15,14 @@ interface WordProps {
   onMarkKnown?: (word: string) => void;
 }
 
-export default function Word({ token, isKnown, annotation, showIPA, showChinese, onClick, onMarkKnown }: WordProps) {
+export default function Word({ token, isKnown, isLearnt, annotation, showIPA, showChinese, onClick, onMarkKnown }: WordProps) {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   if (token.type !== 'word') {
     return <span>{token.text}</span>;
   }
 
-  const isUnknown = !isKnown && token.text.length > 1;
+  const isUnknown = !isKnown && !isLearnt && token.text.length > 1;
 
   const handleMarkKnown = (e: React.MouseEvent) => {
     e.stopPropagation(); // 防止触发 onClick
@@ -29,13 +30,19 @@ export default function Word({ token, isKnown, annotation, showIPA, showChinese,
   };
 
   return (
-    <span 
+    <span
       className="relative inline-block group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <span
-        className={`${isUnknown ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100' : ''}`}
+        className={`${
+          isUnknown 
+            ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100' 
+            : isLearnt 
+            ? 'bg-orange-100 rounded px-0.5' 
+            : ''
+        }`}
         onClick={isUnknown ? onClick : undefined}
       >
         {token.text}

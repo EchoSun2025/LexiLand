@@ -4,6 +4,7 @@ import Sentence from './Sentence';
 interface ParagraphProps {
   paragraph: ParagraphType;
   knownWords: Set<string>;
+  learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
   showChinese: boolean;
@@ -15,6 +16,7 @@ interface ParagraphProps {
 export default function Paragraph({
   paragraph,
   knownWords,
+  learntWords,
   annotations,
   showIPA,
   showChinese,
@@ -25,7 +27,7 @@ export default function Paragraph({
   return (
     <div className="relative leading-relaxed mb-4 rounded-lg p-1.5 hover:bg-gray-50 group">
       <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button 
+        <button
           className="px-2 py-1 border border-border bg-white rounded-lg hover:bg-hover text-xs"
           onClick={onParagraphAction}
         >
@@ -37,6 +39,7 @@ export default function Paragraph({
           key={sentence.id}
           sentence={sentence}
           knownWords={knownWords}
+          learntWords={learntWords}
           annotations={annotations}
           showIPA={showIPA}
           showChinese={showChinese}

@@ -4,6 +4,7 @@ import Word from './Word';
 interface SentenceProps {
   sentence: SentenceType;
   knownWords: Set<string>;
+  learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
   showChinese: boolean;
@@ -11,7 +12,7 @@ interface SentenceProps {
   onMarkKnown?: (word: string) => void;
 }
 
-export default function Sentence({ sentence, knownWords, annotations, showIPA, showChinese, onWordClick, onMarkKnown }: SentenceProps) {
+export default function Sentence({ sentence, knownWords, learntWords, annotations, showIPA, showChinese, onWordClick, onMarkKnown }: SentenceProps) {
   return (
     <span className="inline">
       {sentence.tokens.map((token, index) => (
@@ -19,6 +20,7 @@ export default function Sentence({ sentence, knownWords, annotations, showIPA, s
           key={`${token.id}-${index}`}
           token={token}
           isKnown={knownWords.has(token.text.toLowerCase())}
+          isLearnt={learntWords.has(token.text.toLowerCase())}
           annotation={annotations.get(token.text.toLowerCase())}
           showIPA={showIPA}
           showChinese={showChinese}

@@ -18,6 +18,9 @@ interface AppState {
   // Known words
   knownWords: Set<string>;
 
+  // Learnt words (marked as learnt but keep annotations)
+  learntWords: Set<string>;
+
   // Annotations (word -> full annotation)
   annotations: Map<string, WordAnnotation>;
 
@@ -34,6 +37,8 @@ interface AppState {
   setCurrentDocument: (id: string) => void;
   loadKnownWords: (words: string[]) => void;
   addKnownWord: (word: string) => void;
+  addLearntWord: (word: string) => void;
+  removeLearntWord: (word: string) => void;
   addAnnotation: (word: string, annotation: WordAnnotation) => void;
   setSelectedWord: (word: string | null) => void;
   setShowIPA: (show: boolean) => void;
@@ -45,6 +50,7 @@ export const useAppStore = create<AppState>((set) => ({
   documents: [],
   currentDocumentId: null,
   knownWords: new Set(),
+  learntWords: new Set(),
   annotations: new Map(),
   selectedWord: null,
   showIPA: true,
@@ -64,6 +70,18 @@ export const useAppStore = create<AppState>((set) => ({
     const newKnownWords = new Set(state.knownWords);
     newKnownWords.add(word.toLowerCase());
     return { knownWords: newKnownWords };
+  }),
+
+  addLearntWord: (word) => set((state) => {
+    const newLearntWords = new Set(state.learntWords);
+    newLearntWords.add(word.toLowerCase());
+    return { learntWords: newLearntWords };
+  }),
+
+  removeLearntWord: (word) => set((state) => {
+    const newLearntWords = new Set(state.learntWords);
+    newLearntWords.delete(word.toLowerCase());
+    return { learntWords: newLearntWords };
   }),
 
   addAnnotation: (word, annotation) => set((state) => {
