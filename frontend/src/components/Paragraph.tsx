@@ -8,17 +8,19 @@ interface ParagraphProps {
   showIPA: boolean;
   showChinese: boolean;
   onWordClick?: (word: string) => void;
+  onMarkKnown?: (word: string) => void;
   onParagraphAction?: () => void;
 }
 
-export default function Paragraph({ 
-  paragraph, 
-  knownWords, 
-  annotations, 
-  showIPA, 
+export default function Paragraph({
+  paragraph,
+  knownWords,
+  annotations,
+  showIPA,
   showChinese,
   onWordClick,
-  onParagraphAction 
+  onMarkKnown,
+  onParagraphAction
 }: ParagraphProps) {
   return (
     <div className="relative leading-relaxed mb-4 rounded-lg p-1.5 hover:bg-gray-50 group">
@@ -39,6 +41,7 @@ export default function Paragraph({
           showIPA={showIPA}
           showChinese={showChinese}
           onWordClick={onWordClick}
+          onMarkKnown={onMarkKnown}
         />
       ))}
     </div>

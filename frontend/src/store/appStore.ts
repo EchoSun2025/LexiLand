@@ -33,6 +33,7 @@ interface AppState {
   addDocument: (doc: Document) => void;
   setCurrentDocument: (id: string) => void;
   loadKnownWords: (words: string[]) => void;
+  addKnownWord: (word: string) => void;
   addAnnotation: (word: string, annotation: WordAnnotation) => void;
   setSelectedWord: (word: string | null) => void;
   setShowIPA: (show: boolean) => void;
@@ -58,6 +59,12 @@ export const useAppStore = create<AppState>((set) => ({
   setCurrentDocument: (id) => set({ currentDocumentId: id }),
   
   loadKnownWords: (words) => set({ knownWords: new Set(words.map(w => w.toLowerCase())) }),
+
+  addKnownWord: (word) => set((state) => {
+    const newKnownWords = new Set(state.knownWords);
+    newKnownWords.add(word.toLowerCase());
+    return { knownWords: newKnownWords };
+  }),
 
   addAnnotation: (word, annotation) => set((state) => {
     const newAnnotations = new Map(state.annotations);

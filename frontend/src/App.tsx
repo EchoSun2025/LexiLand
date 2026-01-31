@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB } from './db'
 import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
@@ -21,6 +21,7 @@ function App() {
     setCurrentDocument,
     setSelectedWord,
     addAnnotation,
+    addKnownWord,
     setShowIPA,
     setShowChinese,
     setLevel,
@@ -65,6 +66,21 @@ function App() {
     }
 
     setIsLoadingAnnotation(false);
+  };
+
+  // Handle mark word as known
+  const handleMarkKnown = async (word: string) => {
+    try {
+      // Add to store (updates UI immediately)
+      addKnownWord(word);
+      
+      // Save to IndexedDB
+      await addKnownWordToDB(word, level);
+      
+      console.log(`Marked "${word}" as known`);
+    } catch (error) {
+      console.error('Failed to mark word as known:', error);
+    }
   };
 
   // Load known words on mount
@@ -290,8 +306,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     annotations={annotations}
                     showIPA={showIPA}
                     showChinese={showChinese}
-                    onWordClick={handleWordClick}
-                    onParagraphAction={handleParagraphAction}
+                    onWordClick={handleWordClick}                      onMarkKnown={handleMarkKnown}                    onParagraphAction={handleParagraphAction}
                   />
                 ))}
               </>
