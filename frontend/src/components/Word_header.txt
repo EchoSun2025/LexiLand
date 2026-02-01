@@ -1,0 +1,19 @@
+﻿import { useState } from 'react';
+import type { Token } from '../utils/tokenize';
+
+interface WordProps {
+  token: Token;
+  isKnown: boolean;
+  isMarked: boolean;
+  isLearnt: boolean;
+  annotation?: {
+    ipa?: string;
+    chinese?: string;
+  };
+  showIPA: boolean;
+  showChinese: boolean;
+  autoMark: boolean;
+  onClick?: () => void;
+  onMarkKnown?: (word: string) => void;
+  isCurrentWord?: boolean;
+}

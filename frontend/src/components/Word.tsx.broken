@@ -4,6 +4,7 @@ import type { Token } from '../utils/tokenize';
 interface WordProps {
   token: Token;
   isKnown: boolean;
+  isKnown: boolean;
   isMarked: boolean;
   isLearnt: boolean;
   annotation?: {
@@ -17,11 +18,8 @@ interface WordProps {
   onMarkKnown?: (word: string) => void;
   isCurrentWord?: boolean;
 }
-}
 
-export default function Word({ token, isKnown, isMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
-  // Display marked words in bold
-  const fontWeight = isMarked ? 'font-bold' : 'font-normal';
+export default function Word({ token, isKnown, isMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {`n  // Display marked words in bold`n  const fontWeight = isMarked ? 'font-bold' : 'font-normal';
   const [isHovered, setIsHovered] = useState(false);
 
   if (token.type !== 'word') {
@@ -54,7 +52,7 @@ export default function Word({ token, isKnown, isMarked, isLearnt, annotation, s
             ? 'bg-yellow-300 font-bold rounded px-0.5 border-2 border-yellow-500'
             : showLearnt
             ? 'bg-orange-100 rounded px-0.5 cursor-pointer hover:bg-orange-200'
-            : isMarked || hasAnnotation
+            : (autoMark && isUnknown) || hasAnnotation
             ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'
             : isClickable && !autoMark
             ? 'cursor-pointer hover:bg-yellow-50'
