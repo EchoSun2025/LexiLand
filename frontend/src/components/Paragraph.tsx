@@ -3,7 +3,8 @@ import Sentence from './Sentence';
 
 interface ParagraphProps {
   paragraph: ParagraphType;
-  knownWords: Set<string>;`n  markedWords: Set<string>;
+  knownWords: Set<string>;
+  markedWords: Set<string>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
