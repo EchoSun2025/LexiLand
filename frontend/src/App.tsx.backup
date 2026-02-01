@@ -60,30 +60,6 @@ function App() {
   
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
-  // Auto-mark unknown words when document loads or toggle changes
-  useEffect(() => {
-    if (!currentDocument || !autoMarkUnknown) {
-      if (!autoMarkUnknown) setMarkedWords(new Set());
-      return;
-    }
-
-    const unknownWords = new Set<string>();
-    currentDocument.paragraphs.forEach(paragraph => {
-      paragraph.sentences.forEach(sentence => {
-        sentence.tokens.forEach(token => {
-          if (token.type === 'word' && token.text.length > 1) {
-            const normalized = token.text.toLowerCase();
-            if (!knownWords.has(normalized)) {
-              unknownWords.add(normalized);
-            }
-          }
-        });
-      });
-    });
-
-    setMarkedWords(unknownWords);
-  }, [currentDocument, autoMarkUnknown, knownWords]);
-
   // Load available voices
   useEffect(() => {
     const loadVoices = () => {
@@ -99,70 +75,44 @@ function App() {
   }, [selectedVoice]);
 
   // Handle word click
-  // Handle word click: toggle marked state
-  const handleWordClick = (word: string) => {
-    const normalized = word.toLowerCase();
-    
-    if (markedWords.has(normalized)) {
-      // Remove mark
-      setMarkedWords(prev => {
-        const next = new Set(prev);
-        next.delete(normalized);
-        return next;
-      });
-    } else {
-      // Add mark
-      setMarkedWords(prev => new Set(prev).add(normalized));
-    }
-  };
-        
+  const handleWordClick = async (word: string, context?: string) => {
+    const normalizedWord = word.toLowerCase();
 
-  // Handle annotate: generate IPA and Chinese for marked words
-  const handleAnnotate = async () => {
-    if (!currentDocument || markedWords.size === 0) {
-      alert('Please mark some words first (click words to mark them)');
-      return;
-    }
-
-    const wordsToAnnotate = Array.from(markedWords).filter(
-      word => !annotations.has(word)
-    );
-
-    if (wordsToAnnotate.length === 0) {
-      alert('All marked words are already annotated');
-      return;
-    }
-
-    console.log(`Annotating ${wordsToAnnotate.length} words...`);
-    let completed = 0;
-    let failed = 0;
-    const newAnnotations: WordAnnotation[] = [];
-
-    for (const word of wordsToAnnotate) {
+    // If word is learnt, remove from learnt list (restore to unknown)
+    if (learntWords.has(normalizedWord)) {
       try {
-        const annotation = await annotateWord(word);
-        addAnnotation(word, annotation);
-        await cacheAnnotation(word, annotation);
-        newAnnotations.push(annotation);
-        completed++;
-        
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 200));
+        removeLearntWord(word);
+        await removeLearntWordFromDB(word);
+        console.log(`Restored "${word}" to unknown state`);
       } catch (error) {
-        failed++;
-        console.error(`Failed to annotate "${word}":`<br/>, error);
+        console.error('Failed to restore word:', error);
       }
     }
 
-    alert(`Annotation complete!\nSuccess: ${completed}\nFailed: ${failed}`);
-    
-    // If genCard is true, open card for the first annotated word
-    if (genCard && newAnnotations.length > 0) {
-      setCurrentAnnotation(newAnnotations[0]);
+    // Check if already annotated in store
+    const existingAnnotation = annotations.get(normalizedWord);
+    if (existingAnnotation && (existingAnnotation as any).definition) {
+      setCurrentAnnotation(existingAnnotation as WordAnnotation);
+      return;
     }
-  };
 
-addAnnotation(word, annotation);
+    // Check IndexedDB cache
+    setIsLoadingAnnotation(true);
+    try {
+      const cachedAnnotation = await getCachedAnnotation(normalizedWord);
+      if (cachedAnnotation) {
+        console.log(`Loaded annotation for "${word}" from cache`);
+        const annotation: WordAnnotation = {
+          word: cachedAnnotation.word,
+          baseForm: cachedAnnotation.baseForm,
+          ipa: cachedAnnotation.ipa,
+          chinese: cachedAnnotation.chinese,
+          definition: cachedAnnotation.definition,
+          example: cachedAnnotation.example,
+          level: cachedAnnotation.level,
+          partOfSpeech: cachedAnnotation.partOfSpeech,
+        };
+        addAnnotation(word, annotation);
         setCurrentAnnotation(annotation);
         setIsLoadingAnnotation(false);
         return;
@@ -853,6 +803,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         >
           Load sample
         </button>
+<button
+          className="px-2 py-1 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 text-xs"
+          onClick={handleBatchAnnotate}
+          disabled={!currentDocument}
+          title="Batch annotate all unknown words"
+        >
+          Batch Annotate
         </button>
 
         <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
@@ -864,6 +821,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           中文
         </label>
         
+        <button
+          onClick={() => setAutoMark(!autoMark)}
+          className={`px-2 py-1 border border-border rounded-lg text-xs font-semibold ${
+            autoMark ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'
+          }`}
+        >
+          {autoMark ? 'ON' : 'OFF'} Auto-mark
         </button>
         
         <button
@@ -950,7 +914,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       key={paragraph.id}
                       paragraph={paragraph}
                       paragraphIndex={pIdx}
-                      knownWords={knownWords}`n                      markedWords={markedWords}
+                      knownWords={knownWords}
                       learntWords={learntWords}
                       annotations={annotations}
                       showIPA={showIPA}
@@ -966,41 +930,15 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   );
                 })}
                 
-                {/* New control panel */}
-                <div className="mt-8 flex items-center justify-center gap-4 p-4 border-t border-border bg-gray-50 rounded-lg">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={autoMarkUnknown}
-                      onChange={(e) => setAutoMarkUnknown(e.target.checked)}
-                    />
-                    <span className="text-sm font-medium">Unknown Words</span>
-                  </label>
-
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={genCard}
-                      onChange={(e) => setGenCard(e.target.checked)}
-                    />
-                    <span className="text-sm font-medium">Gen Card</span>
-                  </label>
-
-                  <button
-                    onClick={handleAnnotate}
-                    disabled={markedWords.size === 0}
-                    className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
-                  >
-                    Annotate ({markedWords.size})
-                  </button>
-
-                  <button
-                    onClick={handleMarkAllUnmarkedAsKnown}
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium"
-                  >
-                     Mark All Unmarked as Known
-                  </button>
-                </div>
+                {!autoMark && (
+                  <div className="mt-8 flex justify-center">
+                    <button
+                      onClick={handleMarkAllUnmarkedAsKnown}
+                      className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm shadow-md"
+                    >
+                      ✓ Done - Mark All Unmarked as Known
+                    </button>
+                  </div>
                 )}
               </>
             ) : (

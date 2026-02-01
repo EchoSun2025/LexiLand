@@ -1,9 +1,9 @@
-import type { Paragraph as ParagraphType } from '../utils/tokenize';
+﻿import type { Paragraph as ParagraphType } from '../utils/tokenize';
 import Sentence from './Sentence';
 
 interface ParagraphProps {
   paragraph: ParagraphType;
-  knownWords: Set<string>;
+  knownWords: Set<string>;`n  markedWords: Set<string>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
@@ -20,7 +20,7 @@ interface ParagraphProps {
 
 export default function Paragraph({
   paragraph,
-  knownWords,
+  knownWords,`n  markedWords,
   learntWords,
   annotations,
   showIPA,
@@ -57,8 +57,7 @@ export default function Paragraph({
           <Sentence
             key={sentence.id}
             sentence={sentence}
-            knownWords={knownWords}
-            learntWords={learntWords}
+            knownWords={knownWords}`n            markedWords={markedWords}`n            learntWords={learntWords}
             annotations={annotations}
             showIPA={showIPA}
             showChinese={showChinese}

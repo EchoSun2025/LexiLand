@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import type { Paragraph } from '../utils/tokenize';
 import type { WordAnnotation } from '../api';
 
@@ -32,6 +32,8 @@ interface AppState {
   showChinese: boolean;
   level: string;
   autoMark: boolean;
+  autoMarkUnknown: boolean;
+  genCard: boolean;
   
   // Actions
   addDocument: (doc: Document) => void;
@@ -49,6 +51,8 @@ interface AppState {
   setShowChinese: (show: boolean) => void;
   setLevel: (level: string) => void;
   setAutoMark: (autoMark: boolean) => void;
+  setAutoMarkUnknown: (auto: boolean) => void;
+  setGenCard: (gen: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -62,6 +66,8 @@ export const useAppStore = create<AppState>((set) => ({
   showChinese: true,
   level: 'B2',
   autoMark: true,
+  autoMarkUnknown: false,
+  genCard: false,
   
   addDocument: (doc) => set((state) => ({
     documents: [...state.documents, doc],
@@ -111,5 +117,5 @@ export const useAppStore = create<AppState>((set) => ({
   setShowIPA: (show) => set({ showIPA: show }),
   setShowChinese: (show) => set({ showChinese: show }),
   setLevel: (level) => set({ level }),
-  setAutoMark: (autoMark) => set({ autoMark }),
+  setAutoMark: (autoMark) => set({ autoMark }),`n  setAutoMarkUnknown: (auto) => set({ autoMarkUnknown: auto }),`n  setGenCard: (gen) => set({ genCard: gen }),
 }));

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import type { Token } from '../utils/tokenize';
 
 interface WordProps {
   token: Token;
-  isKnown: boolean;
+  isKnown: boolean;`n  isMarked: boolean;
   isLearnt: boolean;
   annotation?: {
     ipa?: string;
@@ -17,7 +17,7 @@ interface WordProps {
   isCurrentWord?: boolean;
 }
 
-export default function Word({ token, isKnown, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
+export default function Word({ token, isKnown, isMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {`n  // Display marked words in bold`n  const fontWeight = isMarked ? 'font-bold' : 'font-normal';
   const [isHovered, setIsHovered] = useState(false);
 
   if (token.type !== 'word') {
