@@ -18,7 +18,9 @@ function App() {
     showIPA,
     showChinese,
     level,
-    autoMark,`n    autoMarkUnknown,`n    genCard,
+    autoMark,
+    autoMarkUnknown,
+    genCard,
     addDocument,
     setCurrentDocument,
     setSelectedWord,
@@ -30,7 +32,9 @@ function App() {
     setShowIPA,
     setShowChinese,
     setLevel,
-    setAutoMark,`n    setAutoMarkUnknown,`n    setGenCard,`n    autoMarkUnknown,`n    genCard,
+    setAutoMark,
+    setAutoMarkUnknown,
+    setGenCard,
     loadKnownWords,
     loadLearntWords,
     loadAnnotations,
@@ -950,7 +954,8 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       key={paragraph.id}
                       paragraph={paragraph}
                       paragraphIndex={pIdx}
-                      knownWords={knownWords}`n                      markedWords={markedWords}
+                      knownWords={knownWords}
+                      markedWords={markedWords}
                       learntWords={learntWords}
                       annotations={annotations}
                       showIPA={showIPA}
