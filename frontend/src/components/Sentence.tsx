@@ -3,7 +3,8 @@ import Word from './Word';
 
 interface SentenceProps {
   sentence: SentenceType;
-  knownWords: Set<string>;`n  markedWords: Set<string>;
+  knownWords: Set<string>;
+  markedWords: Set<string>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
@@ -38,7 +39,9 @@ export default function Sentence({ sentence, knownWords, learntWords, annotation
           <span key={`${token.id}-${index}`}>
             <Word
               token={token}
-              isKnown={knownWords.has(token.text.toLowerCase())}`n              isMarked={markedWords.has(token.text.toLowerCase())}`n              isLearnt={learntWords.has(token.text.toLowerCase())}
+              isKnown={knownWords.has(token.text.toLowerCase())}
+              isMarked={markedWords.has(token.text.toLowerCase())}
+              isLearnt={learntWords.has(token.text.toLowerCase())}
               annotation={annotations.get(token.text.toLowerCase())}
               showIPA={showIPA}
               showChinese={showChinese}
