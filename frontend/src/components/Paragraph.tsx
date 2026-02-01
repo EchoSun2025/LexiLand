@@ -21,7 +21,8 @@ interface ParagraphProps {
 
 export default function Paragraph({
   paragraph,
-  knownWords,`n  markedWords,
+  knownWords,
+  markedWords,
   learntWords,
   annotations,
   showIPA,
