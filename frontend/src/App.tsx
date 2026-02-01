@@ -154,7 +154,7 @@ function App() {
         await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
         failed++;
-        console.error(`Failed to annotate "${word}":`<br/>, error);
+        console.error(`Failed to annotate "${word}":`, error);
       }
     }
 
