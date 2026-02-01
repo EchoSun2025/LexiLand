@@ -824,7 +824,6 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         >
           Load sample
         </button>
-        </button>
 
         <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
           <input type="checkbox" checked={showIPA} onChange={(e) => setShowIPA(e.target.checked)} />
@@ -835,7 +834,6 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           中文
         </label>
         
-        </button>
         
         <button
           onClick={handleExportData}
