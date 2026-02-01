@@ -166,39 +166,6 @@ function App() {
     }
   };
 
-addAnnotation(word, annotation);
-        setCurrentAnnotation(annotation);
-        setIsLoadingAnnotation(false);
-        return;
-      }
-    } catch (error) {
-      console.error('Failed to load from cache:', error);
-    }
-
-    // Fetch annotation from API
-    const result = await annotateWord(word, level, context);
-
-    if (result.success && result.data) {
-      addAnnotation(word, result.data);
-      setCurrentAnnotation(result.data);
-
-      // Cache the annotation
-      try {
-        await cacheAnnotation(word, result.data);
-        console.log(`Cached annotation for "${word}"`);
-      } catch (error) {
-        console.error('Failed to cache annotation:', error);
-      }
-
-      console.log('Annotation fetched from API:', result.data);
-      console.log('API usage:', result.usage);
-    } else {
-      console.error('Failed to fetch annotation:', result.error);
-      alert(`Failed to annotate "${word}": ${result.error}`);
-    }
-
-    setIsLoadingAnnotation(false);
-  };
 
 // Handle mark word as known (mark as learnt)
   const handleMarkKnown = async (word: string) => {
