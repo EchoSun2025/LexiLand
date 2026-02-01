@@ -117,5 +117,7 @@ export const useAppStore = create<AppState>((set) => ({
   setShowIPA: (show) => set({ showIPA: show }),
   setShowChinese: (show) => set({ showChinese: show }),
   setLevel: (level) => set({ level }),
-  setAutoMark: (autoMark) => set({ autoMark }),`n  setAutoMarkUnknown: (auto) => set({ autoMarkUnknown: auto }),`n  setGenCard: (gen) => set({ genCard: gen }),
+  setAutoMark: (autoMark) => set({ autoMark }),
+  setAutoMarkUnknown: (auto) => set({ autoMarkUnknown: auto }),
+  setGenCard: (gen) => set({ genCard: gen }),
 }));
