@@ -59,7 +59,9 @@ export default function Paragraph({
           <Sentence
             key={sentence.id}
             sentence={sentence}
-            knownWords={knownWords}`n            markedWords={markedWords}`n            learntWords={learntWords}
+            knownWords={knownWords}
+            markedWords={markedWords}
+            learntWords={learntWords}
             annotations={annotations}
             showIPA={showIPA}
             showChinese={showChinese}
