@@ -971,7 +971,6 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                      Mark All Unmarked as Known
                   </button>
                 </div>
-                )}
               </>
             ) : (
               <>
