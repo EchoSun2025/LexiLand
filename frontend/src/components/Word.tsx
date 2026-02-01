@@ -17,7 +17,6 @@ interface WordProps {
   onMarkKnown?: (word: string) => void;
   isCurrentWord?: boolean;
 }
-}
 
 export default function Word({ token, isKnown, isMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
   // Display marked words in bold
