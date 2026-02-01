@@ -61,6 +61,8 @@ function App() {
   const [isPaused, setIsPaused] = useState(false);
   const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
+  const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
+
   
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
