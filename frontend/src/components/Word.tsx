@@ -33,14 +33,8 @@ export default function Word({ token, isKnown, isMarked, isLearnt, annotation, s
   // 是否有注释（已加入cards）
   const hasAnnotation = !!annotation;
   
-  // 可点击条件：autoMark模式下只有未知词和learnt可点，非autoMark模式下所有词都可点
-  const isClickable = autoMark ? (isUnknown || showLearnt) : token.text.length > 1;
-
-  const handleMarkKnown = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 防止触发 onClick
-    onMarkKnown?.(token.text);
-  };
-
+  // 可点击条件：showLearnt的词双击打开卡片，其他词单击切换标记
+  const isClickable = token.text.length > 1;
   return (
     <span
       className="relative inline-block group"
