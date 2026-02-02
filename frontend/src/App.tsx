@@ -114,14 +114,9 @@ function App() {
       return;
     }
 
-        const next = new Set(prev);
-        next.delete(normalized);
-        return next;
-      });
-    } else {
-      // Add mark
-      setMarkedWords(prev => new Set(prev).add(normalized));
-    }
+    if (markedWords.has(normalized)) {
+      // Remove mark
+      setMarkedWords(prev => {
   };
         
 
