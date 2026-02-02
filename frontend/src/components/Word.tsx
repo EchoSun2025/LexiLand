@@ -48,7 +48,7 @@ export default function Word({ token, isKnown, isMarked, isLearnt, annotation, s
           isCurrentWord
             ? 'bg-yellow-300 font-bold rounded px-0.5 border-2 border-yellow-500'
             : showLearnt
-            ? 'bg-orange-100 rounded px-0.5 cursor-pointer hover:bg-orange-200'
+            ? 'bg-orange-100 rounded cursor-pointer hover:bg-orange-200'
             : isMarked
             ? 'bg-green-100 rounded cursor-pointer hover:bg-green-200'
             : hasAnnotation
