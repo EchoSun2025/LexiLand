@@ -109,7 +109,7 @@ function App() {
   // Handle word click: toggle marked state
   const handleWordClick = (word: string) => {
     const normalized = word.toLowerCase();
-    console.log('handleWordClick:', word, 'normalized:', normalized, 'has card:', annotations.has(normalized) && (annotations.get(normalized) as any)?.definition, 'markedWords.has:', markedWords.has(normalized));
+    console.log('handleWordClick:', word, 'normalized:', normalized, 'has card:', annotations.has(normalized) && (annotations.get(normalized) as any)?.definition, 'markedWords.has:', markedWords.has(normalized), 'phraseMarkedWords.has:', phraseMarkedWords.has(normalized));
 
     // Don't allow marking words that already have cards (with definition)
     const hasCard = annotations.has(normalized) && (annotations.get(normalized) as any)?.definition;
@@ -117,6 +117,18 @@ function App() {
       return;
     }
 
+    // Check if it's in phraseMarkedWords first (purple takes priority)
+    if (phraseMarkedWords.has(normalized)) {
+      // Remove from phrase marks
+      setPhraseMarkedWords(prev => {
+        const next = new Set(prev);
+        next.delete(normalized);
+        return next;
+      });
+      return;
+    }
+
+    // Then handle regular word marks (green)
     if (markedWords.has(normalized)) {
       // Remove mark
       setMarkedWords(prev => {
