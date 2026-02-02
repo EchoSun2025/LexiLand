@@ -61,8 +61,9 @@ export default function Word({ token, isKnown, isMarked, isLearnt, annotation, s
         }`}
         onClick={isClickable && !showLearnt ? onClick : undefined}
         onDoubleClick={showLearnt ? onClick : undefined}
-        </button>
-      )}
+        >
+        {token.text}
+      </span>
 
       {hasAnnotation && isUnknown && (
         <>
