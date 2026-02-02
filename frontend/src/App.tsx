@@ -109,9 +109,11 @@ function App() {
   const handleWordClick = (word: string) => {
     const normalized = word.toLowerCase();
     
-    if (markedWords.has(normalized)) {
-      // Remove mark
-      setMarkedWords(prev => {
+    // Don't allow marking words that already have cards (in learntWords)
+    if (learntWords.has(normalized)) {
+      return;
+    }
+
         const next = new Set(prev);
         next.delete(normalized);
         return next;

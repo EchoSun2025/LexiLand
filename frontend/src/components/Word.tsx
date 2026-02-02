@@ -59,19 +59,8 @@ export default function Word({ token, isKnown, isMarked, isLearnt, annotation, s
             ? 'cursor-pointer hover:bg-yellow-50'
             : ''
         }`}
-        onDoubleClick={isClickable ? onClick : undefined}
-      >
-        {token.text}
-      </span>
-
-      {/* × 按钮 - 悬停时显示 */}
-      {autoMark && isUnknown && isHovered && (
-        <button
-          onClick={handleMarkKnown}
-          className="absolute -top-1 -right-3 w-5 h-5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-600 hover:text-gray-800 rounded text-sm flex items-center justify-center shadow-sm transition-all"
-          title="Mark as known"
-        >
-          ×
+        onClick={isClickable && !showLearnt ? onClick : undefined}
+        onDoubleClick={showLearnt ? onClick : undefined}
         </button>
       )}
 
