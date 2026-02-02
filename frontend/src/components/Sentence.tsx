@@ -5,6 +5,7 @@ interface SentenceProps {
   sentence: SentenceType;
   knownWords: Set<string>;
   markedWords: Set<string>;
+  phraseMarkedWords: Set<string>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
@@ -16,7 +17,7 @@ interface SentenceProps {
   currentWordIndex?: number;
 }
 
-export default function Sentence({ sentence, knownWords, markedWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
+export default function Sentence({ sentence, knownWords, markedWords, phraseMarkedWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
   let wordCount = 0; // Track word index within this sentence
   
   return (
@@ -41,6 +42,7 @@ export default function Sentence({ sentence, knownWords, markedWords, learntWord
               token={token}
               isKnown={knownWords.has(token.text.toLowerCase())}
               isMarked={markedWords.has(token.text.toLowerCase())}
+              isPhraseMarked={phraseMarkedWords.has(token.text.toLowerCase())}
               isLearnt={learntWords.has(token.text.toLowerCase())}
               annotation={annotations.get(token.text.toLowerCase())}
               showIPA={showIPA}

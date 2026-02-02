@@ -5,6 +5,7 @@ interface WordProps {
   token: Token;
   isKnown: boolean;
   isMarked: boolean;
+  isPhraseMarked: boolean;
   isLearnt: boolean;
   annotation?: {
     ipa?: string;
@@ -18,7 +19,7 @@ interface WordProps {
   isCurrentWord?: boolean;
 }
 
-export default function Word({ token, isKnown, isMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
+export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
   // Display marked words in bold
   const fontWeight = isMarked ? 'font-bold' : 'font-normal';
   const [isHovered, setIsHovered] = useState(false);
@@ -49,6 +50,8 @@ export default function Word({ token, isKnown, isMarked, isLearnt, annotation, s
             ? 'bg-yellow-300 font-bold rounded px-0.5 border-2 border-yellow-500'
             : showLearnt
             ? 'bg-orange-100 rounded cursor-pointer hover:bg-orange-200'
+            : isPhraseMarked
+            ? 'bg-purple-100 rounded cursor-pointer hover:bg-purple-200'
             : isMarked
             ? 'bg-green-100 rounded cursor-pointer hover:bg-green-200'
             : hasAnnotation

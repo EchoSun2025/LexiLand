@@ -62,6 +62,7 @@ function App() {
   const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
+  const [phraseMarkedWords, setPhraseMarkedWords] = useState<Set<string>>(new Set());
 
   
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
@@ -127,6 +128,36 @@ function App() {
       // Add mark
       setMarkedWords(prev => new Set(prev).add(normalized));
     }
+  };
+
+  // Handle text selection for phrase marking
+  const handleTextSelection = (e: React.MouseEvent) => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return;
+
+    const selectedText = selection.toString().trim();
+    if (!selectedText) return;
+
+    // Extract words from selection (split by spaces and punctuation)
+    const words = selectedText.toLowerCase().match(/[a-z]+/gi);
+    if (!words || words.length === 0) return;
+
+    const newWords = new Set(words);
+
+    // Check for Ctrl/Cmd key (add to existing selection)
+    if (e.ctrlKey || e.metaKey) {
+      setPhraseMarkedWords(prev => {
+        const next = new Set(prev);
+        newWords.forEach(w => next.add(w));
+        return next;
+      });
+    } else {
+      // Replace selection
+      setPhraseMarkedWords(newWords);
+    }
+
+    // Clear browser selection
+    selection.removeAllRanges();
   };
 
 
@@ -908,7 +939,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
         {/* Center Panel: Reader */}
         <main className="border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0">
-          <div className="flex-1 p-3 overflow-auto">
+          <div className="flex-1 p-3 overflow-auto" onMouseUp={handleTextSelection}>
             {currentDocument ? (
               <>
                 <div className="text-2xl font-extrabold mb-2">{currentDocument.title}</div>
@@ -930,6 +961,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       paragraphIndex={pIdx}
                       knownWords={knownWords}
                       markedWords={markedWords}
+                      phraseMarkedWords={phraseMarkedWords}
                       learntWords={learntWords}
                       annotations={annotations}
                       showIPA={showIPA}

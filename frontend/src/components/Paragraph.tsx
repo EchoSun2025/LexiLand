@@ -5,6 +5,7 @@ interface ParagraphProps {
   paragraph: ParagraphType;
   knownWords: Set<string>;
   markedWords: Set<string>;
+  phraseMarkedWords: Set<string>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
@@ -23,6 +24,7 @@ export default function Paragraph({
   paragraph,
   knownWords,
   markedWords,
+  phraseMarkedWords,
   learntWords,
   annotations,
   showIPA,
@@ -61,6 +63,7 @@ export default function Paragraph({
             sentence={sentence}
             knownWords={knownWords}
             markedWords={markedWords}
+            phraseMarkedWords={phraseMarkedWords}
             learntWords={learntWords}
             annotations={annotations}
             showIPA={showIPA}
