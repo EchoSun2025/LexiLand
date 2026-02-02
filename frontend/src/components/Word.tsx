@@ -50,7 +50,7 @@ export default function Word({ token, isKnown, isMarked, isLearnt, annotation, s
             : showLearnt
             ? 'bg-orange-100 rounded px-0.5 cursor-pointer hover:bg-orange-200'
             : isMarked
-            ? 'bg-green-100 rounded px-0.5 cursor-pointer hover:bg-green-200'
+            ? 'bg-green-100 rounded cursor-pointer hover:bg-green-200'
             : hasAnnotation
             ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'
             : isClickable && !autoMark
