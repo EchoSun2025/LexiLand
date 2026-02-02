@@ -108,7 +108,7 @@ function App() {
   // Handle word click: toggle marked state
   const handleWordClick = (word: string) => {
     const normalized = word.toLowerCase();
-    
+
     // Don't allow marking words that already have cards (in learntWords)
     if (learntWords.has(normalized)) {
       return;
@@ -117,8 +117,16 @@ function App() {
     if (markedWords.has(normalized)) {
       // Remove mark
       setMarkedWords(prev => {
+        const next = new Set(prev);
+        next.delete(normalized);
+        return next;
+      });
+    } else {
+      // Add mark
+      setMarkedWords(prev => new Set(prev).add(normalized));
+    }
   };
-        
+
 
   // Handle annotate: generate IPA and Chinese for marked words
   const handleAnnotate = async () => {
