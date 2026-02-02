@@ -108,10 +108,11 @@ function App() {
   // Handle word click: toggle marked state
   const handleWordClick = (word: string) => {
     const normalized = word.toLowerCase();
-    console.log('handleWordClick:', word, 'normalized:', normalized, 'learntWords.has:', learntWords.has(normalized), 'markedWords.has:', markedWords.has(normalized));
+    console.log('handleWordClick:', word, 'normalized:', normalized, 'has card:', annotations.has(normalized) && (annotations.get(normalized) as any)?.definition, 'markedWords.has:', markedWords.has(normalized));
 
-    // Don't allow marking words that already have cards (in learntWords)
-    if (learntWords.has(normalized)) {
+    // Don't allow marking words that already have cards (with definition)
+    const hasCard = annotations.has(normalized) && (annotations.get(normalized) as any)?.definition;
+    if (hasCard) {
       return;
     }
 

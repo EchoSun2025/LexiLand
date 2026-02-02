@@ -28,11 +28,13 @@ export default function Word({ token, isKnown, isMarked, isLearnt, annotation, s
   }
 
   const isUnknown = !isKnown && !isLearnt && token.text.length > 1;
-  // 淡橙色高亮: 已学习且有注释数据的单词
-  const showLearnt = isLearnt && annotation && (annotation as any).definition;
-  // 是否有注释（已加入cards）
+  // 是否有完整的card数据（有definition表示已生成过card）
+  const hasCard = annotation && (annotation as any).definition;
+  // 淡橙色高亮: 有card的词
+  const showLearnt = hasCard;
+  // 是否有注释（IPA或中文）
   const hasAnnotation = !!annotation;
-  
+
   // 可点击条件：showLearnt的词双击打开卡片，其他词单击切换标记
   const isClickable = token.text.length > 1;
   return (
