@@ -14,10 +14,13 @@ export interface LearntWord {
 
 export interface CachedAnnotation {
   word: string;
-  ipa?: string;
-  chinese?: string;
-  definition?: string;
-  examples?: string[];
+  baseForm?: string;
+  ipa: string;
+  chinese: string;
+  definition: string;
+  example: string;
+  level: string;
+  partOfSpeech: string;
   cachedAt: number;
 }
 
@@ -177,10 +180,13 @@ export async function exportUserData(): Promise<string> {
       })),
       annotations: annotations.map(a => ({
         word: a.word,
+        baseForm: a.baseForm,
         ipa: a.ipa,
         chinese: a.chinese,
         definition: a.definition,
-        examples: a.examples,
+        example: a.example,
+        level: a.level,
+        partOfSpeech: a.partOfSpeech,
         cachedAt: new Date(a.cachedAt).toISOString()
       }))
     },
@@ -260,10 +266,13 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
           if (!existing) {
             await db.annotations.add({
               word: item.word,
+              baseForm: item.baseForm,
               ipa: item.ipa,
               chinese: item.chinese,
               definition: item.definition,
-              examples: item.examples,
+              example: item.example,
+              level: item.level,
+              partOfSpeech: item.partOfSpeech,
               cachedAt: new Date(item.cachedAt).getTime()
             });
             result.imported++;

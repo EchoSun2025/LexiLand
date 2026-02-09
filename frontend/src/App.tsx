@@ -530,8 +530,14 @@ function App() {
       const annotationsMap = new Map();
       newAnnotations.forEach(a => {
         annotationsMap.set(a.word, {
+          word: a.word,
+          baseForm: a.baseForm,
           ipa: a.ipa,
-          chinese: a.chinese
+          chinese: a.chinese,
+          definition: a.definition,
+          example: a.example,
+          level: a.level,
+          partOfSpeech: a.partOfSpeech,
         });
       });
       loadAnnotations(annotationsMap);
