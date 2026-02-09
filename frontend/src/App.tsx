@@ -106,13 +106,24 @@ function App() {
     window.speechSynthesis.onvoiceschanged = loadVoices;
   }, [selectedVoice]);
 
+  // When selectedWord changes, set currentAnnotation to show the card
+  useEffect(() => {
+    if (selectedWord && annotations.has(selectedWord)) {
+      const annotation = annotations.get(selectedWord);
+      if (annotation && (annotation as any).definition) {
+        setCurrentAnnotation(annotation as WordAnnotation);
+      }
+    }
+  }, [selectedWord, annotations]);
+
   // Handle word click
   // Handle word click: toggle marked state
   const handleWordClick = (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => {
     const normalized = word.toLowerCase();
-    // Don't allow marking words that already have cards (with definition)
+    // If word has a card, just select it to show the card (for double-click on orange words)
     const hasCard = annotations.has(normalized) && (annotations.get(normalized) as any)?.definition;
     if (hasCard) {
+      setSelectedWord(normalized);
       return;
     }
 
