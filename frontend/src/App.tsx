@@ -920,8 +920,9 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         </label>
         <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
           <input type="checkbox" checked={showChinese} onChange={(e) => setShowChinese(e.target.checked)} />
-            中文
-        
+          中文
+        </label>
+
         <button
           onClick={handleExportData}
           className="px-2 py-1 border border-green-500 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-semibold"
