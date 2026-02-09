@@ -62,6 +62,7 @@ Please provide the following information in JSON format:
 
 Important: 
 - If the word is an irregular past tense (e.g., 'ran'), past participle (e.g., 'spoken'), or other inflected form, provide the baseForm.
+- The "example" field MUST contain a complete, natural sentence demonstrating the word's usage. NEVER leave it empty.
 - Return ONLY the JSON object, no additional text.`;
 
     const completion = await openai.chat.completions.create({
@@ -78,6 +79,10 @@ Important:
 
     const annotation = JSON.parse(content);
 
+    // Validate required fields
+    if (!annotation.example || annotation.example.trim() === '') {
+      throw new Error('Generated annotation missing example sentence');
+    }
     return {
       success: true,
       data: annotation,
