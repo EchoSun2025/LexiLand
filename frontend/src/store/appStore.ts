@@ -33,8 +33,7 @@ interface AppState {
   level: string;
   autoMark: boolean;
   autoMarkUnknown: boolean;
-  genCard: boolean;
-  
+
   // Actions
   addDocument: (doc: Document) => void;
   setCurrentDocument: (id: string) => void;
@@ -52,7 +51,6 @@ interface AppState {
   setLevel: (level: string) => void;
   setAutoMark: (autoMark: boolean) => void;
   setAutoMarkUnknown: (auto: boolean) => void;
-  setGenCard: (gen: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -67,7 +65,6 @@ export const useAppStore = create<AppState>((set) => ({
   level: 'B2',
   autoMark: true,
   autoMarkUnknown: false,
-  genCard: false,
   
   addDocument: (doc) => set((state) => ({
     documents: [...state.documents, doc],
@@ -119,5 +116,4 @@ export const useAppStore = create<AppState>((set) => ({
   setLevel: (level) => set({ level }),
   setAutoMark: (autoMark) => set({ autoMark }),
   setAutoMarkUnknown: (auto) => set({ autoMarkUnknown: auto }),
-  setGenCard: (gen) => set({ genCard: gen }),
 }));

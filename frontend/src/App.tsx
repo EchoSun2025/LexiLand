@@ -20,7 +20,6 @@ function App() {
     level,
     autoMark,
     autoMarkUnknown,
-    genCard,
     addDocument,
     setCurrentDocument,
     setSelectedWord,
@@ -34,7 +33,6 @@ function App() {
     setLevel,
     setAutoMark,
     setAutoMarkUnknown,
-    setGenCard,
     loadKnownWords,
     loadLearntWords,
     loadAnnotations,
@@ -379,11 +377,6 @@ function App() {
 
     setIsLoadingAnnotation(false);
     alert(`Annotation complete!\nSuccess: ${completed}\nFailed: ${failed}`);
-
-    // If genCard is true, open card for the first annotated word
-    if (genCard && newAnnotations.length > 0) {
-      setCurrentAnnotation(newAnnotations[0]);
-    }
   };
 
 // Handle mark word as known (mark as learnt)
@@ -1165,15 +1158,6 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       onChange={(e) => setAutoMarkUnknown(e.target.checked)}
                     />
                     <span className="text-sm font-medium">Unknown Words</span>
-                  </label>
-
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={genCard}
-                      onChange={(e) => setGenCard(e.target.checked)}
-                    />
-                    <span className="text-sm font-medium">Gen Card</span>
                   </label>
 
                   <button
