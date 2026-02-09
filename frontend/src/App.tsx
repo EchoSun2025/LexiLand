@@ -471,7 +471,7 @@ function App() {
       }
     }
 
-    alert(`≈˙¡ø◊¢ ÕÕÍ≥…£°\\n≥…π¶: ${completed}\\n ß∞‹: ${failed}`);
+    alert(`ÊâπÈáèÊ≥®ÈáäÂÆåÊàêÔºÅ\\nÊàêÂäü: ${completed}\\nÂ§±Ë¥•: ${failed}`);
   };
 
   // Load known words on mount
@@ -526,7 +526,7 @@ function App() {
           addAnnotation(item.word, annotation);
         });
         if (cached.length > 0) {
-          console.log('? Cached annotations loaded');
+          console.log('‚úì Cached annotations loaded');
         }
       } catch (error) {
         console.error('Failed to load cached annotations:', error);
@@ -539,7 +539,7 @@ function App() {
         const learnt = await getAllLearntWords();
         learnt.forEach(word => addLearntWord(word));
         if (learnt.length > 0) {
-          console.log(`? Loaded ${learnt.length} learnt words from IndexedDB`);
+          console.log(`‚úì Loaded ${learnt.length} learnt words from IndexedDB`);
         }
       } catch (error) {
         console.error('Failed to load learnt words:', error);
@@ -920,9 +920,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         </label>
         <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
           <input type="checkbox" checked={showChinese} onChange={(e) => setShowChinese(e.target.checked)} />
-          ÷–Œƒ
-        </label>
-        
+            ‰∏≠Êñá
         
         <button
           onClick={handleExportData}
@@ -966,7 +964,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 key={doc.id}                onClick={() => setCurrentDocument(doc.id)}                className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
               >
                 <span>{doc.title}</span>
-                <span className="text-muted">?</span>
+                <span className="text-muted">üìù</span>
               </div>
             ))}
 
@@ -975,7 +973,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
               onClick={handleNewDocument}
             >
-              <span>£´ New document</span>
+              <span>Ôºã New document</span>
             </div>
             <div 
               className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
@@ -1084,10 +1082,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           <div className="flex-1 p-3 overflow-auto">
             {isLoadingAnnotation && (
               <div className="text-center py-8 text-muted">
-                <div className="text-2xl mb-2">?</div>
-                <div>Loading annotation...</div>
-              </div>
-            )}
+                  <div className="text-2xl mb-2">üîä</div>
             
             {!isLoadingAnnotation && currentAnnotation && (
               <WordCard
