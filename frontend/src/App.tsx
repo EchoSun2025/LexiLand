@@ -192,19 +192,36 @@ function App() {
       return;
     }
 
+    // Check if selection spans multiple sentences
     const firstPos = tokenPositions[0];
     const lastPos = tokenPositions[tokenPositions.length - 1];
-    const newRange = {
-      pIndex: firstPos.pIndex,
-      sIndex: firstPos.sIndex,
-      startTokenIndex: firstPos.tokenIndex,
-      endTokenIndex: lastPos.tokenIndex
-    };
+    
+    // Group by sentence to support cross-sentence selection
+    const sentenceGroups = new Map<string, typeof tokenPositions>();
+    tokenPositions.forEach(pos => {
+      const key = `p${pos.pIndex}-s${pos.sIndex}`;
+      if (!sentenceGroups.has(key)) {
+        sentenceGroups.set(key, []);
+      }
+      sentenceGroups.get(key)!.push(pos);
+    });
+
+    // Create a range for each sentence group
+    const newRanges = Array.from(sentenceGroups.entries()).map(([key, positions]) => {
+      const first = positions[0];
+      const last = positions[positions.length - 1];
+      return {
+        pIndex: first.pIndex,
+        sIndex: first.sIndex,
+        startTokenIndex: first.tokenIndex,
+        endTokenIndex: last.tokenIndex
+      };
+    });
 
     if (e.ctrlKey || e.metaKey) {
-      setPhraseMarkedRanges(prev => [...prev, newRange]);
+      setPhraseMarkedRanges(prev => [...prev, ...newRanges]);
     } else {
-      setPhraseMarkedRanges([newRange]);
+      setPhraseMarkedRanges(newRanges);
     }
 
     selection.removeAllRanges();
