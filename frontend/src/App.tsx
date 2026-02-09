@@ -153,6 +153,8 @@ function App() {
     const selectedText = selection.toString().trim();
     if (!selectedText) return;
 
+    console.log('Selected text:', selectedText);
+
     const range = selection.getRangeAt(0);
     const container = range.commonAncestorContainer;
     const parent = container.nodeType === Node.TEXT_NODE ? container.parentElement : container as Element;
@@ -164,8 +166,13 @@ function App() {
       {
         acceptNode: (node) => {
           const el = node as HTMLElement;
-          if (el.hasAttribute('data-token-pos') && selection.containsNode(el, true)) {
-            return NodeFilter.FILTER_ACCEPT;
+          if (el.hasAttribute('data-token-pos')) {
+            const isContained = selection.containsNode(el, true);
+            const tokenPos = el.getAttribute('data-token-pos');
+            console.log('Token:', el.textContent, 'pos:', tokenPos, 'contained:', isContained);
+            if (isContained) {
+              return NodeFilter.FILTER_ACCEPT;
+            }
           }
           return NodeFilter.FILTER_SKIP;
         }
