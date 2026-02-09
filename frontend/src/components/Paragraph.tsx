@@ -11,7 +11,7 @@ interface ParagraphProps {
   showIPA: boolean;
   showChinese: boolean;
   autoMark: boolean;
-  onWordClick?: (word: string) => void;
+  onWordClick?: (word: string, wordId?: string) => void;
   onMarkKnown?: (word: string) => void;
   onParagraphAction?: () => void;
   paragraphIndex?: number;

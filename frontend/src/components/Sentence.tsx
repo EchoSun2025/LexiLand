@@ -13,7 +13,7 @@ interface SentenceProps {
   showIPA: boolean;
   showChinese: boolean;
   autoMark: boolean;
-  onWordClick?: (word: string) => void;
+  onWordClick?: (word: string, wordId?: string) => void;
   onMarkKnown?: (word: string) => void;
   isCurrentSentence?: boolean;
   currentWordIndex?: number;
@@ -54,7 +54,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
               showIPA={showIPA}
               showChinese={showChinese}
               autoMark={autoMark}
-              onClick={() => onWordClick?.(token.text)}
+              onClick={() => onWordClick?.(token.text, wordId)}
               onMarkKnown={onMarkKnown}
               isCurrentWord={isCurrentWord}
             />
