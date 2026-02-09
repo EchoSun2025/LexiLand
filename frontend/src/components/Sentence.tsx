@@ -39,13 +39,14 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
         // Check if this word is phrase marked (purple)
         const isPhraseMarked = wordId && phraseMarkedWords.has(wordId);
         
-        // Check if next word is also phrase marked (for purple space)
-        const nextWordId = nextToken && nextToken.type === 'word' ? `p${paragraphIndex}-s${sentenceIndex}-w${wordCount + 1}` : '';
-        const isNextPhraseMarked = nextWordId && phraseMarkedWords.has(nextWordId);
-        const shouldPurpleSpace = needsSpace && isPhraseMarked && isNextPhraseMarked;
+        // Check if next word (wordCount+1) is also phrase marked for purple space
+        // We check the position, not the next token, because tokens include whitespace
+        const nextWordIdByPosition = `p${paragraphIndex}-s${sentenceIndex}-w${wordCount + 1}`;
+        const isNextWordPhraseMarked = phraseMarkedWords.has(nextWordIdByPosition);
+        const shouldPurpleSpace = needsSpace && isPhraseMarked && isNextWordPhraseMarked;
         
-        if (isPhraseMarked || isNextPhraseMarked) {
-          console.log('Word:', token.text, 'wordId:', wordId, 'isPhraseMarked:', isPhraseMarked, 'nextToken:', nextToken?.text, 'nextWordId:', nextWordId, 'isNextPhraseMarked:', isNextPhraseMarked, 'needsSpace:', needsSpace, 'shouldPurpleSpace:', shouldPurpleSpace);
+        if (isPhraseMarked || isNextWordPhraseMarked) {
+          console.log('Word:', token.text, 'wordId:', wordId, 'isPhraseMarked:', isPhraseMarked, 'nextWordIdByPosition:', nextWordIdByPosition, 'isNextWordPhraseMarked:', isNextWordPhraseMarked, 'needsSpace:', needsSpace, 'shouldPurpleSpace:', shouldPurpleSpace);
         }
         
         // Increment wordCount AFTER checking
