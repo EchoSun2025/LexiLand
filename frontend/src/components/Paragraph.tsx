@@ -5,13 +5,13 @@ interface ParagraphProps {
   paragraph: ParagraphType;
   knownWords: Set<string>;
   markedWords: Set<string>;
-  phraseMarkedWords: Set<string>;
+  phraseMarkedRanges: Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
   showChinese: boolean;
   autoMark: boolean;
-  onWordClick?: (word: string, wordId?: string) => void;
+  onWordClick?: (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => void;
   onMarkKnown?: (word: string) => void;
   onParagraphAction?: () => void;
   paragraphIndex?: number;
@@ -24,7 +24,7 @@ export default function Paragraph({
   paragraph,
   knownWords,
   markedWords,
-  phraseMarkedWords,
+  phraseMarkedRanges,
   learntWords,
   annotations,
   showIPA,
@@ -65,7 +65,7 @@ export default function Paragraph({
             sentenceIndex={index}
             knownWords={knownWords}
             markedWords={markedWords}
-            phraseMarkedWords={phraseMarkedWords}
+            phraseMarkedRanges={phraseMarkedRanges}
             learntWords={learntWords}
             annotations={annotations}
             showIPA={showIPA}

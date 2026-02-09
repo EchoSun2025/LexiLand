@@ -62,7 +62,7 @@ function App() {
   const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
-  const [phraseMarkedWords, setPhraseMarkedWords] = useState<Set<string>>(new Set()); // stores word position IDs like "p0-s1-w3"
+  const [phraseMarkedRanges, setPhraseMarkedRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>>([]); // stores token ranges
 
   
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
@@ -150,20 +150,18 @@ function App() {
     const selectedText = selection.toString().trim();
     if (!selectedText) return;
 
-    // Get all selected word elements with data-word-id attribute
     const range = selection.getRangeAt(0);
     const container = range.commonAncestorContainer;
     const parent = container.nodeType === Node.TEXT_NODE ? container.parentElement : container as Element;
-    
-    // Find all word spans within the selection
-    const wordIds = new Set<string>();
+
+    const tokenPositions: Array<{ pIndex: number; sIndex: number; tokenIndex: number }> = [];
     const walker = document.createTreeWalker(
       parent,
       NodeFilter.SHOW_ELEMENT,
       {
         acceptNode: (node) => {
           const el = node as HTMLElement;
-          if (el.hasAttribute('data-word-id') && selection.containsNode(el, true)) {
+          if (el.hasAttribute('data-token-pos') && selection.containsNode(el, true)) {
             return NodeFilter.FILTER_ACCEPT;
           }
           return NodeFilter.FILTER_SKIP;
@@ -173,32 +171,37 @@ function App() {
 
     let node;
     while (node = walker.nextNode()) {
-      const wordId = (node as HTMLElement).getAttribute('data-word-id');
-      if (wordId) wordIds.add(wordId);
+      const tokenPos = (node as HTMLElement).getAttribute('data-token-pos');
+      if (tokenPos) {
+        const match = tokenPos.match(/^p(\d+)-s(\d+)-t(\d+)$/);
+        if (match) {
+          tokenPositions.push({
+            pIndex: parseInt(match[1]),
+            sIndex: parseInt(match[2]),
+            tokenIndex: parseInt(match[3])
+          });
+        }
+      }
     }
 
-    if (wordIds.size === 0) {
-      // Clear browser selection
+    if (tokenPositions.length === 0) {
       selection.removeAllRanges();
       return;
     }
 
-    // Check for Ctrl/Cmd key (add to existing selection)
+    const firstPos = tokenPositions[0];
+    const lastPos = tokenPositions[tokenPositions.length - 1];
+    const newRange = {
+      pIndex: firstPos.pIndex,
+      sIndex: firstPos.sIndex,
+      startTokenIndex: firstPos.tokenIndex,
+      endTokenIndex: lastPos.tokenIndex
+    };
+
     if (e.ctrlKey || e.metaKey) {
-      setPhraseMarkedWords(prev => {
-        const next = new Set(prev);
-        wordIds.forEach(id => next.add(id));
-        return next;
-      });
+      setPhraseMarkedRanges(prev => [...prev, newRange]);
     } else {
-      // Replace selection
-      setPhraseMarkedWords(wordIds);
-    }
-
-    // Clear browser selection
-    selection.removeAllRanges();
-  };
-
+      setPhraseMarkedRanges([newRange]);
 
   // Handle annotate: generate IPA and Chinese for marked words
   const handleAnnotate = async () => {

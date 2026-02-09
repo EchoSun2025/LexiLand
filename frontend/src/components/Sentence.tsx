@@ -7,73 +7,67 @@ interface SentenceProps {
   sentenceIndex: number;
   knownWords: Set<string>;
   markedWords: Set<string>;
-  phraseMarkedWords: Set<string>;
+  phraseMarkedRanges: Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
   showChinese: boolean;
   autoMark: boolean;
-  onWordClick?: (word: string, wordId?: string) => void;
+  onWordClick?: (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => void;
   onMarkKnown?: (word: string) => void;
   isCurrentSentence?: boolean;
   currentWordIndex?: number;
 }
 
-export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
+export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedRanges, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
   let wordCount = 0; // Track word index within this sentence
 
   return (
     <span className={`inline whitespace-pre-wrap ${isCurrentSentence ? 'bg-blue-100 rounded px-1' : ''}`}>
-      {sentence.tokens.map((token, index) => {
-        // For word tokens, render Word component followed by space if next token is not whitespace/punctuation
-        const nextToken = sentence.tokens[index + 1];
-        const needsSpace = token.type === 'word' && nextToken && nextToken.type === 'word';
-        const isWordToken = token.type === 'word';
-
-        // Calculate isCurrentWord BEFORE incrementing wordCount
-        const isCurrentWord = isCurrentSentence && isWordToken && wordCount === currentWordIndex;
+      {sentence.tokens.map((token, tokenIndex) => {
+        const tokenPos = `p${paragraphIndex}-s${sentenceIndex}-t${tokenIndex}`;
         
-        // Create word position ID
-        const wordId = isWordToken ? `p${paragraphIndex}-s${sentenceIndex}-w${wordCount}` : '';
-        
-        // Check if this word is phrase marked (purple)
-        const isPhraseMarked = wordId && phraseMarkedWords.has(wordId);
-        
-        // Check if next word (wordCount+1) is also phrase marked for purple space
-        // We check the position, not the next token, because tokens include whitespace
-        const nextWordIdByPosition = `p${paragraphIndex}-s${sentenceIndex}-w${wordCount + 1}`;
-        const isNextWordPhraseMarked = phraseMarkedWords.has(nextWordIdByPosition);
-        const shouldPurpleSpace = needsSpace && isPhraseMarked && isNextWordPhraseMarked;
-        
-        if (isPhraseMarked || isNextWordPhraseMarked) {
-          console.log('Word:', token.text, 'wordId:', wordId, 'isPhraseMarked:', isPhraseMarked, 'nextWordIdByPosition:', nextWordIdByPosition, 'isNextWordPhraseMarked:', isNextWordPhraseMarked, 'needsSpace:', needsSpace, 'shouldPurpleSpace:', shouldPurpleSpace);
-        }
-        
-        // Increment wordCount AFTER checking
-        if (isWordToken) {
-          wordCount++;
-        }
-
-        return (
-          <span key={`${token.id}-${index}`}>
-            <Word
-              token={token}
-              wordId={wordId}
-              isKnown={knownWords.has(token.text.toLowerCase())}
-              isMarked={markedWords.has(token.text.toLowerCase())}
-              isPhraseMarked={isPhraseMarked}
-              isLearnt={learntWords.has(token.text.toLowerCase())}
-              annotation={annotations.get(token.text.toLowerCase())}
-              showIPA={showIPA}
-              showChinese={showChinese}
-              autoMark={autoMark}
-              onClick={() => onWordClick?.(token.text, wordId)}
-              onMarkKnown={onMarkKnown}
-              isCurrentWord={isCurrentWord}
-            />
-            {needsSpace && (shouldPurpleSpace ? <span className="bg-purple-100"> </span> : ' ')}
-          </span>
+        // Check if this token is in any phrase marked range
+        const isInPhraseRange = phraseMarkedRanges.some(range =>
+          range.pIndex === paragraphIndex &&
+          range.sIndex === sentenceIndex &&
+          tokenIndex >= range.startTokenIndex &&
+          tokenIndex <= range.endTokenIndex
         );
+
+        const isWordToken = token.type === 'word';
+        const isCurrentWord = isCurrentSentence && isWordToken && wordCount === currentWordIndex;
+
+        if (isWordToken) {
+          const result = (
+            <span key={`${token.id}-${tokenIndex}`} data-token-pos={tokenPos}>
+              <Word
+                token={token}
+                isKnown={knownWords.has(token.text.toLowerCase())}
+                isMarked={markedWords.has(token.text.toLowerCase())}
+                isPhraseMarked={isInPhraseRange}
+                isLearnt={learntWords.has(token.text.toLowerCase())}
+                annotation={annotations.get(token.text.toLowerCase())}
+                showIPA={showIPA}
+                showChinese={showChinese}
+                autoMark={autoMark}
+                onClick={() => onWordClick?.(token.text, paragraphIndex, sentenceIndex, tokenIndex)}
+                onMarkKnown={onMarkKnown}
+                isCurrentWord={isCurrentWord}
+              />
+            </span>
+          );
+          wordCount++;
+          return result;
+        } else {
+          // For non-word tokens (space, punctuation), also check if in purple range
+          const className = isInPhraseRange ? 'bg-purple-100' : '';
+          return (
+            <span key={`${token.id}-${tokenIndex}`} data-token-pos={tokenPos} className={className}>
+              {token.text}
+            </span>
+          );
+        }
       })}
     </span>
   );
