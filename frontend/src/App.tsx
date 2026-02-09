@@ -1083,8 +1083,11 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           <div className="flex-1 p-3 overflow-auto">
             {isLoadingAnnotation && (
               <div className="text-center py-8 text-muted">
-                  <div className="text-2xl mb-2">🔊</div>
-            
+                <div className="text-2xl mb-2">🔊</div>
+                <div>Loading annotation...</div>
+              </div>
+            )}
+
             {!isLoadingAnnotation && currentAnnotation && (
               <WordCard
                 annotation={currentAnnotation}
