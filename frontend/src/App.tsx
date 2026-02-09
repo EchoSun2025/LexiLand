@@ -153,14 +153,11 @@ function App() {
     const selectedText = selection.toString().trim();
     if (!selectedText) return;
 
-    console.log('Selected text:', selectedText);
-
     const range = selection.getRangeAt(0);
     
     // Find a suitable parent container that's likely to contain all selected tokens
     // Start from the mouse event target and go up
     let parent = e.currentTarget as Element;
-    console.log('Parent element:', parent.className);
 
     const tokenPositions: Array<{ pIndex: number; sIndex: number; tokenIndex: number }> = [];
     const walker = document.createTreeWalker(
@@ -171,8 +168,6 @@ function App() {
           const el = node as HTMLElement;
           if (el.hasAttribute('data-token-pos')) {
             const isContained = selection.containsNode(el, true);
-            const tokenPos = el.getAttribute('data-token-pos');
-            console.log('Token:', el.textContent, 'pos:', tokenPos, 'contained:', isContained);
             if (isContained) {
               return NodeFilter.FILTER_ACCEPT;
             }
