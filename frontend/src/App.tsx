@@ -45,7 +45,7 @@ function App() {
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
-  
+
   // Speech synthesis state
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState<number | null>(null);
@@ -65,7 +65,7 @@ function App() {
   const [phraseMarkedRanges, setPhraseMarkedRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>>([]); // stores token ranges
   const [underlinePhraseRanges, setUnderlinePhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; color: string }>>([]); // for discontinuous phrases with Ctrl+Shift
 
-  
+
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
   // Auto-mark unknown words when document loads or toggle changes
@@ -189,7 +189,7 @@ function App() {
     if (!selectedText) return;
 
     const range = selection.getRangeAt(0);
-    
+
     // Find a suitable parent container that's likely to contain all selected tokens
     // Start from the mouse event target and go up
     let parent = e.currentTarget as Element;
@@ -235,7 +235,7 @@ function App() {
     // Check if selection spans multiple sentences
     const firstPos = tokenPositions[0];
     const lastPos = tokenPositions[tokenPositions.length - 1];
-    
+
     // Group by sentence to support cross-sentence selection
     const sentenceGroups = new Map<string, typeof tokenPositions>();
     tokenPositions.forEach(pos => {
@@ -316,7 +316,7 @@ function App() {
         await cacheAnnotation(word, annotation);
         newAnnotations.push(annotation);
         completed++;
-        
+
         // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
@@ -326,7 +326,7 @@ function App() {
     }
 
     alert(`Annotation complete!\nSuccess: ${completed}\nFailed: ${failed}`);
-    
+
     // If genCard is true, open card for the first annotated word
     if (genCard && newAnnotations.length > 0) {
       setCurrentAnnotation(newAnnotations[0]);
@@ -353,17 +353,17 @@ function App() {
     try {
       // Remove annotation from store
       removeAnnotation(word);
-      
+
       // Remove from IndexedDB
       await deleteAnnotation(word);
-      
+
       // Add to known words
       addKnownWord(word);
       await addKnownWordToDB(word);
-      
+
       // Close the card
       setCurrentAnnotation(null);
-      
+
       console.log(`Deleted "${word}" from cards and added to known words`);
     } catch (error) {
       console.error('Failed to delete from cards:', error);
@@ -373,7 +373,7 @@ function App() {
   // Handle mark all unmarked words as known
   const handleMarkAllUnmarkedAsKnown = async () => {
     if (!currentDocument) return;
-    
+
     // Collect all words that are not in knownWords, learntWords, or annotations
     const allWords = new Set<string>();
     currentDocument.paragraphs.forEach(p => {
@@ -385,20 +385,20 @@ function App() {
         });
       });
     });
-    
+
     const unmarkedWords = Array.from(allWords).filter(
       word => !knownWords.has(word) && !learntWords.has(word) && !annotations.has(word)
     );
-    
+
     if (unmarkedWords.length === 0) {
       alert('No unmarked words found!');
       return;
     }
-    
+
     if (!confirm(`Add ${unmarkedWords.length} unmarked words to known words?`)) {
       return;
     }
-    
+
     try {
       for (const word of unmarkedWords) {
         addKnownWord(word);
@@ -417,7 +417,7 @@ function App() {
       const jsonData = await exportUserData();
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
       const filename = `lexiland-userdata-${timestamp}.json`;
-      
+
       // Try to use File System Access API if available
       if ('showSaveFilePicker' in window) {
         try {
@@ -440,7 +440,7 @@ function App() {
           throw err;
         }
       }
-      
+
       // Fallback to download method
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -451,7 +451,7 @@ function App() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       console.log('User data exported successfully:', filename);
     } catch (error) {
       console.error('Failed to export user data:', error);
@@ -471,17 +471,17 @@ function App() {
     try {
       const text = await file.text();
       const result = await importUserData(text);
-      
+
       // Reload data into state
       const [newKnownWords, newLearntWords, newAnnotations] = await Promise.all([
         getAllKnownWords(),
         getAllLearntWords(),
         getAllCachedAnnotations()
       ]);
-      
+
       loadKnownWords(newKnownWords);
       loadLearntWords(newLearntWords);
-      
+
       const annotationsMap = new Map();
       newAnnotations.forEach(a => {
         annotationsMap.set(a.word, {
@@ -499,7 +499,7 @@ function App() {
         }
       }
       alert(message);
-      
+
       console.log('Import result:', result);
     } catch (error: any) {
       console.error('Failed to import user data:', error);
@@ -515,7 +515,7 @@ function App() {
     if (!currentDocument) return;
 
     const unknownWords = new Set<string>();
-    
+
     // Collect all unknown words from document
     currentDocument.paragraphs.forEach(paragraph => {
       paragraph.sentences.forEach(sentence => {
@@ -532,7 +532,7 @@ function App() {
 
     const totalWords = unknownWords.size;
     console.log(`Starting batch annotation for ${totalWords} words...`);
-    
+
     let completed = 0;
     let failed = 0;
 
@@ -554,7 +554,7 @@ function App() {
         const basicWords = ['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'to', 'of', 'in', 'for', 'on', 'with', 'and', 'or', 'but', 'not', 'at', 'by', 'from', 'as', 'if', 'this', 'that', 'it', 'they', 'we', 'you', 'he', 'she', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'can', 'could', 'should', 'may', 'might', 'must'];
         loadKnownWords(basicWords);
         console.log('Loaded basic known words');
-        
+
         // Then try to load from IndexedDB in background
         setTimeout(async () => {
           try {
@@ -576,9 +576,9 @@ function App() {
         console.error('Failed to initialize:', error);
       }
     };
-    
+
     initKnownWords();
-    
+
     // Load cached annotations
     const loadCachedAnnotations = async () => {
       try {
@@ -630,7 +630,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 "Perhaps we should investigate," suggested the youngest girl, her curiosity overcoming her fear. But the others shook their heads vigorously.`;
 
     const paragraphs = tokenizeParagraphs(sampleText);
-    
+
     addDocument({
       id: `doc-${Date.now()}`,
       title: 'Sample Document',
@@ -651,7 +651,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
       alert('Please enter a document title');
       return;
     }
-    
+
     const paragraphs = newDocContent.trim() ? tokenizeParagraphs(newDocContent) : [];
 
     addDocument({
@@ -679,7 +679,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     reader.onload = (event) => {
       const content = event.target?.result as string;
       const paragraphs = tokenizeParagraphs(content);
-      
+
       addDocument({
         id: `doc-${Date.now()}`,
         title: file.name.replace(/\.[^/.]+$/, ''),
@@ -755,7 +755,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
   const speakFromSentence = (startIndex: number) => {
     if (!currentDocument) return;
-    
+
     // Reset stop flag when starting new speech
     shouldStopRef.current = false;
 
@@ -777,13 +777,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
     const sentence = allSentences[startIndex];
     const utterance = new SpeechSynthesisUtterance(sentence.text);
-    
+
     // Configure speech
     utterance.rate = speechRate;
     utterance.pitch = speechPitch;
     utterance.volume = 1.0;
     utterance.lang = 'en-US';
-    
+
     // Set voice if selected
     if (selectedVoice) {
       const voice = availableVoices.find(v => v.name === selectedVoice);
@@ -804,21 +804,21 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
       if (event.name === 'word') {
         const charIndex = event.charIndex;
         console.log('[TTS] Word boundary at charIndex:', charIndex, 'in sentence:', sentence.text);
-        
+
         // Find which word index corresponds to this character position
         const sentenceData = currentDocument.paragraphs
           .flatMap(p => p.sentences)[startIndex];
         if (sentenceData && sentenceData.tokens) {
           // Extract only word tokens
           const wordTokens = sentenceData.tokens.filter(t => t.type === 'word');
-          
+
           // Find the word that contains this character index
           for (let i = 0; i < wordTokens.length; i++) {
             const token = wordTokens[i];
             // startIndex and endIndex are relative to the sentence
             const tokenStart = token.startIndex - sentenceData.startIndex;
             const tokenEnd = token.endIndex - sentenceData.startIndex;
-            
+
             if (charIndex >= tokenStart && charIndex < tokenEnd) {
               console.log('[TTS] Setting currentWordIndex to:', i, 'word:', token.text, 'tokenStart:', tokenStart, 'tokenEnd:', tokenEnd);
               setCurrentWordIndex(i);
@@ -831,13 +831,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
     utterance.onend = () => {
       console.log('[TTS] onend triggered, shouldStop:', shouldStopRef.current);
-      
+
       // Check stop flag first (most reliable)
       if (shouldStopRef.current) {
         console.log('[TTS] Stopped by user');
         return;
       }
-      
+
       // Move to next sentence
       const nextIndex = startIndex + 1;
       if (nextIndex < allSentences.length) {
@@ -876,10 +876,10 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
       {/* Top Bar */}
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-border px-4 py-2.5 flex items-center gap-3 flex-wrap">
         <div className="font-bold mr-2">LexiLand Read</div>
-        
 
-        <button 
-          className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm" 
+
+        <button
+          className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
           title="Stop"
           onClick={handleStop}
           disabled={!isSpeaking}
@@ -979,7 +979,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           ))}
         </select>
 
-        <button 
+        <button
           className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
           onClick={handleLoadSample}
         >
@@ -1002,7 +1002,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         >
           Export Data
         </button>
-        
+
         <button
           onClick={handleImportData}
           className="px-2 py-1 border border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold"
@@ -1012,7 +1012,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         </button>
 
         <span className="text-xs text-muted">Level</span>
-        <select 
+        <select
           className="px-3 py-2 border border-border rounded-lg bg-white text-sm"
           value={level}
           onChange={(e) => setLevel(e.target.value)}
@@ -1033,7 +1033,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           </div>
           <div className="flex-1 p-3 overflow-auto">
             {documents.map(doc => (
-              <div 
+              <div
                 key={doc.id}                onClick={() => setCurrentDocument(doc.id)}                className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
               >
                 <span>{doc.title}</span>
@@ -1048,7 +1048,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             >
               <span>+ New document</span>
             </div>
-            <div 
+            <div
               className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
               onClick={handleFileImport}
             >
@@ -1073,7 +1073,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   for (let i = 0; i < pIdx; i++) {
                     sentencesBeforeThisPara += currentDocument.paragraphs[i].sentences.length;
                   }
-                  
+
                   return (
                     <Paragraph
                       key={paragraph.id}
@@ -1097,7 +1097,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     />
                   );
                 })}
-                
+
                 {/* New control panel */}
                 <div className="mt-8 flex items-center justify-center gap-4 p-4 border-t border-border bg-gray-50 rounded-lg">
                   <label className="flex items-center gap-2">
@@ -1168,7 +1168,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 onDelete={handleDeleteFromCards}
               />
             )}
-            
+
             {!isLoadingAnnotation && !currentAnnotation && (
               <div className="border border-border rounded-2xl p-3 bg-white mb-3">
                 <div className="text-xs text-muted">Placeholder</div>
@@ -1188,7 +1188,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-[600px] max-h-[80vh] flex flex-col shadow-2xl">
             <h2 className="text-xl font-bold mb-4">Create New Document</h2>
-            
+
             <label className="text-sm font-semibold mb-2 block">Title</label>
             <input
               type="text"
