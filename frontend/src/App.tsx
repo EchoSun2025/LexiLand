@@ -231,13 +231,13 @@ function App() {
       };
     });
 
-    // Handle Ctrl+Shift for underline phrases
-    if (e.ctrlKey && e.shiftKey) {
+// Handle Ctrl for underline phrases (connect with dashed line)
+    if (e.ctrlKey || e.metaKey) {
       // If there are existing purple ranges, create underline from last purple to current selection
       if (phraseMarkedRanges.length > 0 && newRanges.length > 0) {
         const lastPurple = phraseMarkedRanges[phraseMarkedRanges.length - 1];
         const firstNew = newRanges[0];
-        
+
         // Check if they're in the same sentence
         if (lastPurple.pIndex === firstNew.pIndex && lastPurple.sIndex === firstNew.sIndex) {
           const colors = ['red', 'orange', 'amber', 'emerald', 'cyan', 'blue', 'purple', 'pink'];
@@ -253,11 +253,9 @@ function App() {
         }
       }
       setPhraseMarkedRanges(prev => [...prev, ...newRanges]);
-    } else if (e.ctrlKey || e.metaKey) {
-      setPhraseMarkedRanges(prev => [...prev, ...newRanges]);
     } else {
-      setPhraseMarkedRanges(newRanges);
-      setUnderlinePhraseRanges([]); // Clear underlines when making new selection without Ctrl
+      // Normal selection: just add purple marks without clearing
+      setPhraseMarkedRanges(prev => [...prev, ...newRanges]);
     }
 
     selection.removeAllRanges();
