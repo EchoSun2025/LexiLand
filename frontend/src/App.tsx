@@ -549,13 +549,7 @@ function App() {
       }
     }
 
-    alert(`批量注释完成！\\n成功: ${completed}\\n失败: ${failed}`);
-  };
-
-  // Load known words on mount
-  useEffect(() => {
-    const initKnownWords = async () => {
-      try {
+  alert(`Batch annotation complete!\\nSuccess: ${completed}\\nFailed: ${failed}`);
         // Load basic known words first (fast)
         const basicWords = ['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'to', 'of', 'in', 'for', 'on', 'with', 'and', 'or', 'but', 'not', 'at', 'by', 'from', 'as', 'if', 'this', 'that', 'it', 'they', 'we', 'you', 'he', 'she', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'can', 'could', 'should', 'may', 'might', 'must'];
         loadKnownWords(basicWords);
@@ -604,7 +598,7 @@ function App() {
           addAnnotation(item.word, annotation);
         });
         if (cached.length > 0) {
-          console.log('✓ Cached annotations loaded');
+          console.log('[OK] Cached annotations loaded');
         }
       } catch (error) {
         console.error('Failed to load cached annotations:', error);
@@ -617,7 +611,7 @@ function App() {
         const learnt = await getAllLearntWords();
         learnt.forEach(word => addLearntWord(word));
         if (learnt.length > 0) {
-          console.log(`✓ Loaded ${learnt.length} learnt words from IndexedDB`);
+          console.log(`[OK] Loaded ${learnt.length} learnt words from IndexedDB`);
         }
       } catch (error) {
         console.error('Failed to load learnt words:', error);
@@ -998,7 +992,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         </label>
         <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
           <input type="checkbox" checked={showChinese} onChange={(e) => setShowChinese(e.target.checked)} />
-          中文
+          Chinese
         </label>
 
         <button
@@ -1043,16 +1037,16 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 key={doc.id}                onClick={() => setCurrentDocument(doc.id)}                className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
               >
                 <span>{doc.title}</span>
-                <span className="text-muted">📝</span>
+                <span className="text-muted"></span>
               </div>
             ))}
 
             <div className="text-xs text-muted mt-3 mb-1">Documents</div>
-            <div 
+            <div
               className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
               onClick={handleNewDocument}
             >
-              <span>＋ New document</span>
+              <span>+ New document</span>
             </div>
             <div 
               className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
@@ -1162,7 +1156,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           <div className="flex-1 p-3 overflow-auto">
             {isLoadingAnnotation && (
               <div className="text-center py-8 text-muted">
-                <div className="text-2xl mb-2">🔊</div>
+                <div className="text-2xl mb-2">...</div>
                 <div>Loading annotation...</div>
               </div>
             )}
