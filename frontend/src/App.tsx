@@ -118,23 +118,39 @@ function App() {
 
     // Check if this token is in any phrase marked range (purple takes priority)
     if (pIndex !== undefined && sIndex !== undefined && tokenIndex !== undefined) {
-      const rangeIndex = phraseMarkedRanges.findIndex(range => 
-        range.pIndex === pIndex && 
-        range.sIndex === sIndex && 
-        tokenIndex >= range.startTokenIndex && 
+      // First check if this token is in any underline range
+      const underlineRangeIndex = underlinePhraseRanges.findIndex(range =>
+        range.pIndex === pIndex &&
+        range.sIndex === sIndex &&
+        tokenIndex >= range.startTokenIndex &&
         tokenIndex <= range.endTokenIndex
       );
-      
+
+      if (underlineRangeIndex !== -1) {
+        // Remove the entire underline range and all phrase ranges within it
+        const underlineRange = underlinePhraseRanges[underlineRangeIndex];
+        setUnderlinePhraseRanges(prev => prev.filter((_, i) => i !== underlineRangeIndex));
+        // Remove all phrase ranges that are within or overlap with this underline range
+        setPhraseMarkedRanges(prev => prev.filter(range =>
+          !(range.pIndex === underlineRange.pIndex &&
+            range.sIndex === underlineRange.sIndex &&
+            range.startTokenIndex >= underlineRange.startTokenIndex &&
+            range.endTokenIndex <= underlineRange.endTokenIndex)
+        ));
+        return;
+      }
+
+      // Otherwise, check if it's in a phrase range (not connected by underline)
+      const rangeIndex = phraseMarkedRanges.findIndex(range =>
+        range.pIndex === pIndex &&
+        range.sIndex === sIndex &&
+        tokenIndex >= range.startTokenIndex &&
+        tokenIndex <= range.endTokenIndex
+      );
+
       if (rangeIndex !== -1) {
         // Remove entire range
         setPhraseMarkedRanges(prev => prev.filter((_, i) => i !== rangeIndex));
-        // Also remove any underline ranges that contain this token
-        setUnderlinePhraseRanges(prev => prev.filter(range =>
-          !(range.pIndex === pIndex && 
-            range.sIndex === sIndex && 
-            tokenIndex >= range.startTokenIndex && 
-            tokenIndex <= range.endTokenIndex)
-        ));
         return;
       }
     }

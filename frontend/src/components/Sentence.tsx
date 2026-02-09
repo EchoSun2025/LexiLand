@@ -1,5 +1,6 @@
 ﻿import type { Sentence as SentenceType } from '../utils/tokenize';
 import Word from './Word';
+import { useState } from 'react';
 
 interface SentenceProps {
   sentence: SentenceType;
@@ -22,6 +23,7 @@ interface SentenceProps {
 
 export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedRanges, underlinePhraseRanges, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
   let wordCount = 0; // Track word index within this sentence
+  const [hoveredUnderlineRange, setHoveredUnderlineRange] = useState<number | null>(null);
 
   return (
     <span className={`inline whitespace-pre-wrap ${isCurrentSentence ? 'bg-blue-100 rounded px-1' : ''}`}>
@@ -37,14 +39,24 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
         );
 
         // Check if this token is in any underline phrase range and get its color
-        const underlineRange = underlinePhraseRanges.find(range =>
+        const underlineRangeIndex = underlinePhraseRanges.findIndex(range =>
           range.pIndex === paragraphIndex &&
           range.sIndex === sentenceIndex &&
           tokenIndex >= range.startTokenIndex &&
           tokenIndex <= range.endTokenIndex
         );
+        const underlineRange = underlineRangeIndex !== -1 ? underlinePhraseRanges[underlineRangeIndex] : null;
         const isInUnderlineRange = !!underlineRange;
         const underlineColor = underlineRange?.color || 'purple';
+        
+        // Highlight if hovering over an underline range and this token is in a phrase range within that underline
+        const shouldHighlight = hoveredUnderlineRange !== null && 
+          isInPhraseRange &&
+          underlinePhraseRanges[hoveredUnderlineRange] &&
+          paragraphIndex === underlinePhraseRanges[hoveredUnderlineRange].pIndex &&
+          sentenceIndex === underlinePhraseRanges[hoveredUnderlineRange].sIndex &&
+          tokenIndex >= underlinePhraseRanges[hoveredUnderlineRange].startTokenIndex &&
+          tokenIndex <= underlinePhraseRanges[hoveredUnderlineRange].endTokenIndex;
 
         const isWordToken = token.type === 'word';
         const isCurrentWord = isCurrentSentence && isWordToken && wordCount === currentWordIndex;
@@ -57,8 +69,15 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
           const borderStyle = isInUnderlineRange ? {
             borderBottom: `1px solid ${colorMap[underlineColor] || '#a78bfa99'}`
           } : {};
+          const hoverStyle = shouldHighlight ? { backgroundColor: 'rgba(167, 139, 250, 0.3)' } : {};
           const result = (
-            <span key={`${token.id}-${tokenIndex}`} data-token-pos={tokenPos} style={borderStyle}>
+            <span 
+              key={`${token.id}-${tokenIndex}`} 
+              data-token-pos={tokenPos} 
+              style={{...borderStyle, ...hoverStyle}}
+              onMouseEnter={() => isInUnderlineRange && setHoveredUnderlineRange(underlineRangeIndex)}
+              onMouseLeave={() => setHoveredUnderlineRange(null)}
+            >
               <Word
                 token={token}
                 isKnown={knownWords.has(token.text.toLowerCase())}
@@ -87,8 +106,16 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
           const borderStyle = isInUnderlineRange ? {
             borderBottom: `1px solid ${colorMap[underlineColor] || '#a78bfa99'}`
           } : {};
+          const hoverStyle = shouldHighlight ? { backgroundColor: 'rgba(167, 139, 250, 0.3)' } : {};
           return (
-            <span key={`${token.id}-${tokenIndex}`} data-token-pos={tokenPos} className={className} style={borderStyle}>
+            <span 
+              key={`${token.id}-${tokenIndex}`} 
+              data-token-pos={tokenPos} 
+              className={className} 
+              style={{...borderStyle, ...hoverStyle}}
+              onMouseEnter={() => isInUnderlineRange && setHoveredUnderlineRange(underlineRangeIndex)}
+              onMouseLeave={() => setHoveredUnderlineRange(null)}
+            >
               {token.text}
             </span>
           );
