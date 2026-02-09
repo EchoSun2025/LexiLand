@@ -44,6 +44,10 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
         const isNextPhraseMarked = nextWordId && phraseMarkedWords.has(nextWordId);
         const shouldPurpleSpace = needsSpace && isPhraseMarked && isNextPhraseMarked;
         
+        if (shouldPurpleSpace) {
+          console.log('Purple space between:', token.text, 'and', nextToken?.text, 'wordId:', wordId, 'nextWordId:', nextWordId);
+        }
+        
         // Increment wordCount AFTER checking
         if (isWordToken) {
           wordCount++;
