@@ -290,34 +290,66 @@ function App() {
 
   // Handle annotate: generate IPA and Chinese for marked words
   const handleAnnotate = async () => {
-    if (!currentDocument || markedWords.size === 0) {
-      alert('Please mark some words first (click words to mark them)');
+    if (!currentDocument || (markedWords.size === 0 && phraseMarkedRanges.length === 0)) {
+      alert('Please mark some words or phrases first');
       return;
     }
 
+    setIsLoadingAnnotation(true);
+
+    // Collect words to annotate
     const wordsToAnnotate = Array.from(markedWords).filter(
       word => !annotations.has(word)
     );
 
-    if (wordsToAnnotate.length === 0) {
-      alert('All marked words are already annotated');
+    // Collect phrases to annotate
+    const phrasesToAnnotate: Array<{ text: string; pIndex: number; sIndex: number }> = [];
+    
+    currentDocument.paragraphs.forEach((paragraph, pIndex) => {
+      paragraph.sentences.forEach((sentence, sIndex) => {
+        const rangesInThisSentence = phraseMarkedRanges.filter(
+          range => range.pIndex === pIndex && range.sIndex === sIndex
+        );
+
+        rangesInThisSentence.forEach(range => {
+          const phraseTokens = sentence.tokens.slice(range.startTokenIndex, range.endTokenIndex + 1);
+          const phraseText = phraseTokens
+            .map(t => t.text)
+            .join('')
+            .trim()
+            .toLowerCase();
+
+          if (phraseText && !annotations.has(phraseText)) {
+            phrasesToAnnotate.push({ text: phraseText, pIndex, sIndex });
+          }
+        });
+      });
+    });
+
+    if (wordsToAnnotate.length === 0 && phrasesToAnnotate.length === 0) {
+      alert('All marked words and phrases are already annotated');
+      setIsLoadingAnnotation(false);
       return;
     }
 
-    console.log(`Annotating ${wordsToAnnotate.length} words...`);
+    console.log(`Annotating ${wordsToAnnotate.length} words and ${phrasesToAnnotate.length} phrases...`);
     let completed = 0;
     let failed = 0;
     const newAnnotations: WordAnnotation[] = [];
 
+    // Annotate words
     for (const word of wordsToAnnotate) {
       try {
-        const annotation = await annotateWord(word);
-        addAnnotation(word, annotation);
-        await cacheAnnotation(word, annotation);
-        newAnnotations.push(annotation);
-        completed++;
-
-        // Small delay to avoid rate limiting
+        const result = await annotateWord(word);
+        if (result.success && result.data) {
+          addAnnotation(word, result.data);
+          await cacheAnnotation(word, result.data);
+          newAnnotations.push(result.data);
+          completed++;
+        } else {
+          failed++;
+          console.error(`Failed to annotate "${word}":`, result.error);
+        }
         await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
         failed++;
@@ -325,6 +357,27 @@ function App() {
       }
     }
 
+    // Annotate phrases
+    for (const phrase of phrasesToAnnotate) {
+      try {
+        const result = await annotateWord(phrase.text);
+        if (result.success && result.data) {
+          addAnnotation(phrase.text, result.data);
+          await cacheAnnotation(phrase.text, result.data);
+          newAnnotations.push(result.data);
+          completed++;
+        } else {
+          failed++;
+          console.error(`Failed to annotate phrase "${phrase.text}":`, result.error);
+        }
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } catch (error) {
+        failed++;
+        console.error(`Failed to annotate phrase "${phrase.text}":`, error);
+      }
+    }
+
+    setIsLoadingAnnotation(false);
     alert(`Annotation complete!\nSuccess: ${completed}\nFailed: ${failed}`);
 
     // If genCard is true, open card for the first annotated word
@@ -332,7 +385,6 @@ function App() {
       setCurrentAnnotation(newAnnotations[0]);
     }
   };
-
 
 // Handle mark word as known (mark as learnt)
   const handleMarkKnown = async (word: string) => {
