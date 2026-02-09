@@ -156,8 +156,11 @@ function App() {
     console.log('Selected text:', selectedText);
 
     const range = selection.getRangeAt(0);
-    const container = range.commonAncestorContainer;
-    const parent = container.nodeType === Node.TEXT_NODE ? container.parentElement : container as Element;
+    
+    // Find a suitable parent container that's likely to contain all selected tokens
+    // Start from the mouse event target and go up
+    let parent = e.currentTarget as Element;
+    console.log('Parent element:', parent.className);
 
     const tokenPositions: Array<{ pIndex: number; sIndex: number; tokenIndex: number }> = [];
     const walker = document.createTreeWalker(
