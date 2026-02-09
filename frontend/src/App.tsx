@@ -1,4 +1,4 @@
-Ôªøimport { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
@@ -107,25 +107,28 @@ function App() {
 
   // Handle word click
   // Handle word click: toggle marked state
-  const handleWordClick = (word: string, wordId?: string) => {
+  const handleWordClick = (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => {
     const normalized = word.toLowerCase();
-    console.log('handleWordClick:', word, 'wordId:', wordId, 'normalized:', normalized, 'has card:', annotations.has(normalized) && (annotations.get(normalized) as any)?.definition, 'markedWords.has:', markedWords.has(normalized), 'phraseMarkedWords.has:', wordId ? phraseMarkedWords.has(wordId) : false);
-
     // Don't allow marking words that already have cards (with definition)
     const hasCard = annotations.has(normalized) && (annotations.get(normalized) as any)?.definition;
     if (hasCard) {
       return;
     }
 
-    // Check if it's in phraseMarkedWords first (purple takes priority)
-    if (wordId && phraseMarkedWords.has(wordId)) {
-      // Remove from phrase marks
-      setPhraseMarkedWords(prev => {
-        const next = new Set(prev);
-        next.delete(wordId);
-        return next;
-      });
-      return;
+    // Check if this token is in any phrase marked range (purple takes priority)
+    if (pIndex !== undefined && sIndex !== undefined && tokenIndex !== undefined) {
+      const rangeIndex = phraseMarkedRanges.findIndex(range => 
+        range.pIndex === pIndex && 
+        range.sIndex === sIndex && 
+        tokenIndex >= range.startTokenIndex && 
+        tokenIndex <= range.endTokenIndex
+      );
+      
+      if (rangeIndex !== -1) {
+        // Remove entire range
+        setPhraseMarkedRanges(prev => prev.filter((_, i) => i !== rangeIndex));
+        return;
+      }
     }
 
     // Then handle regular word marks (green)
@@ -468,7 +471,7 @@ function App() {
       }
     }
 
-    alert(`ÊâπÈáèÊ≥®ÈáäÂÆåÊàêÔºÅ\\nÊàêÂäü: ${completed}\\nÂ§±Ë¥•: ${failed}`);
+    alert(`≈˙¡ø◊¢ ÕÕÍ≥…£°\\n≥…π¶: ${completed}\\n ß∞‹: ${failed}`);
   };
 
   // Load known words on mount
@@ -523,7 +526,7 @@ function App() {
           addAnnotation(item.word, annotation);
         });
         if (cached.length > 0) {
-          console.log('‚úÖ Cached annotations loaded');
+          console.log('? Cached annotations loaded');
         }
       } catch (error) {
         console.error('Failed to load cached annotations:', error);
@@ -536,7 +539,7 @@ function App() {
         const learnt = await getAllLearntWords();
         learnt.forEach(word => addLearntWord(word));
         if (learnt.length > 0) {
-          console.log(`‚úÖ Loaded ${learnt.length} learnt words from IndexedDB`);
+          console.log(`? Loaded ${learnt.length} learnt words from IndexedDB`);
         }
       } catch (error) {
         console.error('Failed to load learnt words:', error);
@@ -809,7 +812,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           onClick={handleStop}
           disabled={!isSpeaking}
         >
-          ‚èπ
+          ?
         </button>
         <button
           className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
@@ -829,7 +832,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           onClick={handlePlayPause}
           disabled={!currentDocument}
         >
-          ‚ñ∂
+          ?
         </button>
         <button
           className="px-3 py-2 border border-border rounded-lg hover:bg-hover text-sm"
@@ -917,7 +920,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         </label>
         <label className="flex items-center gap-2 px-3 py-1.5 border border-border rounded-lg bg-white text-sm">
           <input type="checkbox" checked={showChinese} onChange={(e) => setShowChinese(e.target.checked)} />
-          ‰∏≠Êñá
+          ÷–Œƒ
         </label>
         
         
@@ -963,7 +966,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 key={doc.id}                onClick={() => setCurrentDocument(doc.id)}                className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
               >
                 <span>{doc.title}</span>
-                <span className="text-muted">‚Ä∫</span>
+                <span className="text-muted">?</span>
               </div>
             ))}
 
@@ -972,7 +975,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
               onClick={handleNewDocument}
             >
-              <span>Ôºã New document</span>
+              <span>£´ New document</span>
             </div>
             <div 
               className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
@@ -1007,7 +1010,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       paragraphIndex={pIdx}
                       knownWords={knownWords}
                       markedWords={markedWords}
-                      phraseMarkedWords={phraseMarkedWords}
+                      phraseMarkedRanges={phraseMarkedRanges}
                       learntWords={learntWords}
                       annotations={annotations}
                       showIPA={showIPA}
@@ -1081,7 +1084,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           <div className="flex-1 p-3 overflow-auto">
             {isLoadingAnnotation && (
               <div className="text-center py-8 text-muted">
-                <div className="text-2xl mb-2">‚è≥</div>
+                <div className="text-2xl mb-2">?</div>
                 <div>Loading annotation...</div>
               </div>
             )}
