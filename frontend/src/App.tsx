@@ -63,6 +63,7 @@ function App() {
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
   const [phraseMarkedRanges, setPhraseMarkedRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>>([]); // stores token ranges
+  const [underlinePhraseRanges, setUnderlinePhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; color: string }>>([]); // for discontinuous phrases with Ctrl+Shift
 
   
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
@@ -127,6 +128,13 @@ function App() {
       if (rangeIndex !== -1) {
         // Remove entire range
         setPhraseMarkedRanges(prev => prev.filter((_, i) => i !== rangeIndex));
+        // Also remove any underline ranges that contain this token
+        setUnderlinePhraseRanges(prev => prev.filter(range =>
+          !(range.pIndex === pIndex && 
+            range.sIndex === sIndex && 
+            tokenIndex >= range.startTokenIndex && 
+            tokenIndex <= range.endTokenIndex)
+        ));
         return;
       }
     }
@@ -223,10 +231,33 @@ function App() {
       };
     });
 
-    if (e.ctrlKey || e.metaKey) {
+    // Handle Ctrl+Shift for underline phrases
+    if (e.ctrlKey && e.shiftKey) {
+      // If there are existing purple ranges, create underline from last purple to current selection
+      if (phraseMarkedRanges.length > 0 && newRanges.length > 0) {
+        const lastPurple = phraseMarkedRanges[phraseMarkedRanges.length - 1];
+        const firstNew = newRanges[0];
+        
+        // Check if they're in the same sentence
+        if (lastPurple.pIndex === firstNew.pIndex && lastPurple.sIndex === firstNew.sIndex) {
+          const colors = ['red', 'orange', 'amber', 'emerald', 'cyan', 'blue', 'purple', 'pink'];
+          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+          const underlineRange = {
+            pIndex: lastPurple.pIndex,
+            sIndex: lastPurple.sIndex,
+            startTokenIndex: Math.min(lastPurple.startTokenIndex, firstNew.startTokenIndex),
+            endTokenIndex: Math.max(lastPurple.endTokenIndex, firstNew.endTokenIndex),
+            color: randomColor
+          };
+          setUnderlinePhraseRanges(prev => [...prev, underlineRange]);
+        }
+      }
+      setPhraseMarkedRanges(prev => [...prev, ...newRanges]);
+    } else if (e.ctrlKey || e.metaKey) {
       setPhraseMarkedRanges(prev => [...prev, ...newRanges]);
     } else {
       setPhraseMarkedRanges(newRanges);
+      setUnderlinePhraseRanges([]); // Clear underlines when making new selection without Ctrl
     }
 
     selection.removeAllRanges();
@@ -1032,6 +1063,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       knownWords={knownWords}
                       markedWords={markedWords}
                       phraseMarkedRanges={phraseMarkedRanges}
+                      underlinePhraseRanges={underlinePhraseRanges}
                       learntWords={learntWords}
                       annotations={annotations}
                       showIPA={showIPA}

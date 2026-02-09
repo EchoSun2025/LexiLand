@@ -6,6 +6,7 @@ interface ParagraphProps {
   knownWords: Set<string>;
   markedWords: Set<string>;
   phraseMarkedRanges: Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>;
+  underlinePhraseRanges: Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; color: string }>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
   showIPA: boolean;
@@ -25,6 +26,7 @@ export default function Paragraph({
   knownWords,
   markedWords,
   phraseMarkedRanges,
+  underlinePhraseRanges,
   learntWords,
   annotations,
   showIPA,
@@ -66,6 +68,7 @@ export default function Paragraph({
             knownWords={knownWords}
             markedWords={markedWords}
             phraseMarkedRanges={phraseMarkedRanges}
+            underlinePhraseRanges={underlinePhraseRanges}
             learntWords={learntWords}
             annotations={annotations}
             showIPA={showIPA}
