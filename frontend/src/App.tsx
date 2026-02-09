@@ -62,7 +62,7 @@ function App() {
   const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
-  const [phraseMarkedWords, setPhraseMarkedWords] = useState<Set<string>>(new Set());
+  const [phraseMarkedWords, setPhraseMarkedWords] = useState<Set<string>>(new Set()); // stores word position IDs like "p0-s1-w3"
 
   
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
@@ -150,22 +150,49 @@ function App() {
     const selectedText = selection.toString().trim();
     if (!selectedText) return;
 
-    // Extract words from selection (split by spaces and punctuation)
-    const words = selectedText.toLowerCase().match(/[a-z]+/gi);
-    if (!words || words.length === 0) return;
+    // Get all selected word elements with data-word-id attribute
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    const parent = container.nodeType === Node.TEXT_NODE ? container.parentElement : container as Element;
+    
+    // Find all word spans within the selection
+    const wordIds = new Set<string>();
+    const walker = document.createTreeWalker(
+      parent,
+      NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode: (node) => {
+          const el = node as HTMLElement;
+          if (el.hasAttribute('data-word-id') && selection.containsNode(el, true)) {
+            return NodeFilter.FILTER_ACCEPT;
+          }
+          return NodeFilter.FILTER_SKIP;
+        }
+      }
+    );
 
-    const newWords = new Set(words);
+    let node;
+    while (node = walker.nextNode()) {
+      const wordId = (node as HTMLElement).getAttribute('data-word-id');
+      if (wordId) wordIds.add(wordId);
+    }
+
+    if (wordIds.size === 0) {
+      // Clear browser selection
+      selection.removeAllRanges();
+      return;
+    }
 
     // Check for Ctrl/Cmd key (add to existing selection)
     if (e.ctrlKey || e.metaKey) {
       setPhraseMarkedWords(prev => {
         const next = new Set(prev);
-        newWords.forEach(w => next.add(w));
+        wordIds.forEach(id => next.add(id));
         return next;
       });
     } else {
       // Replace selection
-      setPhraseMarkedWords(newWords);
+      setPhraseMarkedWords(wordIds);
     }
 
     // Clear browser selection

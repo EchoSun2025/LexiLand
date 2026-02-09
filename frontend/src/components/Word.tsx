@@ -3,6 +3,7 @@ import type { Token } from '../utils/tokenize';
 
 interface WordProps {
   token: Token;
+  wordId: string;
   isKnown: boolean;
   isMarked: boolean;
   isPhraseMarked: boolean;
@@ -19,7 +20,7 @@ interface WordProps {
   isCurrentWord?: boolean;
 }
 
-export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
+export default function Word({ token, wordId, isKnown, isMarked, isPhraseMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
   // Display marked words in bold
   const fontWeight = isMarked ? 'font-bold' : 'font-normal';
   const [isHovered, setIsHovered] = useState(false);
@@ -45,6 +46,7 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearn
       onMouseLeave={() => setIsHovered(false)}
     >
       <span
+        data-word-id={wordId}
         className={`${
           isCurrentWord
             ? 'bg-yellow-300 font-bold rounded px-0.5 border-2 border-yellow-500'

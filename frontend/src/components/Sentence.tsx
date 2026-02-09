@@ -3,6 +3,8 @@ import Word from './Word';
 
 interface SentenceProps {
   sentence: SentenceType;
+  paragraphIndex: number;
+  sentenceIndex: number;
   knownWords: Set<string>;
   markedWords: Set<string>;
   phraseMarkedWords: Set<string>;
@@ -17,7 +19,7 @@ interface SentenceProps {
   currentWordIndex?: number;
 }
 
-export default function Sentence({ sentence, knownWords, markedWords, phraseMarkedWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
+export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedWords, learntWords, annotations, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
   let wordCount = 0; // Track word index within this sentence
   
   return (
@@ -31,18 +33,22 @@ export default function Sentence({ sentence, knownWords, markedWords, phraseMark
         // Calculate isCurrentWord BEFORE incrementing wordCount
         const isCurrentWord = isCurrentSentence && isWordToken && wordCount === currentWordIndex;
         
+        // Create word position ID
+        const wordId = isWordToken ? `p${paragraphIndex}-s${sentenceIndex}-w${wordCount}` : '';
+        
         // Increment wordCount AFTER checking
         if (isWordToken) {
           wordCount++;
         }
-        
+
         return (
           <span key={`${token.id}-${index}`}>
             <Word
               token={token}
+              wordId={wordId}
               isKnown={knownWords.has(token.text.toLowerCase())}
               isMarked={markedWords.has(token.text.toLowerCase())}
-              isPhraseMarked={phraseMarkedWords.has(token.text.toLowerCase())}
+              isPhraseMarked={phraseMarkedWords.has(wordId)}
               isLearnt={learntWords.has(token.text.toLowerCase())}
               annotation={annotations.get(token.text.toLowerCase())}
               showIPA={showIPA}

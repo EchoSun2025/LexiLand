@@ -61,6 +61,8 @@ export default function Paragraph({
           <Sentence
             key={sentence.id}
             sentence={sentence}
+            paragraphIndex={paragraphIndex}
+            sentenceIndex={sIdx}
             knownWords={knownWords}
             markedWords={markedWords}
             phraseMarkedWords={phraseMarkedWords}
