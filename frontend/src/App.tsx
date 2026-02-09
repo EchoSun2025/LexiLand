@@ -202,6 +202,10 @@ function App() {
       setPhraseMarkedRanges(prev => [...prev, newRange]);
     } else {
       setPhraseMarkedRanges([newRange]);
+    }
+
+    selection.removeAllRanges();
+  };
 
   // Handle annotate: generate IPA and Chinese for marked words
   const handleAnnotate = async () => {
