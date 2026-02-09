@@ -62,7 +62,7 @@ export default function Paragraph({
             key={sentence.id}
             sentence={sentence}
             paragraphIndex={paragraphIndex}
-            sentenceIndex={sIdx}
+            sentenceIndex={index}
             knownWords={knownWords}
             markedWords={markedWords}
             phraseMarkedWords={phraseMarkedWords}
