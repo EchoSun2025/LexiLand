@@ -66,7 +66,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
               onMarkKnown={onMarkKnown}
               isCurrentWord={isCurrentWord}
             />
-            {needsSpace && <span className={shouldPurpleSpace ? 'bg-purple-100 inline-block' : ''}> </span>}
+            {needsSpace && (shouldPurpleSpace ? <span className="bg-purple-100"> </span> : ' ')}
           </span>
         );
       })}
