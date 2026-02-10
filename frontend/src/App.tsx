@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, getAllLearntWords, deleteAnnotation, exportUserData, importUserData } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, exportUserData, importUserData } from './db'
 import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
@@ -26,6 +26,7 @@ function App() {
     addAnnotation,
     addKnownWord,
     addLearntWord,
+    removeLearntWord,
     removeAnnotation,
     setShowIPA,
     setShowChinese,
@@ -377,17 +378,25 @@ function App() {
     alert(`Annotation complete!\nSuccess: ${completed}\nFailed: ${failed}`);
   };
 
-// Handle mark word as known (mark as learnt)
+// Handle mark word as known (toggle learnt status)
   const handleMarkKnown = async (word: string) => {
     try {
-      // Add to learntWords (keeps annotation but changes display)
-      addLearntWord(word);
-
-      // Save to IndexedDB
-      await addLearntWordToDB(word);
-      console.log(`Marked "${word}" as learnt`);
+      const normalized = word.toLowerCase();
+      const isCurrentlyLearnt = learntWords.has(normalized);
+      
+      if (isCurrentlyLearnt) {
+        // Remove from learntWords (unmark as known)
+        removeLearntWord(normalized);
+        await removeLearntWordFromDB(normalized);
+        console.log(`Unmarked "${word}" as learnt`);
+      } else {
+        // Add to learntWords (mark as known)
+        addLearntWord(normalized);
+        await addLearntWordToDB(normalized);
+        console.log(`Marked "${word}" as learnt`);
+      }
     } catch (error) {
-      console.error('Failed to mark word as learnt:', error);
+      console.error('Failed to toggle learnt status:', error);
     }
   };
 
@@ -1234,7 +1243,9 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           {!isLoadingAnnotation && currentAnnotation && (
             <WordCard
               annotation={currentAnnotation}
+              isLearnt={learntWords.has(currentAnnotation.word.toLowerCase())}
               onClose={() => setCurrentAnnotation(null)}
+              onMarkKnown={handleMarkKnown}
               onDelete={handleDeleteFromCards}
             />
           )}

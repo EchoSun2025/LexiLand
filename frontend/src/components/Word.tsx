@@ -45,7 +45,8 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearn
     backgroundColor = 'bg-yellow-300';
     additionalClasses = 'font-bold rounded px-0.5 border-2 border-yellow-500';
   } else if (showLearnt) {
-    backgroundColor = 'bg-orange-100';
+    // isLearnt 为 true 时，橙色 50% 透明度
+    backgroundColor = isLearnt ? 'bg-orange-100/50' : 'bg-orange-100';
     additionalClasses = 'cursor-pointer hover:bg-orange-200';
   } else if (isMarked) {
     backgroundColor = 'bg-green-100';
@@ -71,7 +72,7 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearn
         {token.text}
       </span>
 
-      {hasAnnotation && isUnknown && (
+      {hasAnnotation && isUnknown && !isLearnt && (
         <>
           {showIPA && annotation.ipa && (
             <span className="text-[10px] text-muted ml-1 whitespace-nowrap">

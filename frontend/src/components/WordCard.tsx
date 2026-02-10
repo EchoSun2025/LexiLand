@@ -2,15 +2,24 @@ import type { WordAnnotation } from '../api';
 
 interface WordCardProps {
   annotation: WordAnnotation;
+  isLearnt: boolean;
   onClose: () => void;
+  onMarkKnown?: (word: string) => void;
   onDelete?: (word: string) => void;
 }
 
-export default function WordCard({ annotation, onClose, onDelete }: WordCardProps) {
+export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, onDelete }: WordCardProps) {
   const handleDelete = () => {
     if (confirm(`Delete "${annotation.word}" from cards?`)) {
       onDelete?.(annotation.word);
     }
+  };
+
+  const handlePronounce = () => {
+    const utterance = new SpeechSynthesisUtterance(annotation.word);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -18,14 +27,24 @@ export default function WordCard({ annotation, onClose, onDelete }: WordCardProp
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h3 className="text-2xl font-bold text-gray-900">
-            {annotation.word}
-            {annotation.baseForm && (
-              <span className="text-sm text-gray-500 font-normal ml-2">
-                (from: {annotation.baseForm})
-              </span>
-            )}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-2xl font-bold text-gray-900">
+              {annotation.word}
+              {annotation.baseForm && (
+                <span className="text-sm text-gray-500 font-normal ml-2">
+                  (from: {annotation.baseForm})
+                </span>
+              )}
+            </h3>
+            {/* Pronounce button next to word */}
+            <button
+              onClick={handlePronounce}
+              className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+              title="Pronounce"
+            >
+              <span className="text-lg">🔊</span>
+            </button>
+          </div>
           <div className="flex items-center gap-3 mt-1">
               <span className="text-sm text-blue-600">/{annotation.ipa.replace(/^\/+|\/+$/g, '')}/</span>
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-semibold">
@@ -65,12 +84,18 @@ export default function WordCard({ annotation, onClose, onDelete }: WordCardProp
 
       {/* Actions */}
       <div className="flex gap-2 pt-2 border-t border-border">
-        <button className="flex-1 px-3 py-2 text-sm bg-green-50 text-green-700 hover:bg-green-100 rounded-lg font-semibold">
-          ✓ Mark as Known
-        </button>
-        <button className="flex-1 px-3 py-2 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-semibold">
-          🔊 Pronounce
-        </button>
+        {onMarkKnown && (
+          <button 
+            onClick={() => onMarkKnown(annotation.word)}
+            className={`flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-colors ${
+              isLearnt
+                ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                : 'bg-green-50 text-green-700 hover:bg-green-100'
+            }`}
+          >
+            {isLearnt ? '✓ Known' : '✓ Mark as Known'}
+          </button>
+        )}
         {onDelete && (
           <button 
             onClick={handleDelete}
