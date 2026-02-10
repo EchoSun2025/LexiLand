@@ -1081,14 +1081,27 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         {/* Left Panel: Outline - Collapsible */}
         <aside 
           className={`border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0 transition-all duration-300 ease-in-out ${
-            isOutlineCollapsed ? 'w-0 border-0' : 'w-[260px]'
+            isOutlineCollapsed ? 'w-[48px]' : 'w-[260px]'
           }`}
-          style={{ minWidth: isOutlineCollapsed ? '0' : '260px' }}
+          style={{ minWidth: isOutlineCollapsed ? '48px' : '260px' }}
         >
           <div className="px-3 py-3 border-b border-border bg-panel font-bold flex items-center justify-between">
-            <span>Outline</span>
+            <span className={`transition-opacity duration-300 ${isOutlineCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>
+              Outline
+            </span>
+            <button
+              onClick={() => setIsOutlineCollapsed(!isOutlineCollapsed)}
+              className="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded transition-colors flex-shrink-0"
+              title={isOutlineCollapsed ? 'Expand outline' : 'Collapse outline'}
+            >
+              <span className="text-gray-600 text-sm font-bold">
+                {isOutlineCollapsed ? '›' : '‹'}
+              </span>
+            </button>
           </div>
-          <div className="flex-1 p-3 overflow-auto">
+          <div className={`flex-1 p-3 overflow-auto transition-opacity duration-300 ${
+            isOutlineCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}>
             {documents.map(doc => (
               <div
                 key={doc.id}
@@ -1115,17 +1128,6 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             </div>
           </div>
         </aside>
-
-        {/* Toggle Button for Outline */}
-        <button
-          onClick={() => setIsOutlineCollapsed(!isOutlineCollapsed)}
-          className="self-start mt-2 w-6 h-10 border border-border rounded-r-lg bg-white hover:bg-gray-100 flex items-center justify-center transition-all duration-200 -ml-3 z-10"
-          title={isOutlineCollapsed ? 'Expand outline' : 'Collapse outline'}
-        >
-          <span className="text-gray-600 text-sm font-bold">
-            {isOutlineCollapsed ? '›' : '‹'}
-          </span>
-        </button>
 
         {/* Center Panel: Reader */}
         <main className="flex-1 border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0">
