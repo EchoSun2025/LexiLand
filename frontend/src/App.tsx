@@ -1223,37 +1223,32 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         </main>
 
         {/* Right Panel: Cards */}
-        <aside className="w-[360px] border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0" style={{ minWidth: '360px' }}>
-          <div className="px-3 py-3 border-b border-border bg-panel font-bold">
-            Cards
-          </div>
-          <div className="flex-1 p-3 overflow-auto">
-            {isLoadingAnnotation && (
-              <div className="text-center py-8 text-muted">
-                <div className="text-2xl mb-2">...</div>
-                <div>Loading annotation...</div>
-              </div>
-            )}
+        <aside className="w-[360px] flex flex-col min-h-0 overflow-auto" style={{ minWidth: '360px' }}>
+          {isLoadingAnnotation && (
+            <div className="text-center py-8 text-muted">
+              <div className="text-2xl mb-2">...</div>
+              <div>Loading annotation...</div>
+            </div>
+          )}
 
-            {!isLoadingAnnotation && currentAnnotation && (
-              <WordCard
-                annotation={currentAnnotation}
-                onClose={() => setCurrentAnnotation(null)}
-                onDelete={handleDeleteFromCards}
-              />
-            )}
+          {!isLoadingAnnotation && currentAnnotation && (
+            <WordCard
+              annotation={currentAnnotation}
+              onClose={() => setCurrentAnnotation(null)}
+              onDelete={handleDeleteFromCards}
+            />
+          )}
 
-            {!isLoadingAnnotation && !currentAnnotation && (
-              <div className="border border-border rounded-2xl p-3 bg-white mb-3">
-                <div className="text-xs text-muted">Placeholder</div>
-                <div className="font-extrabold mt-1">Word / Paragraph Cards</div>
-                <div className="h-px bg-border my-2"></div>
-                <div className="text-sm leading-relaxed">
-                  Click on an unknown word to see its annotation card.
-                </div>
+          {!isLoadingAnnotation && !currentAnnotation && (
+            <div className="border border-border rounded-2xl p-3 bg-white mb-3">
+              <div className="text-xs text-muted">Placeholder</div>
+              <div className="font-extrabold mt-1">Word / Paragraph Cards</div>
+              <div className="h-px bg-border my-2"></div>
+              <div className="text-sm leading-relaxed">
+                Click on an unknown word to see its annotation card.
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </aside>
       </div>
 
