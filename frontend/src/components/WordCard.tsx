@@ -26,27 +26,24 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
     <div className="bg-white border border-border rounded-2xl p-4 mb-3 shadow-sm">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-2xl font-bold text-gray-900">
-              {annotation.word}
-              {annotation.baseForm && (
-                <span className="text-sm text-gray-500 font-normal ml-2">
-                  (from: {annotation.baseForm})
-                </span>
-              )}
-            </h3>
-            {/* Pronounce button next to word */}
+        <div className="flex-1 text-center">
+          <h3 className="text-2xl font-bold text-gray-900">
+            {annotation.word}
+            {annotation.baseForm && (
+              <span className="text-sm text-gray-500 font-normal ml-2">
+                (from: {annotation.baseForm})
+              </span>
+            )}
+          </h3>
+          <div className="flex items-center justify-center gap-3 mt-1">
+            {/* Clickable IPA for pronunciation */}
             <button
               onClick={handlePronounce}
-              className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
-              title="Pronounce"
+              className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors"
+              title="Click to pronounce"
             >
-              <span className="text-lg">🔊</span>
+              /{annotation.ipa.replace(/^\/+|\/+$/g, '')}/
             </button>
-          </div>
-          <div className="flex items-center gap-3 mt-1">
-              <span className="text-sm text-blue-600">/{annotation.ipa.replace(/^\/+|\/+$/g, '')}/</span>
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-semibold">
               {annotation.level}
             </span>
