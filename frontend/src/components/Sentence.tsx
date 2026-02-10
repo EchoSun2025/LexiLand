@@ -98,8 +98,8 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
           return result;
         } else {
           // For non-word tokens (space, punctuation), also check if in purple range
-          // Use underline instead of background for phrase marks
-          const phraseUnderlineClass = isInPhraseRange ? 'border-b-2 border-purple-500' : '';
+          // Use underline instead of background for phrase marks, 50% opacity
+          const phraseUnderlineClass = isInPhraseRange ? 'border-b-2 border-purple-500/50' : '';
           const colorMap: Record<string, string> = {
             red: '#f8717199', orange: '#fb923c99', amber: '#fbbf2499', emerald: '#34d39999',
             cyan: '#22d3ee99', blue: '#60a5fa99', purple: '#a78bfa99', pink: '#f472b699'

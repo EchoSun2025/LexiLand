@@ -225,6 +225,12 @@ function App() {
       return;
     }
 
+    // 防止双击触发紫色标记：只有选中多个token时才认为是真正的拖动选择
+    if (tokenPositions.length === 1) {
+      selection.removeAllRanges();
+      return;
+    }
+
     // Group by sentence to support cross-sentence selection
     const sentenceGroups = new Map<string, typeof tokenPositions>();
     tokenPositions.forEach(pos => {

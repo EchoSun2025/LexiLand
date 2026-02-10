@@ -46,19 +46,19 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearn
     additionalClasses = 'font-bold rounded px-0.5 border-2 border-yellow-500';
   } else if (showLearnt) {
     backgroundColor = 'bg-orange-100';
-    additionalClasses = 'rounded cursor-pointer hover:bg-orange-200';
+    additionalClasses = 'cursor-pointer hover:bg-orange-200';
   } else if (isMarked) {
     backgroundColor = 'bg-green-100';
-    additionalClasses = 'rounded cursor-pointer hover:bg-green-200';
+    additionalClasses = 'cursor-pointer hover:bg-green-200';
   } else if (hasAnnotation) {
-    additionalClasses = 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100';
+    additionalClasses = 'font-bold px-0.5 cursor-pointer hover:bg-yellow-100';
   } else if (isClickable && !autoMark) {
     additionalClasses = 'cursor-pointer hover:bg-yellow-50';
   }
   
-  // 2. 确定下划线（紫色短语标记）- 独立逻辑
+  // 2. 确定下划线（紫色短语标记）- 独立逻辑，透明度50%
   if (isPhraseMarked && !isCurrentWord) {
-    borderBottomStyle = 'border-b-2 border-purple-500';
+    borderBottomStyle = 'border-b-2 border-purple-500/50';
   }
   
   return (
