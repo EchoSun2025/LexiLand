@@ -58,13 +58,13 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isAnnot
     additionalClasses = 'cursor-pointer hover:bg-yellow-50';
   }
   
-  // 2. 确定下划线（短语标记）- 独立逻辑
+  // 2. 确定下划线（短语标记）- 独立逻辑，悬停时100%透明度
   if (isAnnotatedPhrase && !isCurrentWord) {
-    // 已标注的短语：紫色 50% 透明
-    borderBottomStyle = 'border-b-2 border-purple-500/50';
+    // 已标注的短语：紫色 50% 透明，悬停时 100%
+    borderBottomStyle = 'border-b-2 border-purple-500/50 hover:border-purple-500';
   } else if (isPhraseMarked && !isCurrentWord) {
-    // 选择中的短语：蓝色 50% 透明
-    borderBottomStyle = 'border-b-2 border-blue-500/50';
+    // 选择中的短语：蓝色 50% 透明，悬停时 100%
+    borderBottomStyle = 'border-b-2 border-blue-500/50 hover:border-blue-500';
   }
   
   return (
