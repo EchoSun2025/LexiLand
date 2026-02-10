@@ -1,6 +1,6 @@
 import type { Sentence as SentenceType } from '../utils/tokenize';
 import Word from './Word';
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 
 interface SentenceProps {
   sentence: SentenceType;
@@ -191,9 +191,8 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
             phraseTranslationInserts.get(annotatedRange.phrase);
           
           return (
-            <>
+            <Fragment key={`${token.id}-${tokenIndex}`}>
               <span 
-                key={`${token.id}-${tokenIndex}`} 
                 data-token-pos={tokenPos} 
                 className={phraseUnderlineClass} 
                 style={{...borderStyle, ...hoverStyle}}
@@ -221,7 +220,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
                   {phraseAnnotations.get(annotatedRange.phrase)!.chinese}
                 </span>
               )}
-            </>
+            </Fragment>
           );
         }
       })}
