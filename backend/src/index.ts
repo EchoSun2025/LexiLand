@@ -108,12 +108,16 @@ Important:
 fastify.post<{ Body: AnnotatePhraseRequest }>('/api/annotate-phrase', async (request, reply) => {
   const { phrase, sentenceContext, level = 'B2' } = request.body;
 
+  fastify.log.info('Phrase annotation request:', { phrase, sentenceContext, level });
+
   if (!phrase || typeof phrase !== 'string') {
-    return reply.code(400).send({ error: 'Phrase is required' });
+    fastify.log.error('Invalid phrase:', phrase);
+    return reply.code(400).send({ success: false, error: 'Phrase is required' });
   }
 
   if (!sentenceContext || typeof sentenceContext !== 'string') {
-    return reply.code(400).send({ error: 'Sentence context is required' });
+    fastify.log.error('Invalid sentenceContext:', sentenceContext);
+    return reply.code(400).send({ success: false, error: 'Sentence context is required' });
   }
 
   try {
@@ -151,6 +155,8 @@ Important:
 
     const annotation = JSON.parse(content);
 
+    fastify.log.info('Phrase annotation success:', annotation);
+
     return {
       success: true,
       data: annotation,
@@ -158,6 +164,7 @@ Important:
     };
   } catch (error: any) {
     fastify.log.error('Phrase annotation error:', error);
+    fastify.log.error('Error stack:', error.stack);
     return reply.code(500).send({
       success: false,
       error: error.message || 'Failed to generate phrase annotation',
