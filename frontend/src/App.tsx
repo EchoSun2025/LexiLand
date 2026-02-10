@@ -59,7 +59,8 @@ function App() {
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
   const [phraseMarkedRanges, setPhraseMarkedRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>>([]); // stores token ranges
   const [underlinePhraseRanges, setUnderlinePhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; color: string }>>([]); // for discontinuous phrases with Ctrl+Shift
-  const [isOutlineCollapsed, setIsOutlineCollapsed] = useState(false);
+  const [isOutlineCollapsed, setIsOutlineCollapsed] = useState(true); // Default collapsed like Notion
+  const [isOutlineHovered, setIsOutlineHovered] = useState(false);
 
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
@@ -927,7 +928,18 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
       {/* Top Bar */}
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-border px-4 py-2.5 flex items-center gap-3 flex-wrap">
-        <div className="font-bold mr-2">LexiLand Read</div>
+        {/* Hamburger Menu Button - Notion Style */}
+        <button
+          onClick={() => setIsOutlineCollapsed(!isOutlineCollapsed)}
+          className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded transition-colors"
+          title={isOutlineCollapsed ? 'Show outline' : 'Hide outline'}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        
+        <div className="font-bold">LexiLand Read</div>
 
 
         <button
@@ -1078,56 +1090,55 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
       {/* Main Layout: Three Columns */}
       <div className="flex-1 flex gap-3 p-3 min-h-0">
-        {/* Left Panel: Outline - Collapsible */}
-        <aside 
-          className={`border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0 transition-all duration-300 ease-in-out ${
-            isOutlineCollapsed ? 'w-[48px]' : 'w-[260px]'
-          }`}
-          style={{ minWidth: isOutlineCollapsed ? '48px' : '260px' }}
-        >
-          <div className="px-3 py-3 border-b border-border bg-panel font-bold flex items-center justify-between">
-            <span className={`transition-opacity duration-300 ${isOutlineCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>
-              Outline
-            </span>
-            <button
-              onClick={() => setIsOutlineCollapsed(!isOutlineCollapsed)}
-              className="w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded transition-colors flex-shrink-0"
-              title={isOutlineCollapsed ? 'Expand outline' : 'Collapse outline'}
-            >
-              <span className="text-gray-600 text-sm font-bold">
-                {isOutlineCollapsed ? '›' : '‹'}
-              </span>
-            </button>
-          </div>
-          <div className={`flex-1 p-3 overflow-auto transition-opacity duration-300 ${
-            isOutlineCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
-          }`}>
-            {documents.map(doc => (
-              <div
-                key={doc.id}
-                onClick={() => setCurrentDocument(doc.id)}
-                className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
+        {/* Left Panel: Outline - Notion Style Sidebar */}
+        {!isOutlineCollapsed && (
+          <aside 
+            className="w-[260px] border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0 transition-all duration-300 ease-in-out"
+            style={{ minWidth: '260px' }}
+            onMouseEnter={() => setIsOutlineHovered(true)}
+            onMouseLeave={() => setIsOutlineHovered(false)}
+          >
+            <div className="px-3 py-3 border-b border-border bg-panel font-bold flex items-center justify-between">
+              <span>Outline</span>
+              {/* Collapse button - only visible on hover */}
+              <button
+                onClick={() => setIsOutlineCollapsed(true)}
+                className={`w-6 h-6 flex items-center justify-center hover:bg-gray-200 rounded transition-all flex-shrink-0 ${
+                  isOutlineHovered ? 'opacity-100' : 'opacity-0'
+                }`}
+                title="Hide outline"
               >
-                <span>{doc.title}</span>
-                <span className="text-muted"></span>
-              </div>
-            ))}
+                <span className="text-gray-600 text-sm font-bold">‹</span>
+              </button>
+            </div>
+            <div className="flex-1 p-3 overflow-auto">
+              {documents.map(doc => (
+                <div
+                  key={doc.id}
+                  onClick={() => setCurrentDocument(doc.id)}
+                  className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
+                >
+                  <span>{doc.title}</span>
+                  <span className="text-muted"></span>
+                </div>
+              ))}
 
-            <div className="text-xs text-muted mt-3 mb-1">Documents</div>
-            <div
-              className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
-              onClick={handleNewDocument}
-            >
-              <span>+ New document</span>
+              <div className="text-xs text-muted mt-3 mb-1">Documents</div>
+              <div
+                className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
+                onClick={handleNewDocument}
+              >
+                <span>+ New document</span>
+              </div>
+              <div
+                className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
+                onClick={handleFileImport}
+              >
+                <span>Import file</span>
+              </div>
             </div>
-            <div
-              className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
-              onClick={handleFileImport}
-            >
-              <span>Import file</span>
-            </div>
-          </div>
-        </aside>
+          </aside>
+        )}
 
         {/* Center Panel: Reader */}
         <main className="flex-1 border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0">
