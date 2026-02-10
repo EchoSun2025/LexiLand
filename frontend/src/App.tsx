@@ -316,10 +316,9 @@ function App() {
           const phraseText = phraseTokens
             .map(t => t.text)
             .join('')
-            .trim()
-            .toLowerCase();
+            .trim();
 
-          if (phraseText && !annotations.has(phraseText)) {
+          if (phraseText) {
             phrasesToAnnotate.push({ text: phraseText, pIndex, sIndex });
           }
         });
@@ -333,6 +332,7 @@ function App() {
     }
 
     console.log(`Annotating ${wordsToAnnotate.length} words and ${phrasesToAnnotate.length} phrases...`);
+    console.log('Phrases to annotate:', phrasesToAnnotate);
     let completed = 0;
     let failed = 0;
     const newAnnotations: WordAnnotation[] = [];
@@ -363,7 +363,10 @@ function App() {
         // Get the full sentence text for context
         const sentenceText = currentDocument.paragraphs[phrase.pIndex].sentences[phrase.sIndex].text;
         
+        console.log(`Annotating phrase: "${phrase.text}" in sentence: "${sentenceText}"`);
         const result = await annotatePhrase(phrase.text, sentenceText, level);
+        console.log('Phrase annotation result:', result);
+        
         if (result.success && result.data) {
           const phraseData = result.data;
           setPhraseAnnotations(prev => new Map(prev).set(phrase.text, phraseData));
@@ -1211,10 +1214,10 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
                   <button
                     onClick={handleAnnotate}
-                    disabled={markedWords.size === 0}
+                    disabled={markedWords.size === 0 && phraseMarkedRanges.length === 0}
                     className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
                   >
-                    Annotate ({markedWords.size})
+                    Annotate ({markedWords.size + phraseMarkedRanges.length})
                   </button>
 
                   <button
