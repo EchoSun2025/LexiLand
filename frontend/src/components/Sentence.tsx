@@ -28,28 +28,40 @@ interface SentenceProps {
 export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedRanges, annotatedPhraseRanges, underlinePhraseRanges, learntWords, annotations, phraseAnnotations, phraseTranslationInserts, showIPA, showChinese, autoMark, onWordClick, onPhraseClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
   let wordCount = 0; // Track word index within this sentence
   const [hoveredUnderlineRange, setHoveredUnderlineRange] = useState<number | null>(null);
+  const [hoveredAnnotatedPhraseIndex, setHoveredAnnotatedPhraseIndex] = useState<number | null>(null);
+  const [hoveredPhraseMarkedIndex, setHoveredPhraseMarkedIndex] = useState<number | null>(null);
 
   return (
     <span className={`inline whitespace-pre-wrap ${isCurrentSentence ? 'bg-blue-100 rounded px-1' : ''}`}>
       {sentence.tokens.map((token, tokenIndex) => {
         const tokenPos = `p${paragraphIndex}-s${sentenceIndex}-t${tokenIndex}`;
         
-        // Check if this token is in any phrase marked range (purple)
-        const isInPhraseRange = phraseMarkedRanges.some(range =>
+        // Check if this token is in any phrase marked range (blue - selection)
+        const phraseMarkedRangeIndex = phraseMarkedRanges.findIndex(range =>
           range.pIndex === paragraphIndex &&
           range.sIndex === sentenceIndex &&
           tokenIndex >= range.startTokenIndex &&
           tokenIndex <= range.endTokenIndex
         );
+        const isInPhraseRange = phraseMarkedRangeIndex !== -1;
+        
+        // Check if this token is in the currently hovered phrase marked range
+        const isInHoveredPhraseMarked = hoveredPhraseMarkedIndex !== null &&
+          hoveredPhraseMarkedIndex === phraseMarkedRangeIndex;
         
         // Check if this token is in any annotated phrase range (blue-purple)
-        const annotatedRange = annotatedPhraseRanges.find(range =>
+        const annotatedRangeIndex = annotatedPhraseRanges.findIndex(range =>
           range.pIndex === paragraphIndex &&
           range.sIndex === sentenceIndex &&
           tokenIndex >= range.startTokenIndex &&
           tokenIndex <= range.endTokenIndex
         );
+        const annotatedRange = annotatedRangeIndex !== -1 ? annotatedPhraseRanges[annotatedRangeIndex] : null;
         const isInAnnotatedPhraseRange = !!annotatedRange;
+        
+        // Check if this token is in the currently hovered annotated phrase
+        const isInHoveredAnnotatedPhrase = hoveredAnnotatedPhraseIndex !== null &&
+          hoveredAnnotatedPhraseIndex === annotatedRangeIndex;
 
         // Check if this token is in any underline phrase range and get its color
         const underlineRangeIndex = underlinePhraseRanges.findIndex(range =>
@@ -100,8 +112,16 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
               key={`${token.id}-${tokenIndex}`} 
               data-token-pos={tokenPos} 
               style={{...borderStyle, ...hoverStyle}}
-              onMouseEnter={() => isInUnderlineRange && setHoveredUnderlineRange(underlineRangeIndex)}
-              onMouseLeave={() => setHoveredUnderlineRange(null)}
+              onMouseEnter={() => {
+                if (isInUnderlineRange) setHoveredUnderlineRange(underlineRangeIndex);
+                if (isInAnnotatedPhraseRange) setHoveredAnnotatedPhraseIndex(annotatedRangeIndex);
+                if (isInPhraseRange) setHoveredPhraseMarkedIndex(phraseMarkedRangeIndex);
+              }}
+              onMouseLeave={() => {
+                setHoveredUnderlineRange(null);
+                setHoveredAnnotatedPhraseIndex(null);
+                setHoveredPhraseMarkedIndex(null);
+              }}
               onDoubleClick={() => {
                 if (isInAnnotatedPhraseRange && annotatedRange) {
                   onPhraseClick?.(annotatedRange.phrase);
@@ -114,6 +134,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
                 isMarked={markedWords.has(token.text.toLowerCase())}
                 isPhraseMarked={isInPhraseRange}
                 isAnnotatedPhrase={isInAnnotatedPhraseRange}
+                isHoveredPhrase={isInHoveredAnnotatedPhrase || isInHoveredPhraseMarked}
                 isLearnt={learntWords.has(token.text.toLowerCase())}
                 annotation={annotations.get(token.text.toLowerCase())}
                 showIPA={showIPA}
@@ -135,13 +156,19 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
           return result;
         } else {
           // For non-word tokens (space, punctuation), also check if in phrase range
-          // Use purple 50% for annotated phrases, blue 50% for marked phrases (selection)
-          // Hover to 100% opacity
+          // Use purple 35% for annotated phrases, blue 35% for marked phrases (selection)
+          // Hover entire phrase to 100% opacity
           let phraseUnderlineClass = '';
           if (isInAnnotatedPhraseRange) {
-            phraseUnderlineClass = 'border-b-2 border-purple-500/50 hover:border-purple-500'; // 已标注：紫色 50% 透明，悬停 100%
+            // 已标注：紫色 35% 透明，悬停整个短语时 100%
+            phraseUnderlineClass = isInHoveredAnnotatedPhrase 
+              ? 'border-b-2 border-purple-500' 
+              : 'border-b-2 border-purple-500/35';
           } else if (isInPhraseRange) {
-            phraseUnderlineClass = 'border-b-2 border-blue-500/50 hover:border-blue-500'; // 选择中：蓝色 50% 透明，悬停 100%
+            // 选择中：蓝色 35% 透明，悬停整个短语时 100%
+            phraseUnderlineClass = isInHoveredPhraseMarked 
+              ? 'border-b-2 border-blue-500' 
+              : 'border-b-2 border-blue-500/35';
           }
           
           const colorMap: Record<string, string> = {
@@ -170,8 +197,16 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
                 data-token-pos={tokenPos} 
                 className={phraseUnderlineClass} 
                 style={{...borderStyle, ...hoverStyle}}
-                onMouseEnter={() => isInUnderlineRange && setHoveredUnderlineRange(underlineRangeIndex)}
-                onMouseLeave={() => setHoveredUnderlineRange(null)}
+                onMouseEnter={() => {
+                  if (isInUnderlineRange) setHoveredUnderlineRange(underlineRangeIndex);
+                  if (isInAnnotatedPhraseRange) setHoveredAnnotatedPhraseIndex(annotatedRangeIndex);
+                  if (isInPhraseRange) setHoveredPhraseMarkedIndex(phraseMarkedRangeIndex);
+                }}
+                onMouseLeave={() => {
+                  setHoveredUnderlineRange(null);
+                  setHoveredAnnotatedPhraseIndex(null);
+                  setHoveredPhraseMarkedIndex(null);
+                }}
                 onDoubleClick={() => {
                   if (isInAnnotatedPhraseRange && annotatedRange) {
                     onPhraseClick?.(annotatedRange.phrase);

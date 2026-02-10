@@ -6,6 +6,7 @@ interface WordProps {
   isMarked: boolean;
   isPhraseMarked: boolean;
   isAnnotatedPhrase?: boolean;
+  isHoveredPhrase?: boolean;
   isLearnt: boolean;
   annotation?: {
     ipa?: string;
@@ -19,7 +20,7 @@ interface WordProps {
   isCurrentWord?: boolean;
 }
 
-export default function Word({ token, isKnown, isMarked, isPhraseMarked, isAnnotatedPhrase = false, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, isCurrentWord = false }: WordProps) {
+export default function Word({ token, isKnown, isMarked, isPhraseMarked, isAnnotatedPhrase = false, isHoveredPhrase = false, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, isCurrentWord = false }: WordProps) {
 
   if (token.type !== 'word') {
     return <span>{token.text}</span>;
@@ -58,13 +59,17 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isAnnot
     additionalClasses = 'cursor-pointer hover:bg-yellow-50';
   }
   
-  // 2. 确定下划线（短语标记）- 独立逻辑，悬停时100%透明度
+  // 2. 确定下划线（短语标记）- 独立逻辑，悬停整个短语时100%透明度
   if (isAnnotatedPhrase && !isCurrentWord) {
-    // 已标注的短语：紫色 50% 透明，悬停时 100%
-    borderBottomStyle = 'border-b-2 border-purple-500/50 hover:border-purple-500';
+    // 已标注的短语：紫色 35% 透明，悬停整个短语时 100%
+    borderBottomStyle = isHoveredPhrase 
+      ? 'border-b-2 border-purple-500' 
+      : 'border-b-2 border-purple-500/35';
   } else if (isPhraseMarked && !isCurrentWord) {
-    // 选择中的短语：蓝色 50% 透明，悬停时 100%
-    borderBottomStyle = 'border-b-2 border-blue-500/50 hover:border-blue-500';
+    // 选择中的短语：蓝色 35% 透明，悬停整个短语时 100%
+    borderBottomStyle = isHoveredPhrase 
+      ? 'border-b-2 border-blue-500' 
+      : 'border-b-2 border-blue-500/35';
   }
   
   return (
