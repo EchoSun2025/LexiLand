@@ -38,12 +38,36 @@ cp .env.example .env
 
 ### 3. 启动开发服务器
 
+#### Windows (推荐)
+
+双击运行 `start-dev.ps1`，会自动启动前端和后端服务器：
+
+```powershell
+# 或在终端中运行
+.\start-dev.ps1
+```
+
+停止服务器：
+```powershell
+.\stop-dev.ps1
+```
+
+#### 手动启动 (所有平台)
+
 ```bash
+# 终端 1: 启动后端
+cd backend
+npm run dev
+
+# 终端 2: 启动前端
+cd frontend
 npm run dev
 ```
 
+**访问地址：**
 - 前端: http://localhost:5173
 - 后端: http://localhost:3000
+- 健康检查: http://localhost:3000/health
 
 ## 项目结构
 

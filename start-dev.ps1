@@ -1,58 +1,60 @@
-# LexiLand Read 一键启动脚本
-# 使用方法: 右键此文件 -> "使用 PowerShell 运行"
+# LexiLand Read Development Startup Script
+# This script starts both backend and frontend servers concurrently
 
-Write-Host "==================================" -ForegroundColor Cyan
-Write-Host "  LexiLand Read 快速启动" -ForegroundColor Cyan
-Write-Host "==================================" -ForegroundColor Cyan
+Write-Host "=== Starting LexiLand Read Development Servers ===" -ForegroundColor Cyan
+Write-Host ""
 
-$projectRoot = "D:\00working\20260110_CODE_Lexiland_read"
+# Get the script directory
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-# 检查并清理 5173 端口
-Write-Host "`n[1/3] 检查端口占用..." -ForegroundColor Yellow
-$port5173 = Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue | Where-Object {$_.State -eq "Listen"}
-if ($port5173) {
-    Write-Host "端口 5173 已被占用，正在关闭..." -ForegroundColor Yellow
-    $processId = $port5173.OwningProcess
-    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 2
-    Write-Host "已清理端口 5173" -ForegroundColor Green
+# Function to check if a port is in use
+function Test-Port {
+    param([int]$Port)
+    $connection = Test-NetConnection -ComputerName localhost -Port $Port -WarningAction SilentlyContinue -InformationLevel Quiet
+    return $connection
+}
+
+# Check if ports are already in use
+Write-Host "Checking ports..." -ForegroundColor Yellow
+$backendPort = 3000
+$frontendPort = 5173
+
+if (Test-Port -Port $backendPort) {
+    Write-Host "⚠️  Port $backendPort is already in use (backend may already be running)" -ForegroundColor Yellow
 } else {
-    Write-Host "端口 5173 可用" -ForegroundColor Green
+    Write-Host "✓ Port $backendPort is available" -ForegroundColor Green
 }
 
-# 检查并清理 3000 端口（后端）
-$port3000 = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Where-Object {$_.State -eq "Listen"}
-if ($port3000) {
-    Write-Host "端口 3000 已被占用，正在关闭..." -ForegroundColor Yellow
-    $processId = $port3000.OwningProcess
-    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 2
-    Write-Host "已清理端口 3000" -ForegroundColor Green
+if (Test-Port -Port $frontendPort) {
+    Write-Host "⚠️  Port $frontendPort is already in use (frontend may already be running)" -ForegroundColor Yellow
+} else {
+    Write-Host "✓ Port $frontendPort is available" -ForegroundColor Green
 }
 
-# 启动前端
-Write-Host "`n[2/3] 启动前端服务器..." -ForegroundColor Yellow
-cd "$projectRoot\frontend"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$projectRoot\frontend'; npm run dev" -WindowStyle Normal
-Start-Sleep -Seconds 3
+Write-Host ""
 
-# 启动后端
-Write-Host "`n[3/3] 启动后端服务器..." -ForegroundColor Yellow
-cd "$projectRoot\backend"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$projectRoot\backend'; npm run dev" -WindowStyle Normal
+# Start backend server in a new PowerShell window
+Write-Host "Starting backend server (port $backendPort)..." -ForegroundColor Cyan
+$backendPath = Join-Path $scriptDir "backend"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendPath'; Write-Host 'Backend Server' -ForegroundColor Green; npm run dev"
 
-Write-Host "`n==================================" -ForegroundColor Green
-Write-Host "  启动完成！" -ForegroundColor Green
-Write-Host "==================================" -ForegroundColor Green
+# Wait a moment for backend to start
+Start-Sleep -Seconds 2
 
-Write-Host "`n服务地址：" -ForegroundColor Yellow
-Write-Host "  前端: http://localhost:5173" -ForegroundColor Cyan
-Write-Host "  后端: http://localhost:3000" -ForegroundColor Cyan
+# Start frontend server in a new PowerShell window
+Write-Host "Starting frontend server (port $frontendPort)..." -ForegroundColor Cyan
+$frontendPath = Join-Path $scriptDir "frontend"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$frontendPath'; Write-Host 'Frontend Server' -ForegroundColor Blue; npm run dev"
 
-Write-Host "`n提示：" -ForegroundColor Yellow
-Write-Host "  - 等待 5-10 秒让服务器完全启动" -ForegroundColor White
-Write-Host "  - 如果浏览器无法连接，请再次运行此脚本" -ForegroundColor White
-Write-Host "  - 关闭窗口前请先关闭新打开的两个 PowerShell 窗口" -ForegroundColor White
-
-Write-Host "`n按任意键退出..." -ForegroundColor Gray
+Write-Host ""
+Write-Host "=== Servers Starting ===" -ForegroundColor Green
+Write-Host ""
+Write-Host "Backend:  http://localhost:$backendPort" -ForegroundColor Yellow
+Write-Host "Health:   http://localhost:$backendPort/health" -ForegroundColor Yellow
+Write-Host "Frontend: http://localhost:$frontendPort" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Two new PowerShell windows have opened." -ForegroundColor Cyan
+Write-Host "Close those windows to stop the servers." -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Press any key to exit this window..." -ForegroundColor Gray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
