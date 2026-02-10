@@ -5,7 +5,8 @@ import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
 import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, exportUserData, importUserData } from './db'
-import { annotateWord, type WordAnnotation } from './api'
+import { annotateWord, annotatePhrase, type WordAnnotation, type PhraseAnnotation } from './api'
+import PhraseCard from './components/PhraseCard'
 
 function App() {
   const {
@@ -56,12 +57,14 @@ function App() {
   const [showSpeedControl, setShowSpeedControl] = useState(false);
   const [showPitchControl, setShowPitchControl] = useState(false);
   const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
+  const [currentPhraseAnnotation, setCurrentPhraseAnnotation] = useState<PhraseAnnotation | null>(null);
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
   const [phraseMarkedRanges, setPhraseMarkedRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>>([]); // stores token ranges
   const [underlinePhraseRanges, setUnderlinePhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; color: string }>>([]); // for discontinuous phrases with Ctrl+Shift
   const [isOutlineCollapsed, setIsOutlineCollapsed] = useState(true); // Default collapsed like Notion
   const [isOutlineHovered, setIsOutlineHovered] = useState(false);
+  const [, setPhraseAnnotations] = useState<Map<string, PhraseAnnotation>>(new Map());
 
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
@@ -357,11 +360,16 @@ function App() {
     // Annotate phrases
     for (const phrase of phrasesToAnnotate) {
       try {
-        const result = await annotateWord(phrase.text);
+        // Get the full sentence text for context
+        const sentenceText = currentDocument.paragraphs[phrase.pIndex].sentences[phrase.sIndex].text;
+        
+        const result = await annotatePhrase(phrase.text, sentenceText, level);
         if (result.success && result.data) {
-          addAnnotation(phrase.text, result.data);
-          await cacheAnnotation(phrase.text, result.data);
-          newAnnotations.push(result.data);
+          const phraseData = result.data;
+          setPhraseAnnotations(prev => new Map(prev).set(phrase.text, phraseData));
+          // Also show the latest phrase annotation
+          setCurrentPhraseAnnotation(phraseData);
+          setCurrentAnnotation(null); // Clear word annotation
           completed++;
         } else {
           failed++;
@@ -375,7 +383,7 @@ function App() {
     }
 
     setIsLoadingAnnotation(false);
-    alert(`Annotation complete!\nSuccess: ${completed}\nFailed: ${failed}`);
+    alert(`Annotation complete!\nWords: ${wordsToAnnotate.length}\nPhrases: ${phrasesToAnnotate.length}\nSuccess: ${completed}\nFailed: ${failed}`);
   };
 
 // Handle mark word as known (toggle learnt status)
@@ -1240,6 +1248,21 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             </div>
           )}
 
+          {!isLoadingAnnotation && currentPhraseAnnotation && (
+            <PhraseCard
+              annotation={currentPhraseAnnotation}
+              onClose={() => setCurrentPhraseAnnotation(null)}
+              onDelete={(phrase) => {
+                setPhraseAnnotations(prev => {
+                  const next = new Map(prev);
+                  next.delete(phrase);
+                  return next;
+                });
+                setCurrentPhraseAnnotation(null);
+              }}
+            />
+          )}
+
           {!isLoadingAnnotation && currentAnnotation && (
             <WordCard
               annotation={currentAnnotation}
@@ -1250,13 +1273,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             />
           )}
 
-          {!isLoadingAnnotation && !currentAnnotation && (
+          {!isLoadingAnnotation && !currentAnnotation && !currentPhraseAnnotation && (
             <div className="border border-border rounded-2xl p-3 bg-white mb-3">
               <div className="text-xs text-muted">Placeholder</div>
-              <div className="font-extrabold mt-1">Word / Paragraph Cards</div>
+              <div className="font-extrabold mt-1">Word / Phrase Cards</div>
               <div className="h-px bg-border my-2"></div>
               <div className="text-sm leading-relaxed">
-                Click on an unknown word to see its annotation card.
+                Double-click an orange word to see its card, or select a phrase and click Annotate.
               </div>
             </div>
           )}

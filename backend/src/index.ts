@@ -37,6 +37,13 @@ interface AnnotateRequest {
   context?: string;
 }
 
+// 短语注释 API
+interface AnnotatePhraseRequest {
+  phrase: string;
+  sentenceContext: string;
+  level?: string;
+}
+
 fastify.post<{ Body: AnnotateRequest }>('/api/annotate', async (request, reply) => {
   const { word, level = 'B2', context } = request.body;
 
@@ -93,6 +100,67 @@ Important:
     return reply.code(500).send({
       success: false,
       error: error.message || 'Failed to generate annotation',
+    });
+  }
+});
+
+// 短语注释 API
+fastify.post<{ Body: AnnotatePhraseRequest }>('/api/annotate-phrase', async (request, reply) => {
+  const { phrase, sentenceContext, level = 'B2' } = request.body;
+
+  if (!phrase || typeof phrase !== 'string') {
+    return reply.code(400).send({ error: 'Phrase is required' });
+  }
+
+  if (!sentenceContext || typeof sentenceContext !== 'string') {
+    return reply.code(400).send({ error: 'Sentence context is required' });
+  }
+
+  try {
+    const prompt = `You are a language learning assistant. Provide annotation for the English phrase or expression "${phrase}" suitable for a ${level} level learner.
+
+The phrase appears in this sentence:
+"${sentenceContext}"
+
+Please provide the following information in JSON format:
+{
+  "phrase": "${phrase}",
+  "chinese": "Concise Chinese translation of this phrase in this context (简体中文)",
+  "explanation": "If this is a fixed expression, idiom, or common collocation, explain its meaning and usage. If it's just a regular phrase, leave this field empty or null.",
+  "sentenceContext": "${sentenceContext}"
+}
+
+Important:
+- Focus on translating the phrase accurately based on the sentence context
+- If it's a fixed expression (idiom, phrasal verb, collocation), provide an explanation
+- If it's just a regular phrase with no special meaning, you can leave "explanation" empty
+- Do NOT include IPA pronunciation
+- Return ONLY the JSON object, no additional text.`;
+
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      response_format: { type: 'json_object' },
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No response from OpenAI');
+    }
+
+    const annotation = JSON.parse(content);
+
+    return {
+      success: true,
+      data: annotation,
+      usage: completion.usage,
+    };
+  } catch (error: any) {
+    fastify.log.error('Phrase annotation error:', error);
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to generate phrase annotation',
     });
   }
 });
