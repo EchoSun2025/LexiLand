@@ -452,6 +452,16 @@ function App() {
       return newMap;
     });
   };
+  
+  // Handle phrase click (double-click on annotated phrase to show card)
+  const handlePhraseClick = (phrase: string) => {
+    const phraseLower = phrase.toLowerCase();
+    const annotation = phraseAnnotations.get(phraseLower);
+    if (annotation) {
+      setCurrentPhraseAnnotation(annotation);
+      setCurrentAnnotation(null); // Clear word annotation
+    }
+  };
 
   // Handle delete from cards
   const handleDeleteFromCards = async (word: string) => {
@@ -1262,6 +1272,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       showChinese={showChinese}
                       autoMark={autoMark}
                       onWordClick={handleWordClick}
+                      onPhraseClick={handlePhraseClick}
                       onMarkKnown={handleMarkKnown}
                       onParagraphAction={handleParagraphAction}
                       currentSentenceIndex={currentSentenceIndex}

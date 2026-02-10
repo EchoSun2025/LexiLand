@@ -19,12 +19,13 @@ interface SentenceProps {
   showChinese: boolean;
   autoMark: boolean;
   onWordClick?: (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => void;
+  onPhraseClick?: (phrase: string) => void;
   onMarkKnown?: (word: string) => void;
   isCurrentSentence?: boolean;
   currentWordIndex?: number;
 }
 
-export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedRanges, annotatedPhraseRanges, underlinePhraseRanges, learntWords, annotations, phraseAnnotations, phraseTranslationInserts, showIPA, showChinese, autoMark, onWordClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
+export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedRanges, annotatedPhraseRanges, underlinePhraseRanges, learntWords, annotations, phraseAnnotations, phraseTranslationInserts, showIPA, showChinese, autoMark, onWordClick, onPhraseClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
   let wordCount = 0; // Track word index within this sentence
   const [hoveredUnderlineRange, setHoveredUnderlineRange] = useState<number | null>(null);
 
@@ -89,6 +90,25 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
             showChinese && 
             phraseTranslationInserts.get(annotatedRange.phrase);
           
+          // Check if this is the last token in the annotated phrase
+          const isLastTokenInPhrase = isInAnnotatedPhraseRange && 
+            annotatedRange && 
+            tokenIndex === annotatedRange.endTokenIndex;
+          
+          // Debug logging
+          if (isInAnnotatedPhraseRange && annotatedRange) {
+            console.log('[Sentence] Annotated phrase token:', {
+              phrase: annotatedRange.phrase,
+              tokenIndex,
+              endTokenIndex: annotatedRange.endTokenIndex,
+              isLastToken: isLastTokenInPhrase,
+              showChinese,
+              insertState: phraseTranslationInserts.get(annotatedRange.phrase),
+              shouldShow: shouldShowPhraseTranslation,
+              hasAnnotation: !!phraseAnnotations.get(annotatedRange.phrase)
+            });
+          }
+          
           const result = (
             <span 
               key={`${token.id}-${tokenIndex}`} 
@@ -96,6 +116,11 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
               style={{...borderStyle, ...hoverStyle}}
               onMouseEnter={() => isInUnderlineRange && setHoveredUnderlineRange(underlineRangeIndex)}
               onMouseLeave={() => setHoveredUnderlineRange(null)}
+              onDoubleClick={() => {
+                if (isInAnnotatedPhraseRange && annotatedRange) {
+                  onPhraseClick?.(annotatedRange.phrase);
+                }
+              }}
             >
               <Word
                 token={token}
@@ -113,9 +138,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
                 isCurrentWord={isCurrentWord}
               />
               {/* Show phrase translation after the last token of annotated phrase */}
-              {shouldShowPhraseTranslation && 
-               annotatedRange.endTokenIndex === tokenIndex &&
-               phraseAnnotations.get(annotatedRange.phrase) && (
+              {isLastTokenInPhrase && shouldShowPhraseTranslation && phraseAnnotations.get(annotatedRange.phrase) && (
                 <span className="text-[10px] text-purple-700 ml-1 bg-purple-50 px-1 rounded">
                   {phraseAnnotations.get(annotatedRange.phrase)!.chinese}
                 </span>
@@ -125,13 +148,13 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
           wordCount++;
           return result;
         } else {
-          // For non-word tokens (space, punctuation), also check if in purple range
-          // Use blue-purple for annotated phrases, purple for marked phrases
+          // For non-word tokens (space, punctuation), also check if in phrase range
+          // Use purple 50% for annotated phrases, blue 50% for marked phrases (selection)
           let phraseUnderlineClass = '';
           if (isInAnnotatedPhraseRange) {
-            phraseUnderlineClass = 'border-b-2 border-indigo-500'; // 蓝紫色
+            phraseUnderlineClass = 'border-b-2 border-purple-500/50'; // 已标注：紫色 50% 透明
           } else if (isInPhraseRange) {
-            phraseUnderlineClass = 'border-b-2 border-purple-500/50'; // 紫色 50% 透明
+            phraseUnderlineClass = 'border-b-2 border-blue-500/50'; // 选择中：蓝色 50% 透明
           }
           
           const colorMap: Record<string, string> = {
@@ -142,17 +165,41 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
             borderBottom: `1px solid ${colorMap[underlineColor] || '#a78bfa99'}`
           } : {};
           const hoverStyle = shouldHighlight ? { backgroundColor: 'rgba(167, 139, 250, 0.3)' } : {};
+          
+          // Check if this is the last token in the annotated phrase (for non-word tokens)
+          const isLastTokenInPhrase = isInAnnotatedPhraseRange && 
+            annotatedRange && 
+            tokenIndex === annotatedRange.endTokenIndex;
+          
+          const shouldShowPhraseTranslation = isInAnnotatedPhraseRange && 
+            annotatedRange && 
+            showChinese && 
+            phraseTranslationInserts.get(annotatedRange.phrase);
+          
           return (
-            <span 
-              key={`${token.id}-${tokenIndex}`} 
-              data-token-pos={tokenPos} 
-              className={phraseUnderlineClass} 
-              style={{...borderStyle, ...hoverStyle}}
-              onMouseEnter={() => isInUnderlineRange && setHoveredUnderlineRange(underlineRangeIndex)}
-              onMouseLeave={() => setHoveredUnderlineRange(null)}
-            >
-              {token.text}
-            </span>
+            <>
+              <span 
+                key={`${token.id}-${tokenIndex}`} 
+                data-token-pos={tokenPos} 
+                className={phraseUnderlineClass} 
+                style={{...borderStyle, ...hoverStyle}}
+                onMouseEnter={() => isInUnderlineRange && setHoveredUnderlineRange(underlineRangeIndex)}
+                onMouseLeave={() => setHoveredUnderlineRange(null)}
+                onDoubleClick={() => {
+                  if (isInAnnotatedPhraseRange && annotatedRange) {
+                    onPhraseClick?.(annotatedRange.phrase);
+                  }
+                }}
+              >
+                {token.text}
+              </span>
+              {/* Show phrase translation after the last token of annotated phrase */}
+              {isLastTokenInPhrase && shouldShowPhraseTranslation && phraseAnnotations.get(annotatedRange.phrase) && (
+                <span className="text-[10px] text-purple-700 ml-1 bg-purple-50 px-1 rounded">
+                  {phraseAnnotations.get(annotatedRange.phrase)!.chinese}
+                </span>
+              )}
+            </>
           );
         }
       })}

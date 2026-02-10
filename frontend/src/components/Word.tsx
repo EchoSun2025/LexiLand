@@ -60,11 +60,11 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isAnnot
   
   // 2. 确定下划线（短语标记）- 独立逻辑
   if (isAnnotatedPhrase && !isCurrentWord) {
-    // 已标注的短语：蓝紫色（固定）
-    borderBottomStyle = 'border-b-2 border-indigo-500';
-  } else if (isPhraseMarked && !isCurrentWord) {
-    // 未标注的短语：紫色 50% 透明
+    // 已标注的短语：紫色 50% 透明
     borderBottomStyle = 'border-b-2 border-purple-500/50';
+  } else if (isPhraseMarked && !isCurrentWord) {
+    // 选择中的短语：蓝色 50% 透明
+    borderBottomStyle = 'border-b-2 border-blue-500/50';
   }
   
   return (

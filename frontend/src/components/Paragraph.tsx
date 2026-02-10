@@ -16,6 +16,7 @@ interface ParagraphProps {
   showChinese: boolean;
   autoMark: boolean;
   onWordClick?: (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => void;
+  onPhraseClick?: (phrase: string) => void;
   onMarkKnown?: (word: string) => void;
   onParagraphAction?: () => void;
   paragraphIndex?: number;
@@ -39,6 +40,7 @@ export default function Paragraph({
   showChinese,
   autoMark,
   onWordClick,
+  onPhraseClick,
   onMarkKnown,
   onParagraphAction,
   paragraphIndex = 0,
@@ -84,6 +86,7 @@ export default function Paragraph({
             showChinese={showChinese}
             autoMark={autoMark}
             onWordClick={onWordClick}
+            onPhraseClick={onPhraseClick}
             onMarkKnown={onMarkKnown}
             isCurrentSentence={isCurrentSentence}
             currentWordIndex={currentWordIndex}
