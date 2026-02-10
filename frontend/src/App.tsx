@@ -70,6 +70,51 @@ function App() {
 
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
+  // Rebuild annotatedPhraseRanges when document or phraseAnnotations change
+  useEffect(() => {
+    if (!currentDocument || phraseAnnotations.size === 0) {
+      setAnnotatedPhraseRanges([]);
+      return;
+    }
+
+    const ranges: Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; phrase: string }> = [];
+
+    // Scan each paragraph and sentence
+    currentDocument.paragraphs.forEach((paragraph, pIndex) => {
+      paragraph.sentences.forEach((sentence, sIndex) => {
+        // Try to find phrase matches in this sentence
+        for (let startTokenIndex = 0; startTokenIndex < sentence.tokens.length; startTokenIndex++) {
+          // Try different phrase lengths (from 2 to remaining tokens)
+          for (let endTokenIndex = startTokenIndex + 1; endTokenIndex < sentence.tokens.length; endTokenIndex++) {
+            const phraseText = sentence.tokens
+              .slice(startTokenIndex, endTokenIndex + 1)
+              .map(t => t.text)
+              .join('')
+              .trim()
+              .toLowerCase();
+
+            // Check if this phrase exists in phraseAnnotations
+            if (phraseAnnotations.has(phraseText)) {
+              ranges.push({
+                pIndex,
+                sIndex,
+                startTokenIndex,
+                endTokenIndex,
+                phrase: phraseText
+              });
+              // Skip to end of this phrase to avoid overlapping matches
+              startTokenIndex = endTokenIndex;
+              break;
+            }
+          }
+        }
+      });
+    });
+
+    setAnnotatedPhraseRanges(ranges);
+    console.log(`[OK] Rebuilt ${ranges.length} annotated phrase ranges for current document`);
+  }, [currentDocument, phraseAnnotations]);
+
   // Auto-mark unknown words when document loads or toggle changes
   useEffect(() => {
     if (!currentDocument || !autoMarkUnknown) {
