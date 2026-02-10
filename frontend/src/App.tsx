@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getCachedAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, exportUserData, importUserData } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, getAllLearntWords, deleteAnnotation, exportUserData, importUserData } from './db'
 import { annotateWord, type WordAnnotation } from './api'
 
 function App() {
@@ -26,12 +26,10 @@ function App() {
     addAnnotation,
     addKnownWord,
     addLearntWord,
-    removeLearntWord,
     removeAnnotation,
     setShowIPA,
     setShowChinese,
     setLevel,
-    setAutoMark,
     setAutoMarkUnknown,
     loadKnownWords,
     loadLearntWords,
@@ -56,7 +54,6 @@ function App() {
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [showSpeedControl, setShowSpeedControl] = useState(false);
   const [showPitchControl, setShowPitchControl] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [currentAnnotation, setCurrentAnnotation] = useState<WordAnnotation | null>(null);
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
@@ -140,11 +137,11 @@ function App() {
         const underlineRange = underlinePhraseRanges[underlineRangeIndex];
         setUnderlinePhraseRanges(prev => prev.filter((_, i) => i !== underlineRangeIndex));
         // Remove all phrase ranges that are within or overlap with this underline range
-        setPhraseMarkedRanges(prev => prev.filter(range =>
-          !(range.pIndex === underlineRange.pIndex &&
-            range.sIndex === underlineRange.sIndex &&
-            range.startTokenIndex >= underlineRange.startTokenIndex &&
-            range.endTokenIndex <= underlineRange.endTokenIndex)
+        setPhraseMarkedRanges(prev => prev.filter(phraseRange =>
+          !(phraseRange.pIndex === underlineRange.pIndex &&
+            phraseRange.sIndex === underlineRange.sIndex &&
+            phraseRange.startTokenIndex >= underlineRange.startTokenIndex &&
+            phraseRange.endTokenIndex <= underlineRange.endTokenIndex)
         ));
         return;
       }
@@ -185,8 +182,6 @@ function App() {
 
     const selectedText = selection.toString().trim();
     if (!selectedText) return;
-
-    const range = selection.getRangeAt(0);
 
     // Find a suitable parent container that's likely to contain all selected tokens
     // Start from the mouse event target and go up
@@ -230,10 +225,6 @@ function App() {
       return;
     }
 
-    // Check if selection spans multiple sentences
-    const firstPos = tokenPositions[0];
-    const lastPos = tokenPositions[tokenPositions.length - 1];
-
     // Group by sentence to support cross-sentence selection
     const sentenceGroups = new Map<string, typeof tokenPositions>();
     tokenPositions.forEach(pos => {
@@ -245,7 +236,7 @@ function App() {
     });
 
     // Create a range for each sentence group
-    const newRanges = Array.from(sentenceGroups.entries()).map(([key, positions]) => {
+    const newRanges = Array.from(sentenceGroups.entries()).map(([, positions]) => {
       const first = positions[0];
       const last = positions[positions.length - 1];
       return {
@@ -561,47 +552,47 @@ function App() {
     }
   };
 
-  // Handle batch annotate all unknown words
-  const handleBatchAnnotate = async () => {
-    if (!currentDocument) return;
+  // Handle batch annotate all unknown words (currently unused, kept for future use)
+  // const handleBatchAnnotate = async () => {
+  //   if (!currentDocument) return;
 
-    const unknownWords = new Set<string>();
+  //   const unknownWords = new Set<string>();
 
-    // Collect all unknown words from document
-    currentDocument.paragraphs.forEach(paragraph => {
-      paragraph.sentences.forEach(sentence => {
-        sentence.tokens.forEach(token => {
-          if (token.type === 'word' && token.text.length > 1) {
-            const normalized = token.text.toLowerCase();
-            if (!knownWords.has(normalized) && !learntWords.has(normalized)) {
-              unknownWords.add(token.text);
-            }
-          }
-        });
-      });
-    });
+  //   // Collect all unknown words from document
+  //   currentDocument.paragraphs.forEach(paragraph => {
+  //     paragraph.sentences.forEach(sentence => {
+  //       sentence.tokens.forEach(token => {
+  //         if (token.type === 'word' && token.text.length > 1) {
+  //           const normalized = token.text.toLowerCase();
+  //           if (!knownWords.has(normalized) && !learntWords.has(normalized)) {
+  //             unknownWords.add(token.text);
+  //           }
+  //         }
+  //       });
+  //     });
+  //   });
 
-    const totalWords = unknownWords.size;
-    console.log(`Starting batch annotation for ${totalWords} words...`);
+  //   const totalWords = unknownWords.size;
+  //   console.log(`Starting batch annotation for ${totalWords} words...`);
 
-    let completed = 0;
-    let failed = 0;
+  //   let completed = 0;
+  //   let failed = 0;
 
-    for (const word of unknownWords) {
-      try {
-        await handleWordClick(word);
-        completed++;
-        console.log(`Progress: ${completed}/${totalWords}`);
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 200));
-      } catch (error) {
-        failed++;
-        console.error(`Failed to annotate "${word}":`, error);
-      }
-    }
+  //   for (const word of unknownWords) {
+  //     try {
+  //       await handleWordClick(word);
+  //       completed++;
+  //       console.log(`Progress: ${completed}/${totalWords}`);
+  //       // Small delay to avoid rate limiting
+  //       await new Promise(resolve => setTimeout(resolve, 200));
+  //     } catch (error) {
+  //       failed++;
+  //       console.error(`Failed to annotate "${word}":`, error);
+  //     }
+  //   }
 
-    alert(`Batch annotation complete!\\nSuccess: ${completed}\\nFailed: ${failed}`);
-  };
+  //   alert(`Batch annotation complete!\\nSuccess: ${completed}\\nFailed: ${failed}`);
+  // };
 
   // Load known words on mount
   useEffect(() => {
@@ -773,42 +764,40 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
   };
 
   const handleStop = () => {
-    console.log('[TTS] Stopping and resetting...');
-    shouldStopRef.current = true;
-    window.speechSynthesis.cancel();
-    setIsSpeaking(false);
-    setCurrentSentenceIndex(null);
-    setCurrentWordIndex(-1);
-    if (speechSynthesisRef.current) {
-      speechSynthesisRef.current = null;
-    }
-  };
-
-  const handlePrevSentence = () => {
-    if (currentSentenceIndex !== null && currentSentenceIndex > 0) {
-      console.log('[TTS] Going to previous sentence');
+      console.log('[TTS] Stopping and resetting...');
       shouldStopRef.current = true;
-      setIsPaused(false);
       window.speechSynthesis.cancel();
-      setTimeout(() => {
-        shouldStopRef.current = false;
-        speakFromSentence(currentSentenceIndex - 1);
-      }, 50);
-    }
-  };
+      setIsSpeaking(false);
+      setCurrentSentenceIndex(null);
+      setCurrentWordIndex(-1);
+      if (speechSynthesisRef.current) {
+        speechSynthesisRef.current = null;
+      }
+    };
 
-  const handleNextSentence = () => {
-    if (currentSentenceIndex !== null) {
-      console.log('[TTS] Going to next sentence');
-      shouldStopRef.current = true;
-      setIsPaused(false);
-      window.speechSynthesis.cancel();
-      setTimeout(() => {
-        shouldStopRef.current = false;
-        speakFromSentence(currentSentenceIndex + 1);
-      }, 50);
-    }
-  };
+    const handlePrevSentence = () => {
+      if (currentSentenceIndex !== null && currentSentenceIndex > 0) {
+        console.log('[TTS] Going to previous sentence');
+        shouldStopRef.current = true;
+        window.speechSynthesis.cancel();
+        setTimeout(() => {
+          shouldStopRef.current = false;
+          speakFromSentence(currentSentenceIndex - 1);
+        }, 50);
+      }
+    };
+
+    const handleNextSentence = () => {
+      if (currentSentenceIndex !== null) {
+        console.log('[TTS] Going to next sentence');
+        shouldStopRef.current = true;
+        window.speechSynthesis.cancel();
+        setTimeout(() => {
+          shouldStopRef.current = false;
+          speakFromSentence(currentSentenceIndex + 1);
+        }, 50);
+      }
+    };
 
   const speakFromSentence = (startIndex: number) => {
     if (!currentDocument) return;

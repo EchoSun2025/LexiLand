@@ -1,4 +1,4 @@
-﻿import type { Sentence as SentenceType } from '../utils/tokenize';
+import type { Sentence as SentenceType } from '../utils/tokenize';
 import Word from './Word';
 import { useState } from 'react';
 
@@ -98,7 +98,8 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
           return result;
         } else {
           // For non-word tokens (space, punctuation), also check if in purple range
-          const className = isInPhraseRange ? 'bg-purple-100' : '';
+          // Use underline instead of background for phrase marks
+          const phraseUnderlineClass = isInPhraseRange ? 'border-b-2 border-purple-500' : '';
           const colorMap: Record<string, string> = {
             red: '#f8717199', orange: '#fb923c99', amber: '#fbbf2499', emerald: '#34d39999',
             cyan: '#22d3ee99', blue: '#60a5fa99', purple: '#a78bfa99', pink: '#f472b699'
@@ -111,7 +112,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
             <span 
               key={`${token.id}-${tokenIndex}`} 
               data-token-pos={tokenPos} 
-              className={className} 
+              className={phraseUnderlineClass} 
               style={{...borderStyle, ...hoverStyle}}
               onMouseEnter={() => isInUnderlineRange && setHoveredUnderlineRange(underlineRangeIndex)}
               onMouseLeave={() => setHoveredUnderlineRange(null)}

@@ -1,4 +1,3 @@
-﻿import { useState } from 'react';
 import type { Token } from '../utils/tokenize';
 
 interface WordProps {
@@ -19,10 +18,7 @@ interface WordProps {
   isCurrentWord?: boolean;
 }
 
-export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, onMarkKnown, isCurrentWord = false }: WordProps) {
-  // Display marked words in bold
-  const fontWeight = isMarked ? 'font-bold' : 'font-normal';
-  const [isHovered, setIsHovered] = useState(false);
+export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, isCurrentWord = false }: WordProps) {
 
   if (token.type !== 'word') {
     return <span>{token.text}</span>;
@@ -38,28 +34,37 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearn
 
   // 可点击条件：showLearnt的词双击打开卡片，其他词单击切换标记
   const isClickable = token.text.length > 1;
+  
+  // 分离背景色和下划线逻辑
+  let backgroundColor = '';
+  let borderBottomStyle = '';
+  let additionalClasses = '';
+  
+  // 1. 确定背景色（优先级：当前朗读 > 橙色已标注 > 绿色标记 > 加粗显示）
+  if (isCurrentWord) {
+    backgroundColor = 'bg-yellow-300';
+    additionalClasses = 'font-bold rounded px-0.5 border-2 border-yellow-500';
+  } else if (showLearnt) {
+    backgroundColor = 'bg-orange-100';
+    additionalClasses = 'rounded cursor-pointer hover:bg-orange-200';
+  } else if (isMarked) {
+    backgroundColor = 'bg-green-100';
+    additionalClasses = 'rounded cursor-pointer hover:bg-green-200';
+  } else if (hasAnnotation) {
+    additionalClasses = 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100';
+  } else if (isClickable && !autoMark) {
+    additionalClasses = 'cursor-pointer hover:bg-yellow-50';
+  }
+  
+  // 2. 确定下划线（紫色短语标记）- 独立逻辑
+  if (isPhraseMarked && !isCurrentWord) {
+    borderBottomStyle = 'border-b-2 border-purple-500';
+  }
+  
   return (
-    <span
-      className="relative inline-block group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <span className="relative inline-block group">
       <span
-        className={`${
-          isCurrentWord
-            ? 'bg-yellow-300 font-bold rounded px-0.5 border-2 border-yellow-500'
-            : showLearnt
-            ? 'bg-orange-100 rounded cursor-pointer hover:bg-orange-200'
-            : isPhraseMarked
-            ? 'bg-purple-100 rounded cursor-pointer hover:bg-purple-200'
-            : isMarked
-            ? 'bg-green-100 rounded cursor-pointer hover:bg-green-200'
-            : hasAnnotation
-            ? 'font-bold rounded px-0.5 cursor-pointer hover:bg-yellow-100'
-            : isClickable && !autoMark
-            ? 'cursor-pointer hover:bg-yellow-50'
-            : ''
-        }`}
+        className={`${backgroundColor} ${borderBottomStyle} ${additionalClasses}`}
         onClick={isClickable && !showLearnt ? onClick : undefined}
         onDoubleClick={showLearnt ? onClick : undefined}
         >
