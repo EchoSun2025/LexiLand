@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, exportUserData, importUserData } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, cachePhraseAnnotation, getAllCachedPhraseAnnotations, deletePhraseAnnotation, exportUserData, importUserData } from './db'
 import { annotateWord, annotatePhrase, type WordAnnotation, type PhraseAnnotation } from './api'
 import PhraseCard from './components/PhraseCard'
 
@@ -64,7 +64,9 @@ function App() {
   const [underlinePhraseRanges, setUnderlinePhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; color: string }>>([]); // for discontinuous phrases with Ctrl+Shift
   const [isOutlineCollapsed, setIsOutlineCollapsed] = useState(true); // Default collapsed like Notion
   const [isOutlineHovered, setIsOutlineHovered] = useState(false);
-  const [, setPhraseAnnotations] = useState<Map<string, PhraseAnnotation>>(new Map());
+  const [phraseAnnotations, setPhraseAnnotations] = useState<Map<string, PhraseAnnotation>>(new Map());
+  const [annotatedPhraseRanges, setAnnotatedPhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; phrase: string }>>([]); // 已标注的短语范围
+  const [phraseTranslationInserts, setPhraseTranslationInserts] = useState<Map<string, boolean>>(new Map()); // 短语翻译插入状态
 
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
@@ -369,8 +371,31 @@ function App() {
         
         if (result.success && result.data) {
           const phraseData = result.data;
-          setPhraseAnnotations(prev => new Map(prev).set(phrase.text, phraseData));
-          // Also show the latest phrase annotation
+          
+          // Save to state
+          setPhraseAnnotations(prev => new Map(prev).set(phrase.text.toLowerCase(), phraseData));
+          
+          // Save to IndexedDB
+          await cachePhraseAnnotation(phrase.text, phraseData);
+          
+          // Find the range for this phrase and mark as annotated
+          const rangeIndex = phraseMarkedRanges.findIndex(r => 
+            r.pIndex === phrase.pIndex && 
+            r.sIndex === phrase.sIndex &&
+            currentDocument.paragraphs[r.pIndex].sentences[r.sIndex].tokens
+              .slice(r.startTokenIndex, r.endTokenIndex + 1)
+              .map(t => t.text)
+              .join('')
+              .trim()
+              .toLowerCase() === phrase.text.toLowerCase()
+          );
+          
+          if (rangeIndex !== -1) {
+            const range = phraseMarkedRanges[rangeIndex];
+            setAnnotatedPhraseRanges(prev => [...prev, { ...range, phrase: phrase.text.toLowerCase() }]);
+          }
+          
+          // Show the latest phrase annotation
           setCurrentPhraseAnnotation(phraseData);
           setCurrentAnnotation(null); // Clear word annotation
           completed++;
@@ -386,6 +411,12 @@ function App() {
     }
 
     setIsLoadingAnnotation(false);
+    
+    // Clear the marked ranges after successful annotation
+    if (completed > 0) {
+      setPhraseMarkedRanges([]);
+    }
+    
     alert(`Annotation complete!\nWords: ${wordsToAnnotate.length}\nPhrases: ${phrasesToAnnotate.length}\nSuccess: ${completed}\nFailed: ${failed}`);
   };
 
@@ -409,6 +440,17 @@ function App() {
     } catch (error) {
       console.error('Failed to toggle learnt status:', error);
     }
+  };
+  
+  // Handle toggle phrase translation insert
+  const handleTogglePhraseInsert = (phrase: string) => {
+    const phraseLower = phrase.toLowerCase();
+    setPhraseTranslationInserts(prev => {
+      const newMap = new Map(prev);
+      const currentState = newMap.get(phraseLower) || false;
+      newMap.set(phraseLower, !currentState);
+      return newMap;
+    });
   };
 
   // Handle delete from cards
@@ -695,6 +737,31 @@ function App() {
 
     loadCachedAnnotations();
     loadLearntWordsFromDB();
+    
+    // Load cached phrase annotations
+    const loadCachedPhraseAnnotations = async () => {
+      try {
+        const cached = await getAllCachedPhraseAnnotations();
+        console.log(`Loading ${cached.length} cached phrase annotations from IndexedDB`);
+        const phraseMap = new Map<string, PhraseAnnotation>();
+        cached.forEach(item => {
+          phraseMap.set(item.phrase, {
+            phrase: item.phrase,
+            chinese: item.chinese,
+            explanation: item.explanation,
+            sentenceContext: item.sentenceContext,
+          });
+        });
+        setPhraseAnnotations(phraseMap);
+        if (cached.length > 0) {
+          console.log('[OK] Cached phrase annotations loaded');
+        }
+      } catch (error) {
+        console.error('Failed to load cached phrase annotations:', error);
+      }
+    };
+    
+    loadCachedPhraseAnnotations();
   }, [loadKnownWords]);
 
   const handleLoadSample = () => {
@@ -1185,9 +1252,12 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       knownWords={knownWords}
                       markedWords={markedWords}
                       phraseMarkedRanges={phraseMarkedRanges}
+                      annotatedPhraseRanges={annotatedPhraseRanges}
                       underlinePhraseRanges={underlinePhraseRanges}
                       learntWords={learntWords}
                       annotations={annotations}
+                      phraseAnnotations={phraseAnnotations}
+                      phraseTranslationInserts={phraseTranslationInserts}
                       showIPA={showIPA}
                       showChinese={showChinese}
                       autoMark={autoMark}
@@ -1254,14 +1324,24 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           {!isLoadingAnnotation && currentPhraseAnnotation && (
             <PhraseCard
               annotation={currentPhraseAnnotation}
+              isInserted={phraseTranslationInserts.get(currentPhraseAnnotation.phrase.toLowerCase()) || false}
               onClose={() => setCurrentPhraseAnnotation(null)}
-              onDelete={(phrase) => {
+              onToggleInsert={handleTogglePhraseInsert}
+              onDelete={async (phrase) => {
                 setPhraseAnnotations(prev => {
                   const next = new Map(prev);
-                  next.delete(phrase);
+                  next.delete(phrase.toLowerCase());
                   return next;
                 });
                 setCurrentPhraseAnnotation(null);
+                
+                // Also remove from annotated phrase ranges
+                setAnnotatedPhraseRanges(prev => 
+                  prev.filter(r => r.phrase !== phrase.toLowerCase())
+                );
+                
+                // Delete from database
+                await deletePhraseAnnotation(phrase);
               }}
             />
           )}

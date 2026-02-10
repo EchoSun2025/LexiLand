@@ -1,4 +1,4 @@
-﻿import type { Paragraph as ParagraphType } from '../utils/tokenize';
+import type { Paragraph as ParagraphType } from '../utils/tokenize';
 import Sentence from './Sentence';
 
 interface ParagraphProps {
@@ -6,9 +6,12 @@ interface ParagraphProps {
   knownWords: Set<string>;
   markedWords: Set<string>;
   phraseMarkedRanges: Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>;
+  annotatedPhraseRanges: Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; phrase: string }>;
   underlinePhraseRanges: Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; color: string }>;
   learntWords: Set<string>;
   annotations: Map<string, { ipa?: string; chinese?: string }>;
+  phraseAnnotations: Map<string, { phrase: string; chinese: string; explanation?: string; sentenceContext: string }>;
+  phraseTranslationInserts: Map<string, boolean>;
   showIPA: boolean;
   showChinese: boolean;
   autoMark: boolean;
@@ -26,9 +29,12 @@ export default function Paragraph({
   knownWords,
   markedWords,
   phraseMarkedRanges,
+  annotatedPhraseRanges,
   underlinePhraseRanges,
   learntWords,
   annotations,
+  phraseAnnotations,
+  phraseTranslationInserts,
   showIPA,
   showChinese,
   autoMark,
@@ -68,9 +74,12 @@ export default function Paragraph({
             knownWords={knownWords}
             markedWords={markedWords}
             phraseMarkedRanges={phraseMarkedRanges}
+            annotatedPhraseRanges={annotatedPhraseRanges}
             underlinePhraseRanges={underlinePhraseRanges}
             learntWords={learntWords}
             annotations={annotations}
+            phraseAnnotations={phraseAnnotations}
+            phraseTranslationInserts={phraseTranslationInserts}
             showIPA={showIPA}
             showChinese={showChinese}
             autoMark={autoMark}

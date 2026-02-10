@@ -32,18 +32,28 @@ export interface SavedDocument {
   lastOpenedAt: number;
 }
 
+export interface CachedPhraseAnnotation {
+  phrase: string;
+  chinese: string;
+  explanation?: string;
+  sentenceContext: string;
+  cachedAt: number;
+}
+
 export class LexiLandDB extends Dexie {
   knownWords!: Table<KnownWord, string>;
   learntWords!: Table<LearntWord, string>;
   annotations!: Table<CachedAnnotation, string>;
+  phraseAnnotations!: Table<CachedPhraseAnnotation, string>;
   documents!: Table<SavedDocument, string>;
 
   constructor() {
     super('LexiLandDB');
-    this.version(2).stores({
+    this.version(3).stores({
       knownWords: 'word, level, addedAt',
       learntWords: 'word, learntAt',
       annotations: 'word, cachedAt',
+      phraseAnnotations: 'phrase, cachedAt',
       documents: 'id, createdAt, lastOpenedAt',
     });
   }
@@ -140,6 +150,33 @@ export async function removeLearntWordFromDB(word: string): Promise<void> {
 }
 
 /**
+ * Cache phrase annotation
+ */
+export async function cachePhraseAnnotation(phrase: string, annotation: { chinese: string; explanation?: string; sentenceContext: string }): Promise<void> {
+  await db.phraseAnnotations.put({
+    phrase: phrase.toLowerCase(),
+    chinese: annotation.chinese,
+    explanation: annotation.explanation,
+    sentenceContext: annotation.sentenceContext,
+    cachedAt: Date.now(),
+  });
+}
+
+/**
+ * Get all cached phrase annotations
+ */
+export async function getAllCachedPhraseAnnotations(): Promise<CachedPhraseAnnotation[]> {
+  return await db.phraseAnnotations.toArray();
+}
+
+/**
+ * Delete phrase annotation
+ */
+export async function deletePhraseAnnotation(phrase: string): Promise<void> {
+  await db.phraseAnnotations.delete(phrase.toLowerCase());
+}
+
+/**
  * Get all learnt words from IndexedDB
  */
 export async function getAllLearntWords(): Promise<string[]> {
@@ -158,16 +195,17 @@ export async function deleteAnnotation(word: string): Promise<void> {
  * Export all user data as JSON with timestamp
  */
 export async function exportUserData(): Promise<string> {
-  const [knownWords, learntWords, annotations] = await Promise.all([
+  const [knownWords, learntWords, annotations, phraseAnnotations] = await Promise.all([
     db.knownWords.toArray(),
     db.learntWords.toArray(),
-    db.annotations.toArray()
+    db.annotations.toArray(),
+    db.phraseAnnotations.toArray()
   ]);
 
   const exportData = {
     exportedAt: new Date().toISOString(),
     exportDate: new Date().toLocaleDateString('zh-CN'),
-    version: '1.0',
+    version: '1.1',
     data: {
       knownWords: knownWords.map(w => ({
         word: w.word,
@@ -177,6 +215,13 @@ export async function exportUserData(): Promise<string> {
       learntWords: learntWords.map(w => ({
         word: w.word,
         learntAt: new Date(w.learntAt).toISOString()
+      })),
+      phraseAnnotations: phraseAnnotations.map(p => ({
+        phrase: p.phrase,
+        chinese: p.chinese,
+        explanation: p.explanation,
+        sentenceContext: p.sentenceContext,
+        cachedAt: new Date(p.cachedAt).toISOString()
       })),
       annotations: annotations.map(a => ({
         word: a.word,
@@ -193,7 +238,8 @@ export async function exportUserData(): Promise<string> {
     statistics: {
       totalKnownWords: knownWords.length,
       totalLearntWords: learntWords.length,
-      totalAnnotations: annotations.length
+      totalAnnotations: annotations.length,
+      totalPhraseAnnotations: phraseAnnotations.length
     }
   };
 
@@ -281,6 +327,29 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
           }
         } catch (err: any) {
           result.errors.push(`Annotation "${item.word}": ${err.message}`);
+        }
+      }
+    }
+
+    // Import phrase annotations
+    if (data.data.phraseAnnotations && Array.isArray(data.data.phraseAnnotations)) {
+      for (const item of data.data.phraseAnnotations) {
+        try {
+          const existing = await db.phraseAnnotations.get(item.phrase);
+          if (!existing) {
+            await db.phraseAnnotations.add({
+              phrase: item.phrase,
+              chinese: item.chinese,
+              explanation: item.explanation,
+              sentenceContext: item.sentenceContext,
+              cachedAt: new Date(item.cachedAt).getTime()
+            });
+            result.imported++;
+          } else {
+            result.skipped++;
+          }
+        } catch (err: any) {
+          result.errors.push(`Phrase annotation "${item.phrase}": ${err.message}`);
         }
       }
     }

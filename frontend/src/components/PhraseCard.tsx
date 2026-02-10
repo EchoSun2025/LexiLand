@@ -7,15 +7,21 @@ export interface PhraseAnnotation {
 
 interface PhraseCardProps {
   annotation: PhraseAnnotation;
+  isInserted: boolean;
   onClose: () => void;
   onDelete?: (phrase: string) => void;
+  onToggleInsert: (phrase: string) => void;
 }
 
-export default function PhraseCard({ annotation, onClose, onDelete }: PhraseCardProps) {
+export default function PhraseCard({ annotation, isInserted, onClose, onDelete, onToggleInsert }: PhraseCardProps) {
   const handleDelete = () => {
     if (confirm(`Delete phrase "${annotation.phrase}" from cards?`)) {
       onDelete?.(annotation.phrase);
     }
+  };
+  
+  const handleToggleInsert = () => {
+    onToggleInsert(annotation.phrase);
   };
 
   return (
@@ -37,18 +43,32 @@ export default function PhraseCard({ annotation, onClose, onDelete }: PhraseCard
         </button>
       </div>
 
+      {/* Chinese Translation */}
+      <div className="mb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1">
+            <div className="text-xs font-semibold text-muted mb-1">翻译</div>
+            <div className="text-lg text-gray-900">{annotation.chinese}</div>
+          </div>
+          <button
+            onClick={handleToggleInsert}
+            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
+              isInserted 
+                ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
+                : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+            }`}
+          >
+            {isInserted ? '✓ Inserted' : '+ Insert'}
+          </button>
+        </div>
+      </div>
+
       {/* Context Sentence */}
       <div className="mb-3">
         <div className="text-xs font-semibold text-muted mb-1">Context</div>
         <div className="text-sm text-gray-700 italic bg-purple-50 p-2 rounded-lg leading-relaxed">
           "{annotation.sentenceContext}"
         </div>
-      </div>
-
-      {/* Chinese Translation */}
-      <div className="mb-3">
-        <div className="text-xs font-semibold text-muted mb-1">翻译</div>
-        <div className="text-lg text-gray-900">{annotation.chinese}</div>
       </div>
 
       {/* Explanation (if exists) */}

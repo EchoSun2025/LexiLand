@@ -5,6 +5,7 @@ interface WordProps {
   isKnown: boolean;
   isMarked: boolean;
   isPhraseMarked: boolean;
+  isAnnotatedPhrase?: boolean;
   isLearnt: boolean;
   annotation?: {
     ipa?: string;
@@ -18,7 +19,7 @@ interface WordProps {
   isCurrentWord?: boolean;
 }
 
-export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, isCurrentWord = false }: WordProps) {
+export default function Word({ token, isKnown, isMarked, isPhraseMarked, isAnnotatedPhrase = false, isLearnt, annotation, showIPA, showChinese, autoMark, onClick, isCurrentWord = false }: WordProps) {
 
   if (token.type !== 'word') {
     return <span>{token.text}</span>;
@@ -57,8 +58,12 @@ export default function Word({ token, isKnown, isMarked, isPhraseMarked, isLearn
     additionalClasses = 'cursor-pointer hover:bg-yellow-50';
   }
   
-  // 2. 确定下划线（紫色短语标记）- 独立逻辑，透明度50%
-  if (isPhraseMarked && !isCurrentWord) {
+  // 2. 确定下划线（短语标记）- 独立逻辑
+  if (isAnnotatedPhrase && !isCurrentWord) {
+    // 已标注的短语：蓝紫色（固定）
+    borderBottomStyle = 'border-b-2 border-indigo-500';
+  } else if (isPhraseMarked && !isCurrentWord) {
+    // 未标注的短语：紫色 50% 透明
     borderBottomStyle = 'border-b-2 border-purple-500/50';
   }
   
