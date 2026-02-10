@@ -59,7 +59,7 @@ function App() {
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
   const [phraseMarkedRanges, setPhraseMarkedRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number }>>([]); // stores token ranges
   const [underlinePhraseRanges, setUnderlinePhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; color: string }>>([]); // for discontinuous phrases with Ctrl+Shift
-
+  const [isOutlineCollapsed, setIsOutlineCollapsed] = useState(false);
 
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
 
@@ -1077,16 +1077,23 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
       </div>
 
       {/* Main Layout: Three Columns */}
-      <div className="flex-1 grid grid-cols-[260px_1fr_360px] gap-3 p-3 min-h-0">
-        {/* Left Panel: Outline */}
-        <aside className="border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0">
+      <div className="flex-1 flex gap-3 p-3 min-h-0">
+        {/* Left Panel: Outline - Collapsible */}
+        <aside 
+          className={`border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0 transition-all duration-300 ease-in-out ${
+            isOutlineCollapsed ? 'w-0 border-0' : 'w-[260px]'
+          }`}
+          style={{ minWidth: isOutlineCollapsed ? '0' : '260px' }}
+        >
           <div className="px-3 py-3 border-b border-border bg-panel font-bold flex items-center justify-between">
-            Outline
+            <span>Outline</span>
           </div>
           <div className="flex-1 p-3 overflow-auto">
             {documents.map(doc => (
               <div
-                key={doc.id}                onClick={() => setCurrentDocument(doc.id)}                className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
+                key={doc.id}
+                onClick={() => setCurrentDocument(doc.id)}
+                className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
               >
                 <span>{doc.title}</span>
                 <span className="text-muted"></span>
@@ -1109,8 +1116,19 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           </div>
         </aside>
 
+        {/* Toggle Button for Outline */}
+        <button
+          onClick={() => setIsOutlineCollapsed(!isOutlineCollapsed)}
+          className="self-start mt-2 w-6 h-10 border border-border rounded-r-lg bg-white hover:bg-gray-100 flex items-center justify-center transition-all duration-200 -ml-3 z-10"
+          title={isOutlineCollapsed ? 'Expand outline' : 'Collapse outline'}
+        >
+          <span className="text-gray-600 text-sm font-bold">
+            {isOutlineCollapsed ? '›' : '‹'}
+          </span>
+        </button>
+
         {/* Center Panel: Reader */}
-        <main className="border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0">
+        <main className="flex-1 border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0">
           <div className="flex-1 p-3 overflow-auto" onMouseUp={handleTextSelection}>
             {currentDocument ? (
               <>
@@ -1192,7 +1210,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         </main>
 
         {/* Right Panel: Cards */}
-        <aside className="border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0">
+        <aside className="w-[360px] border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0" style={{ minWidth: '360px' }}>
           <div className="px-3 py-3 border-b border-border bg-panel font-bold">
             Cards
           </div>
