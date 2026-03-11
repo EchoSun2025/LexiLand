@@ -9,6 +9,8 @@ export interface WordAnnotation {
   example: string;
   level: string;
   partOfSpeech: string;
+  sentence?: string;  // 单词所在的原文句子
+  documentTitle?: string;  // 文章标题
 }
 
 export interface PhraseAnnotation {

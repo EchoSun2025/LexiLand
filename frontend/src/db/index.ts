@@ -21,6 +21,8 @@ export interface CachedAnnotation {
   example: string;
   level: string;
   partOfSpeech: string;
+  sentence?: string;  // 单词所在的原文句子
+  documentTitle?: string;  // 文章标题
   cachedAt: number;
 }
 
@@ -49,7 +51,7 @@ export class LexiLandDB extends Dexie {
 
   constructor() {
     super('LexiLandDB');
-    this.version(3).stores({
+    this.version(4).stores({
       knownWords: 'word, level, addedAt',
       learntWords: 'word, learntAt',
       annotations: 'word, cachedAt',
@@ -205,7 +207,7 @@ export async function exportUserData(): Promise<string> {
   const exportData = {
     exportedAt: new Date().toISOString(),
     exportDate: new Date().toLocaleDateString('zh-CN'),
-    version: '1.1',
+    version: '1.2',
     data: {
       knownWords: knownWords.map(w => ({
         word: w.word,
@@ -232,6 +234,8 @@ export async function exportUserData(): Promise<string> {
         example: a.example,
         level: a.level,
         partOfSpeech: a.partOfSpeech,
+        sentence: a.sentence,
+        documentTitle: a.documentTitle,
         cachedAt: new Date(a.cachedAt).toISOString()
       }))
     },
@@ -319,6 +323,8 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
               example: item.example,
               level: item.level,
               partOfSpeech: item.partOfSpeech,
+              sentence: item.sentence,
+              documentTitle: item.documentTitle,
               cachedAt: new Date(item.cachedAt).getTime()
             });
             result.imported++;

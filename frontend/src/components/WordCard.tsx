@@ -79,6 +79,26 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
         </div>
       </div>
 
+      {/* Original Sentence (if available) */}
+      {annotation.sentence && (
+        <div className="mb-3">
+          <div className="text-xs font-semibold text-muted mb-1">原文句子</div>
+          <div className="text-sm text-gray-700 leading-relaxed bg-blue-50 p-2 rounded-lg">
+            "{annotation.sentence}"
+          </div>
+        </div>
+      )}
+
+      {/* Document Title (if available) */}
+      {annotation.documentTitle && (
+        <div className="mb-3">
+          <div className="text-xs font-semibold text-muted mb-1">文章标题</div>
+          <div className="text-sm text-gray-600">
+            📖 {annotation.documentTitle}
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex gap-2 pt-2 border-t border-border">
         {onMarkKnown && (

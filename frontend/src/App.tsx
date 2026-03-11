@@ -339,10 +339,26 @@ function App() {
 
     setIsLoadingAnnotation(true);
 
-    // Collect words to annotate
-    const wordsToAnnotate = Array.from(markedWords).filter(
-      word => !annotations.has(word)
-    );
+    // Collect words to annotate with their context
+    const wordsToAnnotate: Array<{ word: string; sentence: string }> = [];
+    const wordsSet = new Set(Array.from(markedWords).filter(word => !annotations.has(word)));
+    
+    // Find sentences containing marked words
+    if (wordsSet.size > 0) {
+      currentDocument.paragraphs.forEach((paragraph) => {
+        paragraph.sentences.forEach((sentence) => {
+          sentence.tokens.forEach((token) => {
+            if (token.type === 'word' && wordsSet.has(token.text.toLowerCase())) {
+              wordsToAnnotate.push({
+                word: token.text.toLowerCase(),
+                sentence: sentence.text
+              });
+              wordsSet.delete(token.text.toLowerCase());
+            }
+          });
+        });
+      });
+    }
 
     // Collect phrases to annotate
     const phrasesToAnnotate: Array<{ text: string; pIndex: number; sIndex: number }> = [];
@@ -380,22 +396,29 @@ function App() {
     const newAnnotations: WordAnnotation[] = [];
 
     // Annotate words
-    for (const word of wordsToAnnotate) {
+    for (const wordItem of wordsToAnnotate) {
       try {
-        const result = await annotateWord(word);
+        const result = await annotateWord(wordItem.word);
         if (result.success && result.data) {
-          addAnnotation(word, result.data);
-          await cacheAnnotation(word, result.data);
-          newAnnotations.push(result.data);
+          // Add sentence and document title to annotation
+          const annotationWithContext = {
+            ...result.data,
+            sentence: wordItem.sentence,
+            documentTitle: currentDocument.title
+          };
+          
+          addAnnotation(wordItem.word, annotationWithContext);
+          await cacheAnnotation(wordItem.word, annotationWithContext);
+          newAnnotations.push(annotationWithContext);
           completed++;
         } else {
           failed++;
-          console.error(`Failed to annotate "${word}":`, result.error);
+          console.error(`Failed to annotate "${wordItem.word}":`, result.error);
         }
         await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
         failed++;
-        console.error(`Failed to annotate "${word}":`, error);
+        console.error(`Failed to annotate "${wordItem.word}":`, error);
       }
     }
 
