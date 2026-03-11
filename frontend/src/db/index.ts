@@ -110,6 +110,20 @@ export async function addKnownWord(word: string, level?: string): Promise<void> 
 }
 
 /**
+ * Batch add known words to IndexedDB (faster for large batches)
+ */
+export async function batchAddKnownWords(words: string[], level?: string): Promise<void> {
+  const timestamp = Date.now();
+  const knownWords = words.map(word => ({
+    word: word.toLowerCase(),
+    level,
+    addedAt: timestamp,
+  }));
+  
+  await db.knownWords.bulkPut(knownWords);
+}
+
+/**
  * Cache an annotation in IndexedDB
  */
 export async function cacheAnnotation(word: string, annotation: Omit<CachedAnnotation, 'word' | 'cachedAt'>): Promise<void> {

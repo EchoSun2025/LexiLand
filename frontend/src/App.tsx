@@ -4,7 +4,7 @@ import { useAppStore } from './store/appStore'
 import { tokenizeParagraphs } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, cachePhraseAnnotation, getAllCachedPhraseAnnotations, deletePhraseAnnotation, exportUserData, importUserData } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, batchAddKnownWords, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, cachePhraseAnnotation, getAllCachedPhraseAnnotations, deletePhraseAnnotation, exportUserData, importUserData } from './db'
 import { annotateWord, annotatePhrase, type WordAnnotation, type PhraseAnnotation } from './api'
 import PhraseCard from './components/PhraseCard'
 
@@ -600,40 +600,39 @@ ${sortedWords.join(' ')}
         });
       });
 
-      // Count words that will be added (not already known and not annotated)
-      let toAddCount = 0;
+      // Collect words that will be added (not already known and not annotated)
+      const wordsToAdd: string[] = [];
       for (const word of allWords) {
         if (!knownWords.has(word) && !annotations.has(word)) {
-          toAddCount++;
+          wordsToAdd.push(word);
         }
       }
 
       // Show confirmation with count
-      if (toAddCount === 0) {
+      if (wordsToAdd.length === 0) {
         alert('All words in this document are already known!\n\n没有需要添加的新单词。');
         return;
       }
 
       const confirmed = confirm(
-        `将添加 ${toAddCount} 个单词到 Known Words\n\n` +
-        `Add ${toAddCount} words to known words?\n\n` +
+        `将添加 ${wordsToAdd.length} 个单词到 Known Words\n\n` +
+        `Add ${wordsToAdd.length} words to known words?\n\n` +
         '确认完成本篇阅读？'
       );
 
       if (!confirmed) return;
 
-      // Add words that are not already known and not annotated
-      let addedCount = 0;
-      for (const word of allWords) {
-        if (!knownWords.has(word) && !annotations.has(word)) {
-          await addKnownWordToDB(word);
-          addKnownWord(word);
-          addedCount++;
-        }
-      }
+      // Show processing message
+      console.log(`[Finish] Batch adding ${wordsToAdd.length} words...`);
 
-      alert(`✓ 本篇学习完毕！\n\n已添加 ${addedCount} 个新单词到 Known Words`);
-      console.log(`[Finish] Added ${addedCount} words to known words`);
+      // Batch add to IndexedDB (much faster!)
+      await batchAddKnownWords(wordsToAdd);
+      
+      // Batch update Zustand store
+      wordsToAdd.forEach(word => addKnownWord(word));
+
+      alert(`✓ 本篇学习完毕！\n\n已添加 ${wordsToAdd.length} 个新单词到 Known Words`);
+      console.log(`[Finish] Successfully added ${wordsToAdd.length} words to known words`);
     } catch (error) {
       console.error('Failed to finish document:', error);
       alert('Failed to finish document, please try again');
