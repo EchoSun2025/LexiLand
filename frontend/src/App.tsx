@@ -20,7 +20,6 @@ function App() {
     showChinese,
     level,
     autoMark,
-    autoMarkUnknown,
     addDocument,
     setCurrentDocument,
     setSelectedWord,
@@ -32,7 +31,6 @@ function App() {
     setShowIPA,
     setShowChinese,
     setLevel,
-    setAutoMarkUnknown,
     loadKnownWords,
     loadLearntWords,
     loadAnnotations,
@@ -67,8 +65,18 @@ function App() {
   const [phraseAnnotations, setPhraseAnnotations] = useState<Map<string, PhraseAnnotation>>(new Map());
   const [annotatedPhraseRanges, setAnnotatedPhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; phrase: string }>>([]); // 已标注的短语范围
   const [phraseTranslationInserts, setPhraseTranslationInserts] = useState<Map<string, boolean>>(new Map()); // 短语翻译插入状态
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const currentDocument = documents.find(doc => doc.id === currentDocumentId);
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setShowExportMenu(false);
+    if (showExportMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showExportMenu]);
 
   // Rebuild annotatedPhraseRanges when document or phraseAnnotations change
   useEffect(() => {
@@ -115,29 +123,16 @@ function App() {
     console.log(`[OK] Rebuilt ${ranges.length} annotated phrase ranges for current document`);
   }, [currentDocument, phraseAnnotations]);
 
-  // Auto-mark unknown words when document loads or toggle changes
+  // Clear marked words when document changes
   useEffect(() => {
-    if (!currentDocument || !autoMarkUnknown) {
-      if (!autoMarkUnknown) setMarkedWords(new Set());
+    if (!currentDocument) {
+      setMarkedWords(new Set());
       return;
     }
 
-    const unknownWords = new Set<string>();
-    currentDocument.paragraphs.forEach(paragraph => {
-      paragraph.sentences.forEach(sentence => {
-        sentence.tokens.forEach(token => {
-          if (token.type === 'word' && token.text.length > 1) {
-            const normalized = token.text.toLowerCase();
-            if (!knownWords.has(normalized)) {
-              unknownWords.add(normalized);
-            }
-          }
-        });
-      });
-    });
-
-    setMarkedWords(unknownWords);
-  }, [currentDocument, autoMarkUnknown, knownWords]);
+    // Auto-mark is removed, markedWords will only be set by manual clicks
+    setMarkedWords(new Set());
+  }, [currentDocument, knownWords]);
 
   // Load available voices
   useEffect(() => {
@@ -530,44 +525,81 @@ function App() {
     }
   };
 
-  // Handle mark all unmarked words as known
-  const handleMarkAllUnmarkedAsKnown = async () => {
+  // Handle export known words (TXT format)
+  const handleExportKnownWords = async () => {
+    try {
+      const allKnownWords = await getAllKnownWords();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const exportDate = new Date().toLocaleDateString('zh-CN');
+      const filename = `lexiland-known-words-${timestamp}.txt`;
+
+      // Sort words alphabetically
+      const sortedWords = allKnownWords.sort((a, b) => a.localeCompare(b));
+
+      // Create TXT content
+      const txtContent = `Export Date: ${exportDate}
+Known: ${sortedWords.length}
+
+Known Words:
+${sortedWords.join(' ')}
+`;
+
+      const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      console.log('Known words exported:', filename);
+      alert(`Known words exported successfully!\n${sortedWords.length} words\nFilename: ${filename}`);
+    } catch (error) {
+      console.error('Export known words failed:', error);
+      alert('Export failed, please try again');
+    }
+  };
+
+  // Handle finish document - mark all unannotated words as known
+  const handleFinishDocument = async () => {
     if (!currentDocument) return;
 
-    // Collect all words that are not in knownWords, learntWords, or annotations
-    const allWords = new Set<string>();
-    currentDocument.paragraphs.forEach(p => {
-      p.sentences.forEach(s => {
-        s.tokens.forEach(t => {
-          if (t.text.length > 1) {
-            allWords.add(t.text.toLowerCase());
-          }
-        });
-      });
-    });
-
-    const unmarkedWords = Array.from(allWords).filter(
-      word => !knownWords.has(word) && !learntWords.has(word) && !annotations.has(word)
+    const confirmed = confirm(
+      'Mark all unannotated words as known?\n\n' +
+      'This will add all unmarked words in the current document to your known words list.'
     );
 
-    if (unmarkedWords.length === 0) {
-      alert('No unmarked words found!');
-      return;
-    }
-
-    if (!confirm(`Add ${unmarkedWords.length} unmarked words to known words?`)) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
-      for (const word of unmarkedWords) {
-        addKnownWord(word);
-        await addKnownWordToDB(word);
+      let addedCount = 0;
+
+      // Collect all words from the document
+      const allWords = new Set<string>();
+      currentDocument.paragraphs.forEach(paragraph => {
+        paragraph.sentences.forEach(sentence => {
+          sentence.tokens.forEach(token => {
+            if (token.type === 'word' && token.text.length > 1) {
+              allWords.add(token.text.toLowerCase());
+            }
+          });
+        });
+      });
+
+      // Add words that are not already known and not annotated
+      for (const word of allWords) {
+        if (!knownWords.has(word) && !annotations.has(word)) {
+          await addKnownWordToDB(word);
+          addKnownWord(word);
+          addedCount++;
+        }
       }
-      alert(`Successfully added ${unmarkedWords.length} words to known words!`);
+
+      alert(`Document finished!\n${addedCount} new words added to known words.`);
+      console.log(`[Finish] Added ${addedCount} words to known words`);
     } catch (error) {
-      console.error('Failed to mark words as known:', error);
-      alert('Operation failed, please try again');
+      console.error('Failed to finish document:', error);
+      alert('Failed to finish document, please try again');
     }
   };
 
@@ -578,43 +610,18 @@ function App() {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
       const filename = `lexiland-userdata-${timestamp}.json`;
 
-      // Try to use File System Access API if available
-      if ('showSaveFilePicker' in window) {
-        try {
-          const handle = await (window as any).showSaveFilePicker({
-            suggestedName: filename,
-            types: [{
-              description: 'JSON Files',
-              accept: { 'application/json': ['.json'] }
-            }]
-          });
-          const writable = await handle.createWritable();
-          await writable.write(jsonData);
-          await writable.close();
-          console.log('User data exported successfully:', filename);
-          return;
-        } catch (err: any) {
-          if (err.name === 'AbortError') {
-            return; // User cancelled
-          }
-          throw err;
-        }
-      }
-
-      // Fallback to download method
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
-      document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      console.log('User data exported successfully:', filename);
+      console.log('User data exported:', filename);
+      alert(`Data exported successfully!\nFilename: ${filename}`);
     } catch (error) {
-      console.error('Failed to export user data:', error);
+      console.error('Export failed:', error);
       alert('Export failed, please try again');
     }
   };
@@ -1201,13 +1208,75 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           Chinese
         </label>
 
+        {/* Annotate Button */}
         <button
-          onClick={handleExportData}
-          className="px-2 py-1 border border-green-500 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-semibold"
-          title="Export user data to JSON file"
+          onClick={handleAnnotate}
+          disabled={markedWords.size === 0 && phraseMarkedRanges.length === 0}
+          className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold"
         >
-          Export Data
+          Annotate ({markedWords.size + phraseMarkedRanges.length})
         </button>
+
+        {/* Finish Button */}
+        {currentDocument && (
+          <button
+            onClick={handleFinishDocument}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold"
+            title="Mark all unannotated words as known"
+          >
+            ✓ Finish
+          </button>
+        )}
+
+        <div className="flex-1"></div>
+
+        {/* Export Data with Context Menu */}
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!showExportMenu) {
+                handleExportData();
+              }
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowExportMenu(!showExportMenu);
+            }}
+            className="px-2 py-1 border border-green-500 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-semibold"
+            title="Export user data (right-click for options)"
+          >
+            Export Data
+          </button>
+          
+          {/* Export Context Menu */}
+          {showExportMenu && (
+            <div 
+              className="absolute top-full right-0 mt-1 bg-white border border-border rounded-lg shadow-lg z-20 min-w-[160px]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => {
+                  handleExportData();
+                  setShowExportMenu(false);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 rounded-t-lg"
+              >
+                Export All Data (JSON)
+              </button>
+              <button
+                onClick={() => {
+                  handleExportKnownWords();
+                  setShowExportMenu(false);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 rounded-b-lg"
+              >
+                Export Known Words (TXT)
+              </button>
+            </div>
+          )}
+        </div>
 
         <button
           onClick={handleImportData}
@@ -1326,33 +1395,6 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     />
                   );
                 })}
-
-                {/* New control panel */}
-                <div className="mt-8 flex items-center justify-center gap-4 p-4 border-t border-border bg-gray-50 rounded-lg">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={autoMarkUnknown}
-                      onChange={(e) => setAutoMarkUnknown(e.target.checked)}
-                    />
-                    <span className="text-sm font-medium">Unknown Words</span>
-                  </label>
-
-                  <button
-                    onClick={handleAnnotate}
-                    disabled={markedWords.size === 0 && phraseMarkedRanges.length === 0}
-                    className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
-                  >
-                    Annotate ({markedWords.size + phraseMarkedRanges.length})
-                  </button>
-
-                  <button
-                    onClick={handleMarkAllUnmarkedAsKnown}
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium"
-                  >
-                     Mark All Unmarked as Known
-                  </button>
-                </div>
               </>
             ) : (
               <>
