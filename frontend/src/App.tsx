@@ -564,17 +564,8 @@ ${sortedWords.join(' ')}
   const handleFinishDocument = async () => {
     if (!currentDocument) return;
 
-    const confirmed = confirm(
-      'Mark all unannotated words as known?\n\n' +
-      'This will add all unmarked words in the current document to your known words list.'
-    );
-
-    if (!confirmed) return;
-
     try {
-      let addedCount = 0;
-
-      // Collect all words from the document
+      // First, collect all words from the document
       const allWords = new Set<string>();
       currentDocument.paragraphs.forEach(paragraph => {
         paragraph.sentences.forEach(sentence => {
@@ -586,7 +577,30 @@ ${sortedWords.join(' ')}
         });
       });
 
+      // Count words that will be added (not already known and not annotated)
+      let toAddCount = 0;
+      for (const word of allWords) {
+        if (!knownWords.has(word) && !annotations.has(word)) {
+          toAddCount++;
+        }
+      }
+
+      // Show confirmation with count
+      if (toAddCount === 0) {
+        alert('All words in this document are already known!\n\n没有需要添加的新单词。');
+        return;
+      }
+
+      const confirmed = confirm(
+        `将添加 ${toAddCount} 个单词到 Known Words\n\n` +
+        `Add ${toAddCount} words to known words?\n\n` +
+        '确认完成本篇阅读？'
+      );
+
+      if (!confirmed) return;
+
       // Add words that are not already known and not annotated
+      let addedCount = 0;
       for (const word of allWords) {
         if (!knownWords.has(word) && !annotations.has(word)) {
           await addKnownWordToDB(word);
@@ -595,7 +609,7 @@ ${sortedWords.join(' ')}
         }
       }
 
-      alert(`Document finished!\n${addedCount} new words added to known words.`);
+      alert(`✓ 本篇学习完毕！\n\n已添加 ${addedCount} 个新单词到 Known Words`);
       console.log(`[Finish] Added ${addedCount} words to known words`);
     } catch (error) {
       console.error('Failed to finish document:', error);
