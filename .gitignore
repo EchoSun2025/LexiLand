@@ -12,3 +12,4 @@ build/
 cache.db
 coverage/
 .turbo/
+TMP/
