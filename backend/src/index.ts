@@ -2,6 +2,13 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import 'dotenv/config';
 import OpenAI from 'openai';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const fastify = Fastify({
   logger: true
@@ -167,6 +174,363 @@ Important:
     return reply.code(500).send({
       success: false,
       error: error.message || 'Failed to generate phrase annotation',
+    });
+  }
+});
+
+// Unsplash 图片搜索 API
+interface SearchImageRequest {
+  word: string;
+  definition?: string;
+}
+
+interface UnsplashSearchResponse {
+  results?: Array<{
+    urls?: {
+      regular?: string;
+    };
+    user?: {
+      name?: string;
+      links?: {
+        html?: string;
+      };
+    };
+  }>;
+}
+
+function buildSearchQueries(word: string, definition?: string): string[] {
+  const queries: string[] = [];
+  if (definition) {
+    if (definition.includes('n. ') && !definition.includes('v. ')) {
+      queries.push(`${word} photo`, `${word}`);
+    } else if (definition.includes('v. ')) {
+      queries.push(`${word} action photo`, `${word} photo`, `${word}`);
+    } else if (definition.includes('adj. ')) {
+      queries.push(`${word} feeling`, `${word} emotion`, `${word} photo`, `${word}`);
+    } else {
+      queries.push(`${word} photo`, `${word}`);
+    }
+  } else {
+    queries.push(`${word} photo`, `${word}`);
+  }
+  return queries;
+}
+
+async function downloadImageToLocal(imageUrl: string, word: string): Promise<string> {
+  const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const extension = imageUrl.toLowerCase().includes('.png') ? 'png' : 'jpg';
+  const filename = `${sanitizedWord}_${Date.now()}.${extension}`;
+  const imagesDir = path.join(__dirname, '..', '..', 'frontend', 'public', 'emoji-images');
+  const filepath = path.join(imagesDir, filename);
+
+  if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir, { recursive: true });
+  }
+
+  const imageData = await fetch(imageUrl);
+  if (!imageData.ok) {
+    throw new Error(`Failed to download image: ${imageData.statusText}`);
+  }
+
+  const buffer = Buffer.from(await imageData.arrayBuffer());
+  fs.writeFileSync(filepath, buffer);
+
+  return `/emoji-images/${filename}`;
+}
+
+fastify.post<{ Body: SearchImageRequest }>('/api/search-image', async (request, reply) => {
+  const { word, definition } = request.body;
+
+  if (!word || typeof word !== 'string') {
+    return reply.code(400).send({
+      success: false,
+      error: 'Word is required',
+    });
+  }
+
+  try {
+    const searchQueries = buildSearchQueries(word, definition);
+    const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
+
+    let remoteImageUrl: string | null = null;
+    const source: 'unsplash' = 'unsplash';
+    let successQuery = '';
+    let photographerName: string | undefined;
+    let photographerUrl: string | undefined;
+    if (!unsplashKey || unsplashKey === 'your_unsplash_access_key_here') {
+      throw new Error('Unsplash API key not configured');
+    }
+
+    for (const searchQuery of searchQueries) {
+      fastify.log.info({ word, searchQuery }, 'Searching Unsplash');
+
+      const response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=1&orientation=squarish`,
+        {
+          headers: {
+            Authorization: `Client-ID ${unsplashKey}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Unsplash API error: ${response.statusText}`);
+      }
+
+      const data = (await response.json()) as UnsplashSearchResponse;
+      if (data.results && data.results.length > 0) {
+        const photo = data.results[0];
+        if (!photo.urls?.regular) {
+          continue;
+        }
+        remoteImageUrl = photo.urls.regular;
+        successQuery = searchQuery;
+        photographerName = photo.user?.name;
+        photographerUrl = photo.user?.links?.html;
+        fastify.log.info({ word, searchQuery, resultsCount: data.results.length }, 'Found image from Unsplash');
+        break;
+      } else {
+        fastify.log.info({ word, searchQuery }, 'No results on Unsplash, trying next query');
+      }
+    }
+
+    if (!remoteImageUrl) {
+      throw new Error('No images found from Google or Unsplash');
+    }
+
+    const localPath = await downloadImageToLocal(remoteImageUrl, word);
+    fastify.log.info({ word, localPath, source, successQuery }, 'Saved search image locally');
+
+    return {
+      success: true,
+      data: {
+        word,
+        imageUrl: localPath,
+        source,
+        searchQuery: successQuery,
+        photographer: photographerName,
+        photographerUrl,
+      },
+    };
+  } catch (error: any) {
+    fastify.log.error({ 
+      error: error.message, 
+      stack: error.stack,
+      word,
+      searchQuery: `${word} photo`
+    }, 'Image search error');
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to search image',
+    });
+  }
+});
+
+interface SavePastedImageRequest {
+  word: string;
+  imageData: string; // data URL, e.g. data:image/png;base64,...
+}
+
+fastify.post<{ Body: SavePastedImageRequest }>('/api/save-pasted-image', async (request, reply) => {
+  const { word, imageData } = request.body;
+
+  if (!word || typeof word !== 'string') {
+    return reply.code(400).send({ success: false, error: 'Word is required' });
+  }
+  if (!imageData || typeof imageData !== 'string' || !imageData.startsWith('data:image/')) {
+    return reply.code(400).send({ success: false, error: 'Invalid image data. Expected data:image/* base64.' });
+  }
+
+  try {
+    const match = imageData.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/);
+    if (!match) {
+      return reply.code(400).send({ success: false, error: 'Malformed image data URL.' });
+    }
+
+    const extRaw = match[1].toLowerCase();
+    const ext = extRaw === 'jpeg' ? 'jpg' : extRaw;
+    const base64 = match[2];
+    const allowed = new Set(['png', 'jpg', 'webp', 'gif']);
+    if (!allowed.has(ext)) {
+      return reply.code(400).send({ success: false, error: `Unsupported image format: ${ext}` });
+    }
+
+    const buffer = Buffer.from(base64, 'base64');
+    if (buffer.length === 0) {
+      return reply.code(400).send({ success: false, error: 'Empty image data.' });
+    }
+    if (buffer.length > 10 * 1024 * 1024) {
+      return reply.code(400).send({ success: false, error: 'Image too large. Max 10MB.' });
+    }
+
+    const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const filename = `${sanitizedWord}_${Date.now()}.${ext}`;
+    const imagesDir = path.join(__dirname, '..', '..', 'frontend', 'public', 'emoji-images');
+    const filepath = path.join(imagesDir, filename);
+
+    if (!fs.existsSync(imagesDir)) {
+      fs.mkdirSync(imagesDir, { recursive: true });
+    }
+    fs.writeFileSync(filepath, buffer);
+
+    const localPath = `/emoji-images/${filename}`;
+    fastify.log.info({ word, localPath, size: buffer.length }, 'Saved pasted image locally');
+    return {
+      success: true,
+      data: {
+        word,
+        imageUrl: localPath,
+        source: 'clipboard',
+      },
+    };
+  } catch (error: any) {
+    fastify.log.error({ error: error.message, stack: error.stack, word }, 'Save pasted image error');
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to save pasted image',
+    });
+  }
+});
+
+// AI 生成 Emoji 图片 API
+interface GenerateEmojiRequest {
+  word: string;
+  definition: string;
+  sentenceContext?: string;
+}
+
+fastify.post<{ Body: GenerateEmojiRequest }>('/api/generate-emoji', async (request, reply) => {
+  const { word, definition, sentenceContext } = request.body;
+
+  if (!word || typeof word !== 'string') {
+    return reply.code(400).send({
+      success: false,
+      error: 'Word is required',
+    });
+  }
+
+  try {
+    // Step 1: 生成 visual hint
+    const hintPrompt = `For the English word "${word}" (definition: ${definition})${sentenceContext ? ` used in context: "${sentenceContext}"` : ''}, generate a SHORT visual description (max 10 words) that could be used to create a simple emoji/icon representing this word's meaning. Focus on ONE clear, recognizable visual element.
+
+Examples:
+- "book" → "open book with visible pages"
+- "run" → "person running with motion lines"
+- "happy" → "smiling face with bright eyes"
+
+Return ONLY the visual description, no explanation.`;
+
+    const hintCompletion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [{ role: 'user', content: hintPrompt }],
+      temperature: 0.5,
+      max_tokens: 30,
+    });
+
+    const visualHint = hintCompletion.choices[0]?.message?.content?.trim();
+    if (!visualHint) {
+      throw new Error('Failed to generate visual hint');
+    }
+
+    fastify.log.info({ word, visualHint }, 'Generated visual hint');
+
+    // Step 2: 生成图片（带回退机制）
+    const imagePrompt = `A simple, clean emoji-style icon: ${visualHint}. Minimalist design, solid colors, white background, centered, no text.`;
+    
+    let imageUrl: string | undefined;
+    let modelUsed: string;
+    let imageResponse: any;
+
+    // 尝试模型列表（从最便宜到较贵）
+    const modelsToTry = [
+      { model: 'gpt-image-1-mini', quality: 'low' },
+      { model: 'gpt-image-1', quality: 'low' },
+      { model: 'dall-e-2', quality: undefined }, // dall-e-2 不支持 quality
+    ];
+
+    for (const config of modelsToTry) {
+      try {
+        fastify.log.info({ model: config.model, quality: config.quality }, 'Trying image generation');
+        
+        const params: any = {
+          model: config.model,
+          prompt: imagePrompt,
+          n: 1,
+          size: '1024x1024',
+          response_format: 'url',
+        };
+        
+        if (config.quality) {
+          params.quality = config.quality;
+        }
+        
+        imageResponse = await openai.images.generate(params);
+
+        if (imageResponse.data && imageResponse.data.length > 0) {
+          imageUrl = imageResponse.data[0]?.url;
+          if (imageUrl) {
+            modelUsed = config.model;
+            fastify.log.info({ word, imageUrl, model: modelUsed }, 'Successfully generated image');
+            break;
+          }
+        }
+      } catch (modelError: any) {
+        fastify.log.warn({ 
+          model: config.model, 
+          error: modelError.message,
+          code: modelError.code 
+        }, 'Model failed, trying next');
+        continue;
+      }
+    }
+
+    if (!imageUrl) {
+      throw new Error('All image generation models failed');
+    }
+
+    // Step 3: 下载图片到本地
+    const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const filename = `${sanitizedWord}_${Date.now()}.png`;
+    const imagesDir = path.join(__dirname, '..', '..', 'frontend', 'public', 'emoji-images');
+    const filepath = path.join(imagesDir, filename);
+    
+    // 确保目录存在
+    if (!fs.existsSync(imagesDir)) {
+      fs.mkdirSync(imagesDir, { recursive: true });
+    }
+
+    // 下载图片
+    fastify.log.info({ imageUrl, filepath }, 'Downloading image');
+    const imageData = await fetch(imageUrl);
+    if (!imageData.ok) {
+      throw new Error(`Failed to download image: ${imageData.statusText}`);
+    }
+    
+    const buffer = Buffer.from(await imageData.arrayBuffer());
+    fs.writeFileSync(filepath, buffer);
+    
+    const localPath = `/emoji-images/${filename}`;
+    fastify.log.info({ word, localPath, model: modelUsed! }, 'Saved emoji image locally');
+
+    return {
+      success: true,
+      data: {
+        word,
+        visualHint,
+        imageUrl: localPath, // 返回本地路径
+        originalUrl: imageUrl, // 保留原始 URL 用于调试
+        model: modelUsed!, // 返回实际使用的模型
+      },
+      usage: {
+        hint: hintCompletion.usage,
+        image: imageResponse,
+      },
+    };
+  } catch (error: any) {
+    fastify.log.error({ error, stack: error.stack }, 'Emoji generation error');
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to generate emoji',
     });
   }
 });

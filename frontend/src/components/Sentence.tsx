@@ -18,6 +18,7 @@ interface SentenceProps {
   showIPA: boolean;
   showChinese: boolean;
   autoMark: boolean;
+  autoPronounceSetting?: boolean;  // 自动发音开关
   onWordClick?: (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => void;
   onPhraseClick?: (phrase: string) => void;
   onMarkKnown?: (word: string) => void;
@@ -25,7 +26,7 @@ interface SentenceProps {
   currentWordIndex?: number;
 }
 
-export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedRanges, annotatedPhraseRanges, underlinePhraseRanges, learntWords, annotations, phraseAnnotations, phraseTranslationInserts, showIPA, showChinese, autoMark, onWordClick, onPhraseClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
+export default function Sentence({ sentence, paragraphIndex, sentenceIndex, knownWords, markedWords, phraseMarkedRanges, annotatedPhraseRanges, underlinePhraseRanges, learntWords, annotations, phraseAnnotations, phraseTranslationInserts, showIPA, showChinese, autoMark, autoPronounceSetting = false, onWordClick, onPhraseClick, onMarkKnown, isCurrentSentence = false, currentWordIndex = -1 }: SentenceProps) {
   let wordCount = 0; // Track word index within this sentence
   const [hoveredUnderlineRange, setHoveredUnderlineRange] = useState<number | null>(null);
   const [hoveredAnnotatedPhraseIndex, setHoveredAnnotatedPhraseIndex] = useState<number | null>(null);
@@ -94,7 +95,11 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
           const borderStyle = isInUnderlineRange ? {
             borderBottom: `1px solid ${colorMap[underlineColor] || '#a78bfa99'}`
           } : {};
-          const hoverStyle = shouldHighlight ? { backgroundColor: 'rgba(167, 139, 250, 0.3)' } : {};
+          
+          // Add light purple background for annotated phrases
+          const phraseBackgroundStyle = isInAnnotatedPhraseRange ? {
+            backgroundColor: shouldHighlight ? 'rgba(167, 139, 250, 0.3)' : 'rgba(167, 139, 250, 0.1)'
+          } : (shouldHighlight ? { backgroundColor: 'rgba(167, 139, 250, 0.3)' } : {});
           
           // Determine if should show phrase translation
           const shouldShowPhraseTranslation = isInAnnotatedPhraseRange && 
@@ -111,7 +116,8 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
             <span 
               key={`${token.id}-${tokenIndex}`} 
               data-token-pos={tokenPos} 
-              style={{...borderStyle, ...hoverStyle}}
+              style={{...borderStyle, ...phraseBackgroundStyle}}
+              className="cursor-pointer"
               onMouseEnter={() => {
                 if (isInUnderlineRange) setHoveredUnderlineRange(underlineRangeIndex);
                 if (isInAnnotatedPhraseRange) setHoveredAnnotatedPhraseIndex(annotatedRangeIndex);
@@ -122,8 +128,18 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
                 setHoveredAnnotatedPhraseIndex(null);
                 setHoveredPhraseMarkedIndex(null);
               }}
-              onDoubleClick={() => {
-                if (isInAnnotatedPhraseRange && annotatedRange) {
+              onDoubleClick={(e) => {
+                // Priority: Word card > Phrase card
+                // Check if this word itself has a card
+                const wordAnnotation = annotations.get(token.text.toLowerCase());
+                const hasWordCard = wordAnnotation && (wordAnnotation as any).definition;
+                
+                if (hasWordCard) {
+                  // Word card takes priority - Word component will handle this
+                  return;
+                } else if (isInAnnotatedPhraseRange && annotatedRange) {
+                  // Only expand phrase card if word doesn't have a card
+                  e.stopPropagation();
                   onPhraseClick?.(annotatedRange.phrase);
                 }
               }}
@@ -140,6 +156,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
                 showIPA={showIPA}
                 showChinese={showChinese}
                 autoMark={autoMark}
+                autoPronounceSetting={autoPronounceSetting}
                 onClick={() => onWordClick?.(token.text, paragraphIndex, sentenceIndex, tokenIndex)}
                 onMarkKnown={onMarkKnown}
                 isCurrentWord={isCurrentWord}

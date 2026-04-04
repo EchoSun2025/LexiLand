@@ -1,4 +1,4 @@
-# LexiLand Read Development Startup Script
+﻿# LexiLand Read Development Startup Script
 # This script starts both backend and frontend servers concurrently
 
 Write-Host "=== Starting LexiLand Read Development Servers ===" -ForegroundColor Cyan
@@ -10,7 +10,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Function to check if a port is in use
 function Test-Port {
     param([int]$Port)
-    $connection = Test-NetConnection -ComputerName localhost -Port $Port -WarningAction SilentlyContinue -InformationLevel Quiet
+    $connection = Test-NetConnection -ComputerName 0.0.0.0 -Port $Port -WarningAction SilentlyContinue -InformationLevel Quiet
     return $connection
 }
 
@@ -20,15 +20,15 @@ $backendPort = 3000
 $frontendPort = 5173
 
 if (Test-Port -Port $backendPort) {
-    Write-Host "⚠️  Port $backendPort is already in use (backend may already be running)" -ForegroundColor Yellow
+    Write-Host "[WARN] Port $backendPort is already in use (backend may already be running)" -ForegroundColor Yellow
 } else {
-    Write-Host "✓ Port $backendPort is available" -ForegroundColor Green
+    Write-Host "[OK]   Port $backendPort is available" -ForegroundColor Green
 }
 
 if (Test-Port -Port $frontendPort) {
-    Write-Host "⚠️  Port $frontendPort is already in use (frontend may already be running)" -ForegroundColor Yellow
+    Write-Host "[WARN] Port $frontendPort is already in use (frontend may already be running)" -ForegroundColor Yellow
 } else {
-    Write-Host "✓ Port $frontendPort is available" -ForegroundColor Green
+    Write-Host "[OK]   Port $frontendPort is available" -ForegroundColor Green
 }
 
 Write-Host ""
@@ -49,12 +49,13 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$frontendPath
 Write-Host ""
 Write-Host "=== Servers Starting ===" -ForegroundColor Green
 Write-Host ""
-Write-Host "Backend:  http://localhost:$backendPort" -ForegroundColor Yellow
-Write-Host "Health:   http://localhost:$backendPort/health" -ForegroundColor Yellow
-Write-Host "Frontend: http://localhost:$frontendPort" -ForegroundColor Yellow
+Write-Host "Backend:  http://0.0.0.0:$backendPort" -ForegroundColor Yellow
+Write-Host "Health:   http://0.0.0.0:$backendPort/health" -ForegroundColor Yellow
+Write-Host "Frontend: http://0.0.0.0:$frontendPort" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Two new PowerShell windows have opened." -ForegroundColor Cyan
 Write-Host "Close those windows to stop the servers." -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Press any key to exit this window..." -ForegroundColor Gray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+

@@ -15,6 +15,7 @@ interface ParagraphProps {
   showIPA: boolean;
   showChinese: boolean;
   autoMark: boolean;
+  autoPronounceSetting?: boolean;  // 自动发音开关
   onWordClick?: (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => void;
   onPhraseClick?: (phrase: string) => void;
   onMarkKnown?: (word: string) => void;
@@ -39,6 +40,7 @@ export default function Paragraph({
   showIPA,
   showChinese,
   autoMark,
+  autoPronounceSetting = false,
   onWordClick,
   onPhraseClick,
   onMarkKnown,
@@ -49,7 +51,7 @@ export default function Paragraph({
   sentencesBeforeThisPara = 0
 }: ParagraphProps) {
   return (
-    <div className="relative leading-relaxed mb-4 rounded-lg p-1.5 hover:bg-gray-50 group">
+    <div className="relative leading-relaxed mb-2 rounded-lg p-1.5 hover:bg-gray-50 group">
       <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           className="px-2 py-1 border border-border bg-white rounded-lg hover:bg-hover text-xs"
@@ -85,6 +87,7 @@ export default function Paragraph({
             showIPA={showIPA}
             showChinese={showChinese}
             autoMark={autoMark}
+            autoPronounceSetting={autoPronounceSetting}
             onWordClick={onWordClick}
             onPhraseClick={onPhraseClick}
             onMarkKnown={onMarkKnown}

@@ -23,6 +23,9 @@ export interface CachedAnnotation {
   partOfSpeech: string;
   sentence?: string;  // 单词所在的原文句子
   documentTitle?: string;  // 文章标题
+  emoji?: string;  // Unicode emoji（默认生成或手动选择）
+  emojiImagePath?: string[];  // 图片路径数组（AI/Unsplash，支持多个历史记录）
+  emojiModel?: string;  // 最新图片使用的模型
   cachedAt: number;
 }
 
@@ -39,6 +42,7 @@ export interface CachedPhraseAnnotation {
   chinese: string;
   explanation?: string;
   sentenceContext: string;
+  documentTitle?: string;  // 文章标题
   cachedAt: number;
 }
 
@@ -51,12 +55,62 @@ export class LexiLandDB extends Dexie {
 
   constructor() {
     super('LexiLandDB');
+    // Version 4: 原有结构
     this.version(4).stores({
       knownWords: 'word, level, addedAt',
       learntWords: 'word, learntAt',
       annotations: 'word, cachedAt',
       phraseAnnotations: 'phrase, cachedAt',
       documents: 'id, createdAt, lastOpenedAt',
+    });
+    
+    // Version 5: 添加 emojiImagePath 字段到 annotations
+    this.version(5).stores({
+      knownWords: 'word, level, addedAt',
+      learntWords: 'word, learntAt',
+      annotations: 'word, cachedAt',
+      phraseAnnotations: 'phrase, cachedAt',
+      documents: 'id, createdAt, lastOpenedAt',
+    });
+    
+    // Version 6: 添加 emojiModel 和 manualEmoji 字段
+    this.version(6).stores({
+      knownWords: 'word, level, addedAt',
+      learntWords: 'word, learntAt',
+      annotations: 'word, cachedAt',
+      phraseAnnotations: 'phrase, cachedAt',
+      documents: 'id, createdAt, lastOpenedAt',
+    });
+    
+    // Version 7: 重构 emoji 数据结构：emoji (string) + emojiImagePath (array)
+    this.version(7).stores({
+      knownWords: 'word, level, addedAt',
+      learntWords: 'word, learntAt',
+      annotations: 'word, cachedAt',
+      phraseAnnotations: 'phrase, cachedAt',
+      documents: 'id, createdAt, lastOpenedAt',
+    }).upgrade(async (trans) => {
+      // 数据迁移：manualEmoji -> emoji, emojiImagePath (string) -> emojiImagePath (array)
+      const annotations = await trans.table('annotations').toArray();
+      for (const annotation of annotations) {
+        const updated: any = { ...annotation };
+        
+        // 迁移 manualEmoji -> emoji
+        if ((annotation as any).manualEmoji) {
+          updated.emoji = (annotation as any).manualEmoji;
+          delete updated.manualEmoji;
+        }
+        
+        // 迁移 emojiImagePath (string) -> emojiImagePath (array)
+        if ((annotation as any).emojiImagePath && typeof (annotation as any).emojiImagePath === 'string') {
+          updated.emojiImagePath = [(annotation as any).emojiImagePath];
+        } else if (!(annotation as any).emojiImagePath) {
+          updated.emojiImagePath = [];
+        }
+        
+        await trans.table('annotations').put(updated);
+      }
+      console.log('[DB Migration v7] Migrated emoji data structure for', annotations.length, 'annotations');
     });
   }
 }
@@ -149,6 +203,64 @@ export async function getAllCachedAnnotations(): Promise<CachedAnnotation[]> {
 }
 
 /**
+ * Update emoji for a word annotation (unicode emoji)
+ */
+export async function updateEmoji(word: string, emoji: string, onUpdate?: (updates: Partial<CachedAnnotation>) => void): Promise<void> {
+  const annotation = await db.annotations.get(word.toLowerCase());
+  if (annotation) {
+    annotation.emoji = emoji;
+    await db.annotations.put(annotation);
+    console.log('[DB] Updated emoji for:', word, emoji);
+    
+    // 回调：通知 store 更新
+    if (onUpdate) {
+      onUpdate({ emoji });
+    }
+  } else {
+    console.warn('[DB] Annotation not found for word:', word, '- Cannot save emoji');
+  }
+}
+
+/**
+ * Add image path to a word annotation (Unsplash/AI)
+ */
+export async function addEmojiImagePath(word: string, imagePath: string, model?: string, onUpdate?: (updates: Partial<CachedAnnotation>) => void): Promise<void> {
+  const annotation = await db.annotations.get(word.toLowerCase());
+  if (annotation) {
+    // 初始化数组（如果不存在）
+    if (!annotation.emojiImagePath) {
+      annotation.emojiImagePath = [];
+    }
+    
+    // 添加新图片路径到数组开头（最新的在前面）
+    annotation.emojiImagePath.unshift(imagePath);
+    
+    // 限制最多保存 5 张历史图片
+    if (annotation.emojiImagePath.length > 5) {
+      annotation.emojiImagePath = annotation.emojiImagePath.slice(0, 5);
+    }
+    
+    // 更新模型信息（如果提供）
+    if (model) {
+      annotation.emojiModel = model;
+    }
+    
+    await db.annotations.put(annotation);
+    console.log('[DB] Added emoji image path for:', word, imagePath);
+    
+    // 回调：通知 store 更新
+    if (onUpdate) {
+      onUpdate({ 
+        emojiImagePath: annotation.emojiImagePath,
+        emojiModel: model 
+      });
+    }
+  } else {
+    console.warn('[DB] Annotation not found for word:', word, '- Cannot save emoji image path');
+  }
+}
+
+/**
  * Add a learnt word to IndexedDB
  */
 export async function addLearntWordToDB(word: string): Promise<void> {
@@ -168,12 +280,13 @@ export async function removeLearntWordFromDB(word: string): Promise<void> {
 /**
  * Cache phrase annotation
  */
-export async function cachePhraseAnnotation(phrase: string, annotation: { chinese: string; explanation?: string; sentenceContext: string }): Promise<void> {
+export async function cachePhraseAnnotation(phrase: string, annotation: { chinese: string; explanation?: string; sentenceContext: string; documentTitle?: string }): Promise<void> {
   await db.phraseAnnotations.put({
     phrase: phrase.toLowerCase(),
     chinese: annotation.chinese,
     explanation: annotation.explanation,
     sentenceContext: annotation.sentenceContext,
+    documentTitle: annotation.documentTitle,
     cachedAt: Date.now(),
   });
 }
@@ -237,6 +350,7 @@ export async function exportUserData(): Promise<string> {
         chinese: p.chinese,
         explanation: p.explanation,
         sentenceContext: p.sentenceContext,
+        documentTitle: p.documentTitle,
         cachedAt: new Date(p.cachedAt).toISOString()
       })),
       annotations: annotations.map(a => ({
@@ -248,8 +362,11 @@ export async function exportUserData(): Promise<string> {
         example: a.example,
         level: a.level,
         partOfSpeech: a.partOfSpeech,
-        sentence: a.sentence,
+        sentenceContext: a.sentence,  // 保持向后兼容，但导出时使用 sentenceContext
         documentTitle: a.documentTitle,
+        emoji: a.emoji,  // Unicode emoji
+        emojiImagePath: a.emojiImagePath,  // 图片路径数组
+        emojiModel: a.emojiModel,  // 生成图片的模型
         cachedAt: new Date(a.cachedAt).toISOString()
       }))
     },
@@ -337,8 +454,11 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
               example: item.example,
               level: item.level,
               partOfSpeech: item.partOfSpeech,
-              sentence: item.sentence,
+              sentence: item.sentenceContext || item.sentence,  // 支持新旧格式
               documentTitle: item.documentTitle,
+              emoji: item.emoji,  // Unicode emoji
+              emojiImagePath: item.emojiImagePath || [],  // 图片路径数组
+              emojiModel: item.emojiModel,  // 生成图片的模型
               cachedAt: new Date(item.cachedAt).getTime()
             });
             result.imported++;
@@ -362,6 +482,7 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
               chinese: item.chinese,
               explanation: item.explanation,
               sentenceContext: item.sentenceContext,
+              documentTitle: item.documentTitle,
               cachedAt: new Date(item.cachedAt).getTime()
             });
             result.imported++;

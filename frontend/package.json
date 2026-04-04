@@ -16,6 +16,7 @@
     "date-fns": "^2.30.0",
     "dexie": "^4.3.0",
     "dexie-react-hooks": "^4.2.0",
+    "emojilib": "^4.0.2",
     "epubjs": "^0.3.93",
     "mammoth": "^1.11.0",
     "nanoid": "^3.3.11",
