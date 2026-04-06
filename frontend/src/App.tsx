@@ -4,12 +4,13 @@ import { useAppStore, type Document, type Chapter, getLatestBookmark } from './s
 import { tokenizeParagraphs, type Paragraph as ParagraphType, type Sentence, type Token } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, batchAddKnownWords, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, cachePhraseAnnotation, getAllCachedPhraseAnnotations, deletePhraseAnnotation, exportUserData, importUserData, updateEmoji, addEmojiImagePath } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, batchAddKnownWords, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, cachePhraseAnnotation, getAllCachedPhraseAnnotations, deletePhraseAnnotation, exportUserData, importUserData, updateEmoji, addEmojiImagePathToActiveMeaning, setActiveMeaning } from './db'
 import { annotateWord, annotatePhrase, searchImage, generateEmojiImage, savePastedImage, resolveAssetUrl, saveUserBackup, loadUserBackup, getUserBackupStatus, type WordAnnotation, type PhraseAnnotation } from './api'
 import PhraseCard from './components/PhraseCard'
 import { localDictionary } from './services/localDictionary'
 import { exportLLIFString } from './services/llifConverter'
 import { getWordEmoji, getAllEmojiKeywords } from './utils/emojiHelper'
+import { applyMeaningToAnnotation, findBestMeaningIdForSentence, mergeAnnotationMeanings } from './utils/wordMeanings'
 
 const keywordToEmoji = getAllEmojiKeywords();
 const collapsedCommonEmojis = Array.from(new Set(Array.from(keywordToEmoji.values()))).slice(0, 120);
@@ -271,6 +272,20 @@ function App() {
     // If word has a card, just select it to show the card (for double-click on orange words)
     const hasCard = annotations.has(normalized) && (annotations.get(normalized) as any)?.definition;
     if (hasCard) {
+      if (pIndex !== undefined && sIndex !== undefined) {
+        const sentenceText = displayParagraphs[pIndex]?.sentences[sIndex]?.text;
+        const annotation = annotations.get(normalized) as WordAnnotation | undefined;
+        if (annotation && sentenceText) {
+          const meaningId = findBestMeaningIdForSentence(annotation, sentenceText);
+          if (meaningId && meaningId !== annotation.activeMeaningId) {
+            const projected = applyMeaningToAnnotation(annotation, meaningId);
+            addAnnotation(normalized, projected);
+            void setActiveMeaning(normalized, meaningId, (updates) => {
+              updateAnnotation(normalized, updates);
+            });
+          }
+        }
+      }
       setSelectedWord(normalized);
       return;
     }
@@ -558,11 +573,13 @@ function App() {
         }
         
         // 保存标注
-        addAnnotation(wordItem.word, annotationWithContext);
-        await cacheAnnotation(wordItem.word, annotationWithContext);
+        const existingAnnotation = annotations.get(wordItem.word);
+        const mergedAnnotation = mergeAnnotationMeanings(existingAnnotation as WordAnnotation | undefined, annotationWithContext).annotation;
+        addAnnotation(wordItem.word, mergedAnnotation);
+        await cacheAnnotation(wordItem.word, mergedAnnotation);
         
         // 计算并保存默认 emoji
-        const defaultEmoji = getWordEmoji(annotationWithContext);
+        const defaultEmoji = getWordEmoji(mergedAnnotation);
         await updateEmoji(wordItem.word, defaultEmoji, (updates) => {
           updateAnnotation(wordItem.word, updates);
         });
@@ -571,7 +588,7 @@ function App() {
         // 添加到历史记录（折叠状态）
         addToCardHistory('word', wordItem.word);
         
-        newAnnotations.push(annotationWithContext);
+        newAnnotations.push(mergedAnnotation);
         successfullyAnnotated.push({ type: 'word', word: wordItem.word });
         completed++;
         
@@ -725,9 +742,10 @@ function App() {
       if (type === 'word') {
         const result = await annotateWord(word, sentence, currentDocument?.title || 'Unknown');
         if (result.success && result.data) {
-          addAnnotation(word, result.data);
-          await cacheAnnotation(word, result.data);
-          console.log('[AI Regenerate] Success:', result.data);
+          const mergedAnnotation = mergeAnnotationMeanings(annotations.get(word.toLowerCase()) as WordAnnotation | undefined, result.data).annotation;
+          addAnnotation(word, mergedAnnotation);
+          await cacheAnnotation(word, mergedAnnotation);
+          console.log('[AI Regenerate] Success:', mergedAnnotation);
           alert('✅ AI re-generated successfully!');
         } else {
           console.error('[AI Regenerate] Failed:', result.error);
@@ -1063,16 +1081,7 @@ ${sortedWords.join(' ')}
 
     const annotationsMap = new Map();
     newAnnotations.forEach(a => {
-      annotationsMap.set(a.word, {
-        word: a.word,
-        baseForm: a.baseForm,
-        ipa: a.ipa,
-        chinese: a.chinese,
-        definition: a.definition,
-        example: a.example,
-        level: a.level,
-        partOfSpeech: a.partOfSpeech,
-      });
+      annotationsMap.set(a.word, a);
     });
     loadAnnotations(annotationsMap);
   };
@@ -1280,6 +1289,7 @@ ${sortedWords.join(' ')}
             example: item.example,
             level: item.level,
             partOfSpeech: item.partOfSpeech,
+            wordForms: item.wordForms,
             // 加载emoji相关字段
             emoji: item.emoji,
             emojiImagePath: item.emojiImagePath,
@@ -1287,6 +1297,8 @@ ${sortedWords.join(' ')}
             // 加载上下文字段
             sentence: item.sentence,
             documentTitle: item.documentTitle,
+            encounteredMeanings: item.encounteredMeanings,
+            activeMeaningId: item.activeMeaningId,
           };
           addAnnotation(item.word, annotation);
         });
@@ -1712,7 +1724,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     if (!result.success || !result.data?.imageUrl) {
       throw new Error(result.error || 'Failed to save pasted image');
     }
-    await addEmojiImagePath(collapsedImageMenu.word, result.data.imageUrl, 'web-clipboard', (updates) => {
+    await addEmojiImagePathToActiveMeaning(collapsedImageMenu.word, result.data.imageUrl, 'web-clipboard', (updates) => {
       updateAnnotation(collapsedImageMenu.word, updates);
     });
     setCollapsedUnsplashLockedWords(prev => {
@@ -1736,7 +1748,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     try {
       const result = await searchImage(word);
       if (result.success && result.data?.imageUrl) {
-        await addEmojiImagePath(word, result.data.imageUrl, undefined, (updates) => {
+        await addEmojiImagePathToActiveMeaning(word, result.data.imageUrl, undefined, (updates) => {
           updateAnnotation(word, updates);
         });
         setCollapsedUnsplashLockedWords(prev => {
@@ -2418,7 +2430,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                                         const sentence = (annotation as WordAnnotation).sentence || '';
                                         const result = await generateEmojiImage(item.word, sentence);
                                         if (result.success && result.data?.imageUrl) {
-                                          await addEmojiImagePath(item.word, result.data.imageUrl, result.data.model, (updates) => {
+                                          await addEmojiImagePathToActiveMeaning(item.word, result.data.imageUrl, result.data.model, (updates) => {
                                             updateAnnotation(item.word, updates);
                                           });
                                           console.log('[AI Image] Generated:', item.word, result.data.imageUrl);

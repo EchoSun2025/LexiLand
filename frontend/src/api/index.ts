@@ -1,3 +1,5 @@
+import type { EncounteredMeaning } from '../utils/wordMeanings';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export function resolveAssetUrl(urlOrPath: string): string {
@@ -26,6 +28,8 @@ export interface WordAnnotation {
   emoji?: string;  // Unicode emoji（默认生成或手动选择）
   emojiImagePath?: string[];  // 图片路径数组（AI/Unsplash，支持多个历史记录）
   emojiModel?: string;  // 最新图片使用的模型
+  encounteredMeanings?: EncounteredMeaning[];
+  activeMeaningId?: string;
 }
 
 export interface PhraseAnnotation {

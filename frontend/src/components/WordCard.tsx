@@ -1,9 +1,10 @@
 import type { WordAnnotation } from '../api';
 import { generateEmojiImage, searchImage, savePastedImage, resolveAssetUrl } from '../api';
 import { useState, useEffect, useRef } from 'react';
-import { updateEmoji, addEmojiImagePath } from '../db';
+import { updateEmoji, addEmojiImagePathToActiveMeaning, setActiveMeaning } from '../db';
 import { getWordEmoji, getAllEmojiKeywords, getDetailedPartOfSpeech } from '../utils/emojiHelper';
 import { useAppStore } from '../store/appStore';
+import { applyMeaningToAnnotation, ensureEncounteredMeanings, getActiveMeaning } from '../utils/wordMeanings';
 
 interface WordCardProps {
   annotation: WordAnnotation;
@@ -33,6 +34,8 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const longPressTimer = useRef<number | undefined>(undefined);
   const isLongPress = useRef(false);
+  const annotationWithMeanings = ensureEncounteredMeanings(annotation);
+  const activeMeaning = getActiveMeaning(annotationWithMeanings);
 
   // 组件加载时，确定显示哪个 emoji
   useEffect(() => {
@@ -89,6 +92,15 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
     window.speechSynthesis.speak(utterance);
   };
 
+  const handleSwitchMeaning = async (meaningId: string) => {
+    if (meaningId === annotationWithMeanings.activeMeaningId) return;
+    const projected = applyMeaningToAnnotation(annotationWithMeanings, meaningId);
+    updateAnnotation(annotation.word, projected);
+    await setActiveMeaning(annotation.word, meaningId, (updates) => {
+      updateAnnotation(annotation.word, updates);
+    });
+  };
+
   // 搜索真实照片 (Unsplash)
   const handleSearchImage = async () => {
     if (isGenerating) return;
@@ -110,7 +122,7 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
         setImageSource(source);
         
         // 添加到图片数组（不存模型信息，因为是 Unsplash）
-        await addEmojiImagePath(annotation.word, imagePath, undefined, (updates) => {
+        await addEmojiImagePathToActiveMeaning(annotation.word, imagePath, undefined, (updates) => {
           updateAnnotation(annotation.word, updates);
         });
         setUnsplashLocked(true);
@@ -184,7 +196,7 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
       setImageSource('clipboard');
 
       // Store with a model marker so reload can distinguish clipboard source
-      await addEmojiImagePath(annotation.word, imagePath, 'web-clipboard', (updates) => {
+      await addEmojiImagePathToActiveMeaning(annotation.word, imagePath, 'web-clipboard', (updates) => {
         updateAnnotation(annotation.word, updates);
       });
       setUnsplashLocked(false);
@@ -228,7 +240,7 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
       setDisplayedEmoji(imagePath);
       setImageSource('clipboard');
 
-      await addEmojiImagePath(annotation.word, imagePath, 'web-clipboard', (updates) => {
+      await addEmojiImagePathToActiveMeaning(annotation.word, imagePath, 'web-clipboard', (updates) => {
         updateAnnotation(annotation.word, updates);
       });
       setUnsplashLocked(false);
@@ -266,7 +278,7 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
         setImageSource('ai');
         
         // 添加到图片数组（包含模型信息）
-        await addEmojiImagePath(annotation.word, imagePath, model, (updates) => {
+        await addEmojiImagePathToActiveMeaning(annotation.word, imagePath, model, (updates) => {
           updateAnnotation(annotation.word, updates);
         });
         console.log('[AI Generate] Image created:', annotation.word, imagePath, 'Model:', model);
@@ -633,6 +645,28 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
           </button>
         </div>
       </div>
+
+      {annotationWithMeanings.encounteredMeanings && annotationWithMeanings.encounteredMeanings.length > 1 && (
+        <div className="mb-3">
+          <div className="text-xs font-semibold text-muted mb-1">Encountered Meanings</div>
+          <div className="flex flex-wrap gap-2">
+            {annotationWithMeanings.encounteredMeanings.map((meaning, index) => (
+              <button
+                key={meaning.id}
+                onClick={() => void handleSwitchMeaning(meaning.id)}
+                className={`text-xs px-2 py-1 rounded border transition-colors ${
+                  meaning.id === activeMeaning.id
+                    ? 'bg-blue-100 text-blue-700 border-blue-300'
+                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                }`}
+                title={meaning.definition}
+              >
+                {index + 1}. {meaning.shortLabel}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Chinese Translation with AI button */}
       <div className="mb-3 flex items-center gap-2">

@@ -1,5 +1,11 @@
 import Dexie from 'dexie';
 import type { Table } from 'dexie';
+import {
+  applyMeaningToAnnotation,
+  applyUpdatesToActiveMeaning,
+  ensureEncounteredMeanings,
+  type EncounteredMeaning,
+} from '../utils/wordMeanings';
 
 export interface KnownWord {
   word: string;
@@ -21,11 +27,14 @@ export interface CachedAnnotation {
   example: string;
   level: string;
   partOfSpeech: string;
-  sentence?: string;  // 单词所在的原文句子
-  documentTitle?: string;  // 文章标题
-  emoji?: string;  // Unicode emoji（默认生成或手动选择）
-  emojiImagePath?: string[];  // 图片路径数组（AI/Unsplash，支持多个历史记录）
-  emojiModel?: string;  // 最新图片使用的模型
+  sentence?: string;  // original sentence context
+  documentTitle?: string;
+  wordForms?: string[];
+  emoji?: string;  // Unicode emoji锛堥粯璁ょ敓鎴愭垨鎵嬪姩閫夋嫨锛?
+  emojiImagePath?: string[];  // 鍥剧墖璺緞鏁扮粍锛圓I/Unsplash锛屾敮鎸佸涓巻鍙茶褰曪級
+  emojiModel?: string;  // 鏈€鏂板浘鐗囦娇鐢ㄧ殑妯″瀷
+  encounteredMeanings?: EncounteredMeaning[];
+  activeMeaningId?: string;
   cachedAt: number;
 }
 
@@ -42,7 +51,7 @@ export interface CachedPhraseAnnotation {
   chinese: string;
   explanation?: string;
   sentenceContext: string;
-  documentTitle?: string;  // 文章标题
+  documentTitle?: string;
   cachedAt: number;
 }
 
@@ -55,7 +64,7 @@ export class LexiLandDB extends Dexie {
 
   constructor() {
     super('LexiLandDB');
-    // Version 4: 原有结构
+    // Version 4: 鍘熸湁缁撴瀯
     this.version(4).stores({
       knownWords: 'word, level, addedAt',
       learntWords: 'word, learntAt',
@@ -64,7 +73,7 @@ export class LexiLandDB extends Dexie {
       documents: 'id, createdAt, lastOpenedAt',
     });
     
-    // Version 5: 添加 emojiImagePath 字段到 annotations
+    // Version 5: 娣诲姞 emojiImagePath 瀛楁鍒?annotations
     this.version(5).stores({
       knownWords: 'word, level, addedAt',
       learntWords: 'word, learntAt',
@@ -73,7 +82,7 @@ export class LexiLandDB extends Dexie {
       documents: 'id, createdAt, lastOpenedAt',
     });
     
-    // Version 6: 添加 emojiModel 和 manualEmoji 字段
+    // Version 6: 娣诲姞 emojiModel 鍜?manualEmoji 瀛楁
     this.version(6).stores({
       knownWords: 'word, level, addedAt',
       learntWords: 'word, learntAt',
@@ -82,7 +91,7 @@ export class LexiLandDB extends Dexie {
       documents: 'id, createdAt, lastOpenedAt',
     });
     
-    // Version 7: 重构 emoji 数据结构：emoji (string) + emojiImagePath (array)
+    // Version 7: 閲嶆瀯 emoji 鏁版嵁缁撴瀯锛歟moji (string) + emojiImagePath (array)
     this.version(7).stores({
       knownWords: 'word, level, addedAt',
       learntWords: 'word, learntAt',
@@ -90,18 +99,18 @@ export class LexiLandDB extends Dexie {
       phraseAnnotations: 'phrase, cachedAt',
       documents: 'id, createdAt, lastOpenedAt',
     }).upgrade(async (trans) => {
-      // 数据迁移：manualEmoji -> emoji, emojiImagePath (string) -> emojiImagePath (array)
+      // 鏁版嵁杩佺Щ锛歮anualEmoji -> emoji, emojiImagePath (string) -> emojiImagePath (array)
       const annotations = await trans.table('annotations').toArray();
       for (const annotation of annotations) {
         const updated: any = { ...annotation };
         
-        // 迁移 manualEmoji -> emoji
+        // 杩佺Щ manualEmoji -> emoji
         if ((annotation as any).manualEmoji) {
           updated.emoji = (annotation as any).manualEmoji;
           delete updated.manualEmoji;
         }
         
-        // 迁移 emojiImagePath (string) -> emojiImagePath (array)
+        // 杩佺Щ emojiImagePath (string) -> emojiImagePath (array)
         if ((annotation as any).emojiImagePath && typeof (annotation as any).emojiImagePath === 'string') {
           updated.emojiImagePath = [(annotation as any).emojiImagePath];
         } else if (!(annotation as any).emojiImagePath) {
@@ -128,6 +137,21 @@ export class LexiLandDB extends Dexie {
         });
       }
       console.log('[DB Migration v8] Normalized emoji image paths to /learning-images/ for', annotations.length, 'annotations');
+    });
+
+    this.version(9).stores({
+      knownWords: 'word, level, addedAt',
+      learntWords: 'word, learntAt',
+      annotations: 'word, cachedAt',
+      phraseAnnotations: 'phrase, cachedAt',
+      documents: 'id, createdAt, lastOpenedAt',
+    }).upgrade(async (trans) => {
+      const annotations = await trans.table('annotations').toArray();
+      for (const annotation of annotations) {
+        const normalized = ensureEncounteredMeanings(annotation as CachedAnnotation);
+        await trans.table('annotations').put(normalized);
+      }
+      console.log('[DB Migration v9] Initialized encountered meanings for', annotations.length, 'annotations');
     });
   }
 }
@@ -211,12 +235,12 @@ export async function batchAddKnownWords(words: string[], level?: string): Promi
  * Cache an annotation in IndexedDB
  */
 export async function cacheAnnotation(word: string, annotation: Omit<CachedAnnotation, 'word' | 'cachedAt'>): Promise<void> {
-  await db.annotations.put({
+  await db.annotations.put(ensureEncounteredMeanings({
     word: word.toLowerCase(),
     ...annotation,
     emojiImagePath: normalizeEmojiImagePaths(annotation.emojiImagePath),
     cachedAt: Date.now(),
-  });
+  }));
 }
 
 /**
@@ -225,10 +249,10 @@ export async function cacheAnnotation(word: string, annotation: Omit<CachedAnnot
 export async function getCachedAnnotation(word: string): Promise<CachedAnnotation | undefined> {
   const annotation = await db.annotations.get(word.toLowerCase());
   if (!annotation) return annotation;
-  return {
+  return ensureEncounteredMeanings({
     ...annotation,
     emojiImagePath: normalizeEmojiImagePaths(annotation.emojiImagePath),
-  };
+  });
 }
 
 /**
@@ -236,10 +260,12 @@ export async function getCachedAnnotation(word: string): Promise<CachedAnnotatio
  */
 export async function getAllCachedAnnotations(): Promise<CachedAnnotation[]> {
   const annotations = await db.annotations.toArray();
-  return annotations.map(annotation => ({
-    ...annotation,
-    emojiImagePath: normalizeEmojiImagePaths(annotation.emojiImagePath),
-  }));
+  return annotations.map(annotation =>
+    ensureEncounteredMeanings({
+      ...annotation,
+      emojiImagePath: normalizeEmojiImagePaths(annotation.emojiImagePath),
+    }),
+  );
 }
 
 /**
@@ -248,13 +274,17 @@ export async function getAllCachedAnnotations(): Promise<CachedAnnotation[]> {
 export async function updateEmoji(word: string, emoji: string, onUpdate?: (updates: Partial<CachedAnnotation>) => void): Promise<void> {
   const annotation = await db.annotations.get(word.toLowerCase());
   if (annotation) {
-    annotation.emoji = emoji;
-    await db.annotations.put(annotation);
+    const updatedAnnotation = applyUpdatesToActiveMeaning(ensureEncounteredMeanings(annotation), { emoji });
+    await db.annotations.put(updatedAnnotation);
     console.log('[DB] Updated emoji for:', word, emoji);
     
-    // 回调：通知 store 更新
+    // 鍥炶皟锛氶€氱煡 store 鏇存柊
     if (onUpdate) {
-      onUpdate({ emoji });
+      onUpdate({
+        emoji: updatedAnnotation.emoji,
+        encounteredMeanings: updatedAnnotation.encounteredMeanings,
+        activeMeaningId: updatedAnnotation.activeMeaningId,
+      });
     }
   } else {
     console.warn('[DB] Annotation not found for word:', word, '- Cannot save emoji');
@@ -267,20 +297,20 @@ export async function updateEmoji(word: string, emoji: string, onUpdate?: (updat
 export async function addEmojiImagePath(word: string, imagePath: string, model?: string, onUpdate?: (updates: Partial<CachedAnnotation>) => void): Promise<void> {
   const annotation = await db.annotations.get(word.toLowerCase());
   if (annotation) {
-    // 初始化数组（如果不存在）
+    // 鍒濆鍖栨暟缁勶紙濡傛灉涓嶅瓨鍦級
     if (!annotation.emojiImagePath) {
       annotation.emojiImagePath = [];
     }
     
-    // 添加新图片路径到数组开头（最新的在前面）
+    // 娣诲姞鏂板浘鐗囪矾寰勫埌鏁扮粍寮€澶达紙鏈€鏂扮殑鍦ㄥ墠闈級
     annotation.emojiImagePath.unshift(normalizeEmojiImagePath(imagePath)!);
     
-    // 限制最多保存 5 张历史图片
+    // 闄愬埗鏈€澶氫繚瀛?5 寮犲巻鍙插浘鐗?
     if (annotation.emojiImagePath.length > 5) {
       annotation.emojiImagePath = annotation.emojiImagePath.slice(0, 5);
     }
     
-    // 更新模型信息（如果提供）
+    // 鏇存柊妯″瀷淇℃伅锛堝鏋滄彁渚涳級
     if (model) {
       annotation.emojiModel = model;
     }
@@ -288,7 +318,7 @@ export async function addEmojiImagePath(word: string, imagePath: string, model?:
     await db.annotations.put(annotation);
     console.log('[DB] Added emoji image path for:', word, imagePath);
     
-    // 回调：通知 store 更新
+    // 鍥炶皟锛氶€氱煡 store 鏇存柊
     if (onUpdate) {
       onUpdate({ 
         emojiImagePath: annotation.emojiImagePath,
@@ -297,6 +327,47 @@ export async function addEmojiImagePath(word: string, imagePath: string, model?:
     }
   } else {
     console.warn('[DB] Annotation not found for word:', word, '- Cannot save emoji image path');
+  }
+}
+
+export async function addEmojiImagePathToActiveMeaning(word: string, imagePath: string, model?: string, onUpdate?: (updates: Partial<CachedAnnotation>) => void): Promise<void> {
+  const annotation = await db.annotations.get(word.toLowerCase());
+  if (!annotation) {
+    console.warn('[DB] Annotation not found for word:', word, '- Cannot save emoji image path');
+    return;
+  }
+
+  const normalized = ensureEncounteredMeanings(annotation);
+  const nextImagePaths = [normalizeEmojiImagePath(imagePath)!, ...(normalized.emojiImagePath || [])].slice(0, 5);
+  const updatedAnnotation = applyUpdatesToActiveMeaning(normalized, {
+    emojiImagePath: nextImagePaths,
+    emojiModel: model,
+  });
+
+  await db.annotations.put(updatedAnnotation);
+
+  if (onUpdate) {
+    onUpdate({
+      emojiImagePath: updatedAnnotation.emojiImagePath,
+      emojiModel: updatedAnnotation.emojiModel,
+      encounteredMeanings: updatedAnnotation.encounteredMeanings,
+      activeMeaningId: updatedAnnotation.activeMeaningId,
+    });
+  }
+}
+
+export async function setActiveMeaning(word: string, meaningId: string, onUpdate?: (updates: Partial<CachedAnnotation>) => void): Promise<void> {
+  const annotation = await db.annotations.get(word.toLowerCase());
+  if (!annotation) {
+    console.warn('[DB] Annotation not found for word:', word, '- Cannot switch meaning');
+    return;
+  }
+
+  const updatedAnnotation = applyMeaningToAnnotation(ensureEncounteredMeanings(annotation), meaningId);
+  await db.annotations.put(updatedAnnotation);
+
+  if (onUpdate) {
+    onUpdate(updatedAnnotation);
   }
 }
 
@@ -402,11 +473,14 @@ export async function exportUserData(): Promise<string> {
         example: a.example,
         level: a.level,
         partOfSpeech: a.partOfSpeech,
-        sentenceContext: a.sentence,  // 保持向后兼容，但导出时使用 sentenceContext
+        sentenceContext: a.sentence,  // 淇濇寔鍚戝悗鍏煎锛屼絾瀵煎嚭鏃朵娇鐢?sentenceContext
         documentTitle: a.documentTitle,
+        wordForms: a.wordForms,
         emoji: a.emoji,  // Unicode emoji
-        emojiImagePath: normalizeEmojiImagePaths(a.emojiImagePath),  // 图片路径数组
-        emojiModel: a.emojiModel,  // 生成图片的模型
+        emojiImagePath: normalizeEmojiImagePaths(a.emojiImagePath),  // 鍥剧墖璺緞鏁扮粍
+        emojiModel: a.emojiModel,  // 鐢熸垚鍥剧墖鐨勬ā鍨?
+        encounteredMeanings: a.encounteredMeanings,
+        activeMeaningId: a.activeMeaningId,
         cachedAt: new Date(a.cachedAt).toISOString()
       }))
     },
@@ -494,11 +568,14 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
               example: item.example,
               level: item.level,
               partOfSpeech: item.partOfSpeech,
-              sentence: item.sentenceContext || item.sentence,  // 支持新旧格式
+              sentence: item.sentenceContext || item.sentence,  // 鏀寔鏂版棫鏍煎紡
               documentTitle: item.documentTitle,
+              wordForms: item.wordForms,
               emoji: item.emoji,  // Unicode emoji
-              emojiImagePath: normalizeEmojiImagePaths(item.emojiImagePath),  // 图片路径数组
-              emojiModel: item.emojiModel,  // 生成图片的模型
+              emojiImagePath: normalizeEmojiImagePaths(item.emojiImagePath),  // 鍥剧墖璺緞鏁扮粍
+              emojiModel: item.emojiModel,  // 鐢熸垚鍥剧墖鐨勬ā鍨?
+              encounteredMeanings: item.encounteredMeanings,
+              activeMeaningId: item.activeMeaningId,
               cachedAt: new Date(item.cachedAt).getTime()
             });
             result.imported++;
