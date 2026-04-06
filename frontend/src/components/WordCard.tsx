@@ -153,6 +153,33 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
     setShowManualMeaningForm(true);
   };
 
+  useEffect(() => {
+    if (!showManualMeaningForm || manualMeaningMode !== 'edit') return;
+
+    setManualMeaningChinese(activeMeaning.chinese || '');
+    setManualMeaningDefinition(activeMeaning.definition || '');
+    setManualMeaningExample(activeMeaning.example || '');
+    setManualMeaningSentence(activeMeaning.sentence || annotation.sentence || '');
+    setManualMeaningDocumentTitle(activeMeaning.documentTitle || annotation.documentTitle || '');
+    setManualMeaningPos(activeMeaning.partOfSpeech || '');
+    setManualMeaningBaseForm(activeMeaning.baseForm || '');
+    setManualMeaningWordForms((activeMeaning.wordForms || []).join(', '));
+  }, [
+    showManualMeaningForm,
+    manualMeaningMode,
+    activeMeaning.id,
+    activeMeaning.chinese,
+    activeMeaning.definition,
+    activeMeaning.example,
+    activeMeaning.sentence,
+    activeMeaning.documentTitle,
+    activeMeaning.partOfSpeech,
+    activeMeaning.baseForm,
+    activeMeaning.wordForms,
+    annotation.sentence,
+    annotation.documentTitle,
+  ]);
+
   const parseWordForms = (value: string): string[] | undefined => {
     const forms = value
       .split(/[,\n]/)

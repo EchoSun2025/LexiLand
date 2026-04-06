@@ -749,23 +749,35 @@ function App() {
       if (type === 'word') {
         const result = await annotateWord(word, level, sentence);
         if (result.success && result.data) {
-          const canonicalWord = getCanonicalWord(word.toLowerCase(), result.data);
-          const existingAnnotation = annotations.get(canonicalWord) as WordAnnotation | undefined;
+          const surfaceWord = word.toLowerCase();
+          const canonicalWord = getCanonicalWord(surfaceWord, result.data);
+          const surfaceEntry = annotations.get(surfaceWord) as WordAnnotation | undefined;
+          const canonicalEntry = annotations.get(canonicalWord) as WordAnnotation | undefined;
+          const existingAnnotation = canonicalEntry || surfaceEntry;
           const annotationWithContext: WordAnnotation = {
             ...result.data,
             word: canonicalWord,
             sentence,
             documentTitle: currentDocument?.title || 'Unknown',
             wordForms: result.data.wordForms ?? existingAnnotation?.wordForms,
-            encounteredForms: Array.from(new Set([word.toLowerCase(), ...(existingAnnotation?.encounteredForms || [])])),
+            encounteredForms: Array.from(new Set([surfaceWord, canonicalWord, ...(existingAnnotation?.encounteredForms || [])])),
           };
           const mergedAnnotation = mergeAnnotationMeanings(
             existingAnnotation,
             annotationWithContext
           ).annotation;
-          addAnnotation(canonicalWord, mergedAnnotation);
-          await cacheAnnotation(canonicalWord, mergedAnnotation);
-          console.log('[AI Regenerate] Success:', mergedAnnotation);
+          const normalizedMergedAnnotation: WordAnnotation = {
+            ...mergedAnnotation,
+            encounteredForms: Array.from(
+              new Set([surfaceWord, canonicalWord, ...(mergedAnnotation.encounteredForms || [])]),
+            ),
+          };
+          addAnnotation(canonicalWord, normalizedMergedAnnotation);
+          await cacheAnnotation(canonicalWord, normalizedMergedAnnotation);
+          if (surfaceWord !== canonicalWord) {
+            addAnnotation(surfaceWord, normalizedMergedAnnotation);
+            await cacheAnnotation(surfaceWord, normalizedMergedAnnotation);
+          }
           alert('✅ AI re-generated successfully!');
         } else {
           console.error('[AI Regenerate] Failed:', result.error);
