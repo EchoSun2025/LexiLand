@@ -5,7 +5,7 @@ import { tokenizeParagraphs, type Paragraph as ParagraphType, type Sentence, typ
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
 import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, batchAddKnownWords, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, cachePhraseAnnotation, getAllCachedPhraseAnnotations, deletePhraseAnnotation, exportUserData, importUserData, updateEmoji, addEmojiImagePath } from './db'
-import { annotateWord, annotatePhrase, searchImage, generateEmojiImage, savePastedImage, type WordAnnotation, type PhraseAnnotation } from './api'
+import { annotateWord, annotatePhrase, searchImage, generateEmojiImage, savePastedImage, resolveAssetUrl, saveUserBackup, loadUserBackup, getUserBackupStatus, type WordAnnotation, type PhraseAnnotation } from './api'
 import PhraseCard from './components/PhraseCard'
 import { localDictionary } from './services/localDictionary'
 import { exportLLIFString } from './services/llifConverter'
@@ -123,6 +123,11 @@ function App() {
   const [collapsedGoogleKeyword, setCollapsedGoogleKeyword] = useState('');
   const [collapsedClipboardSaving, setCollapsedClipboardSaving] = useState(false);
   const [collapsedUnsplashLockedWords, setCollapsedUnsplashLockedWords] = useState<Set<string>>(new Set());
+  const [fixedStorageStatus, setFixedStorageStatus] = useState<string>('Not checked');
+  const [autoFixedBackupEnabled, setAutoFixedBackupEnabled] = useState<boolean>(() => {
+    const stored = localStorage.getItem('autoFixedBackupEnabled');
+    return stored === null ? true : stored === 'true';
+  });
   const prevMarkedWordsSize = useRef<number>(0); // 追踪上次的 markedWords 大小
 
   // Initialize local dictionary
@@ -156,6 +161,16 @@ function App() {
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [showExportMenu]);
+
+  useEffect(() => {
+    if (showSettings) {
+      void handleCheckFixedStorageStatus();
+    }
+  }, [showSettings]);
+
+  useEffect(() => {
+    localStorage.setItem('autoFixedBackupEnabled', autoFixedBackupEnabled ? 'true' : 'false');
+  }, [autoFixedBackupEnabled]);
 
   // Rebuild annotatedPhraseRanges when document or phraseAnnotations change
   useEffect(() => {
@@ -1036,6 +1051,117 @@ ${sortedWords.join(' ')}
     importInputRef.current?.click();
   };
 
+  const reloadDataFromDB = async () => {
+    const [newKnownWords, newLearntWords, newAnnotations] = await Promise.all([
+      getAllKnownWords(),
+      getAllLearntWords(),
+      getAllCachedAnnotations()
+    ]);
+
+    loadKnownWords(newKnownWords);
+    loadLearntWords(newLearntWords);
+
+    const annotationsMap = new Map();
+    newAnnotations.forEach(a => {
+      annotationsMap.set(a.word, {
+        word: a.word,
+        baseForm: a.baseForm,
+        ipa: a.ipa,
+        chinese: a.chinese,
+        definition: a.definition,
+        example: a.example,
+        level: a.level,
+        partOfSpeech: a.partOfSpeech,
+      });
+    });
+    loadAnnotations(annotationsMap);
+  };
+
+  const saveToFixedStorageInternal = async (silent: boolean = false, reason: string = 'manual') => {
+    try {
+      const jsonData = await exportUserData();
+      const result = await saveUserBackup(jsonData);
+      if (result.success) {
+        setFixedStorageStatus(`Saved: ${result.data?.latestPath || 'latest backup'}`);
+        if (!silent) {
+          alert(`Backup saved to fixed storage.\n${result.data?.latestPath || ''}`);
+        } else {
+          console.log(`[Fixed Backup] Auto-saved (${reason}):`, result.data?.latestPath || 'latest backup');
+        }
+      } else {
+        if (!silent) {
+          alert(`Save backup failed: ${result.error}`);
+        } else {
+          console.warn(`[Fixed Backup] Auto-save failed (${reason}):`, result.error);
+        }
+      }
+    } catch (error: any) {
+      if (!silent) {
+        alert(`Save backup failed: ${error.message}`);
+      } else {
+        console.warn(`[Fixed Backup] Auto-save exception (${reason}):`, error.message);
+      }
+    }
+  };
+
+  const handleSaveToFixedStorage = async () => {
+    await saveToFixedStorageInternal(false, 'manual');
+  };
+
+  const handleLoadFromFixedStorage = async () => {
+    try {
+      const backup = await loadUserBackup();
+      if (!backup.success || !backup.data?.jsonData) {
+        alert(`Load backup failed: ${backup.error || 'No backup found'}`);
+        return;
+      }
+
+      const result = await importUserData(backup.data.jsonData);
+      await reloadDataFromDB();
+
+      let message = `Loaded from fixed storage.\nImported: ${result.imported}\nSkipped: ${result.skipped}`;
+      if (result.errors.length > 0) {
+        message += `\nErrors: ${result.errors.length}`;
+      }
+      alert(message);
+    } catch (error: any) {
+      alert(`Load backup failed: ${error.message}`);
+    }
+  };
+
+  const handleCheckFixedStorageStatus = async () => {
+    const status = await getUserBackupStatus();
+    if (status.success && status.data) {
+      setFixedStorageStatus(
+        `${status.data.hasLatestBackup ? 'Backup ready' : 'No backup yet'} | ${status.data.dataDir}`
+      );
+    } else {
+      setFixedStorageStatus(`Status check failed: ${status.error}`);
+    }
+  };
+
+  // One-time migration + periodic auto backup
+  useEffect(() => {
+    const run = async () => {
+      if (!autoFixedBackupEnabled) return;
+      const migrationKey = 'fixedStorageMigratedV1';
+      const migrated = localStorage.getItem(migrationKey) === 'true';
+      if (!migrated) {
+        await saveToFixedStorageInternal(true, 'initial-migration');
+        localStorage.setItem(migrationKey, 'true');
+      }
+    };
+    void run();
+  }, [autoFixedBackupEnabled]);
+
+  useEffect(() => {
+    if (!autoFixedBackupEnabled) return;
+    const timer = setInterval(() => {
+      void saveToFixedStorageInternal(true, 'interval-5min');
+    }, 5 * 60 * 1000);
+    return () => clearInterval(timer);
+  }, [autoFixedBackupEnabled]);
+
   const handleImportFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1043,31 +1169,7 @@ ${sortedWords.join(' ')}
     try {
       const text = await file.text();
       const result = await importUserData(text);
-
-      // Reload data into state
-      const [newKnownWords, newLearntWords, newAnnotations] = await Promise.all([
-        getAllKnownWords(),
-        getAllLearntWords(),
-        getAllCachedAnnotations()
-      ]);
-
-      loadKnownWords(newKnownWords);
-      loadLearntWords(newLearntWords);
-
-      const annotationsMap = new Map();
-      newAnnotations.forEach(a => {
-        annotationsMap.set(a.word, {
-          word: a.word,
-          baseForm: a.baseForm,
-          ipa: a.ipa,
-          chinese: a.chinese,
-          definition: a.definition,
-          example: a.example,
-          level: a.level,
-          partOfSpeech: a.partOfSpeech,
-        });
-      });
-      loadAnnotations(annotationsMap);
+      await reloadDataFromDB();
 
       let message = `Import completed!\nImported: ${result.imported} items\nSkipped (already exists): ${result.skipped} items`;
       if (result.errors.length > 0) {
@@ -2338,7 +2440,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                                 >
                                   {(annotation as WordAnnotation).emojiImagePath?.[0] ? (
                                     <img 
-                                      src={(annotation as WordAnnotation).emojiImagePath![0]} 
+                                      src={resolveAssetUrl((annotation as WordAnnotation).emojiImagePath![0])} 
                                       alt="emoji" 
                                       className="w-full h-full object-cover rounded"
                                     />
@@ -2766,6 +2868,44 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 >
                   📥 Import Data
                 </button>
+
+                <div className="h-px bg-border my-2" />
+
+                <button
+                  onClick={handleSaveToFixedStorage}
+                  className="w-full px-4 py-2 border border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-sm font-semibold"
+                  title="Save current user data to fixed learning folder"
+                >
+                  💾 Save to Fixed Storage
+                </button>
+
+                <button
+                  onClick={handleLoadFromFixedStorage}
+                  className="w-full px-4 py-2 border border-indigo-500 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-semibold"
+                  title="Load latest backup from fixed learning folder"
+                >
+                  📂 Load from Fixed Storage
+                </button>
+
+                <button
+                  onClick={handleCheckFixedStorageStatus}
+                  className="w-full px-4 py-2 border border-gray-400 bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg text-xs"
+                  title="Check fixed storage status"
+                >
+                  Fixed Storage Status: {fixedStorageStatus}
+                </button>
+
+                <label className="flex items-center gap-2 px-3 py-2 border border-border rounded-lg bg-white">
+                  <input
+                    type="checkbox"
+                    checked={autoFixedBackupEnabled}
+                    onChange={(e) => setAutoFixedBackupEnabled(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-xs text-gray-700">
+                    Auto backup to fixed storage (on startup + every 5 min)
+                  </span>
+                </label>
               </div>
             </div>
 

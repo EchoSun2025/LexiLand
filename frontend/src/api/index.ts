@@ -1,5 +1,13 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+export function resolveAssetUrl(urlOrPath: string): string {
+  if (!urlOrPath) return urlOrPath;
+  if (urlOrPath.startsWith('/learning-images/')) {
+    return `${API_BASE_URL}${urlOrPath}`;
+  }
+  return urlOrPath;
+}
+
 export interface WordAnnotation {
   word: string;
   baseForm?: string;
@@ -226,5 +234,52 @@ export async function savePastedImage(
       success: false,
       error: error.message || 'Failed to save pasted image',
     };
+  }
+}
+
+export interface UserBackupResponse {
+  success: boolean;
+  data?: {
+    savedAt?: string;
+    snapshotPath?: string;
+    latestPath?: string;
+    jsonData?: string;
+    path?: string;
+    dataDir?: string;
+    imagesDir?: string;
+    backupsDir?: string;
+    hasLatestBackup?: boolean;
+  };
+  error?: string;
+}
+
+export async function saveUserBackup(jsonData: string): Promise<UserBackupResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/user-backup/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonData }),
+    });
+    return await response.json();
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to save backup' };
+  }
+}
+
+export async function loadUserBackup(): Promise<UserBackupResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/user-backup/load`);
+    return await response.json();
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to load backup' };
+  }
+}
+
+export async function getUserBackupStatus(): Promise<UserBackupResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/user-backup/status`);
+    return await response.json();
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to get backup status' };
   }
 }

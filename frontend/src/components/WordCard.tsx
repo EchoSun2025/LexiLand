@@ -1,5 +1,5 @@
 import type { WordAnnotation } from '../api';
-import { generateEmojiImage, searchImage, savePastedImage } from '../api';
+import { generateEmojiImage, searchImage, savePastedImage, resolveAssetUrl } from '../api';
 import { useState, useEffect, useRef } from 'react';
 import { updateEmoji, addEmojiImagePath } from '../db';
 import { getWordEmoji, getAllEmojiKeywords, getDetailedPartOfSpeech } from '../utils/emojiHelper';
@@ -417,7 +417,7 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
               >
                 {isImageEmoji ? (
                   <img 
-                    src={displayedEmoji} 
+                    src={resolveAssetUrl(displayedEmoji)} 
                     alt={annotation.word}
                     className="w-12 h-12 rounded-lg object-cover"
                   />

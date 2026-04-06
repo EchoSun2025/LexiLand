@@ -1,0 +1,812 @@
+{
+  "a": {
+    "ipa": "eɪ, ə",
+    "pos": "article",
+    "level": "A1",
+    "chinese": "一个",
+    "definition": "used before a noun to refer to a single thing or person",
+    "examples": [],
+    "word": "a"
+  },
+  "about": {
+    "ipa": "əˈbaʊt",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "关于",
+    "definition": "on the subject of; concerning",
+    "examples": [],
+    "word": "about"
+  },
+  "all": {
+    "ipa": "ɔːl",
+    "pos": "determiner",
+    "level": "A1",
+    "chinese": "全部",
+    "definition": "the whole of an amount or number",
+    "examples": [],
+    "word": "all"
+  },
+  "also": {
+    "ipa": "ˈɔːlsəʊ",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "也",
+    "definition": "in addition; too",
+    "examples": [],
+    "word": "also"
+  },
+  "and": {
+    "ipa": "ənd, ænd",
+    "pos": "conjunction",
+    "level": "A1",
+    "chinese": "和",
+    "definition": "used to connect words, phrases, or clauses",
+    "examples": [],
+    "word": "and"
+  },
+  "are": {
+    "ipa": "ɑː",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "是",
+    "definition": "present tense plural and second person singular of be",
+    "examples": [],
+    "word": "are"
+  },
+  "as": {
+    "ipa": "əz, æz",
+    "pos": "conjunction",
+    "level": "A1",
+    "chinese": "作为",
+    "definition": "used in comparisons to refer to the extent or degree of something",
+    "examples": [],
+    "word": "as"
+  },
+  "at": {
+    "ipa": "ət, æt",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "在",
+    "definition": "expressing location or position",
+    "examples": [],
+    "word": "at"
+  },
+  "be": {
+    "ipa": "biː",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "是",
+    "definition": "to exist or live",
+    "examples": [
+      "To be or not to be, that is the question."
+    ],
+    "word": "be"
+  },
+  "been": {
+    "ipa": "biːn",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "是过去分词",
+    "definition": "past participle of be",
+    "examples": [],
+    "word": "been"
+  },
+  "but": {
+    "ipa": "bʌt",
+    "pos": "conjunction",
+    "level": "A1",
+    "chinese": "但是",
+    "definition": "used to introduce a contrast",
+    "examples": [],
+    "word": "but"
+  },
+  "by": {
+    "ipa": "baɪ",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "由",
+    "definition": "indicating the agent performing an action",
+    "examples": [],
+    "word": "by"
+  },
+  "can": {
+    "ipa": "kæn, kən",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "能",
+    "definition": "to be able to",
+    "examples": [],
+    "word": "can"
+  },
+  "do": {
+    "ipa": "duː",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "做",
+    "definition": "to perform an action or activity",
+    "examples": [],
+    "word": "do"
+  },
+  "for": {
+    "ipa": "fɔː",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "为了",
+    "definition": "indicating the purpose or recipient",
+    "examples": [],
+    "word": "for"
+  },
+  "from": {
+    "ipa": "frɒm",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "从",
+    "definition": "indicating the starting point",
+    "examples": [],
+    "word": "from"
+  },
+  "get": {
+    "ipa": "ɡet",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "得到",
+    "definition": "to obtain or receive",
+    "examples": [],
+    "word": "get"
+  },
+  "go": {
+    "ipa": "ɡəʊ",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "去",
+    "definition": "to move from one place to another",
+    "examples": [],
+    "word": "go"
+  },
+  "good": {
+    "ipa": "ɡʊd",
+    "pos": "adjective",
+    "level": "A1",
+    "chinese": "好的",
+    "definition": "having the required qualities; satisfactory",
+    "examples": [],
+    "word": "good"
+  },
+  "have": {
+    "ipa": "hæv",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "有",
+    "definition": "to possess or own",
+    "examples": [
+      "I have a book."
+    ],
+    "word": "have"
+  },
+  "he": {
+    "ipa": "hiː",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "他",
+    "definition": "used to refer to a male person or animal",
+    "examples": [],
+    "word": "he"
+  },
+  "her": {
+    "ipa": "hɜː",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "她",
+    "definition": "belonging to or associated with a female",
+    "examples": [],
+    "word": "her"
+  },
+  "his": {
+    "ipa": "hɪz",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "他的",
+    "definition": "belonging to or associated with a male",
+    "examples": [],
+    "word": "his"
+  },
+  "how": {
+    "ipa": "haʊ",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "如何",
+    "definition": "in what way or manner",
+    "examples": [],
+    "word": "how"
+  },
+  "I": {
+    "ipa": "aɪ",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "我",
+    "definition": "used by a speaker to refer to themselves",
+    "examples": [],
+    "word": "I"
+  },
+  "if": {
+    "ipa": "ɪf",
+    "pos": "conjunction",
+    "level": "A1",
+    "chinese": "如果",
+    "definition": "introducing a conditional clause",
+    "examples": [],
+    "word": "if"
+  },
+  "in": {
+    "ipa": "ɪn",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "在里",
+    "definition": "expressing the situation of being enclosed",
+    "examples": [],
+    "word": "in"
+  },
+  "is": {
+    "ipa": "ɪz",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "是",
+    "definition": "third person singular present of be",
+    "examples": [],
+    "word": "is"
+  },
+  "it": {
+    "ipa": "ɪt",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "它",
+    "definition": "used to refer to a thing previously mentioned",
+    "examples": [],
+    "word": "it"
+  },
+  "just": {
+    "ipa": "dʒʌst",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "只是",
+    "definition": "exactly or precisely",
+    "examples": [],
+    "word": "just"
+  },
+  "know": {
+    "ipa": "nəʊ",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "知道",
+    "definition": "to be aware of through observation or inquiry",
+    "examples": [],
+    "word": "know"
+  },
+  "like": {
+    "ipa": "laɪk",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "喜欢",
+    "definition": "to find agreeable or enjoyable",
+    "examples": [],
+    "word": "like"
+  },
+  "look": {
+    "ipa": "lʊk",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "看",
+    "definition": "to direct one's gaze",
+    "examples": [],
+    "word": "look"
+  },
+  "make": {
+    "ipa": "meɪk",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "制造",
+    "definition": "to form or create something",
+    "examples": [],
+    "word": "make"
+  },
+  "me": {
+    "ipa": "miː",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "我",
+    "definition": "used by a speaker to refer to themselves as object",
+    "examples": [],
+    "word": "me"
+  },
+  "my": {
+    "ipa": "maɪ",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "我的",
+    "definition": "belonging to or associated with the speaker",
+    "examples": [],
+    "word": "my"
+  },
+  "no": {
+    "ipa": "nəʊ",
+    "pos": "determiner",
+    "level": "A1",
+    "chinese": "不",
+    "definition": "not any",
+    "examples": [],
+    "word": "no"
+  },
+  "not": {
+    "ipa": "nɒt",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "不",
+    "definition": "used to express negation",
+    "examples": [],
+    "word": "not"
+  },
+  "of": {
+    "ipa": "əv, ɒv",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "的",
+    "definition": "expressing the relationship between a part and a whole",
+    "examples": [],
+    "word": "of"
+  },
+  "on": {
+    "ipa": "ɒn",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "在上",
+    "definition": "physically in contact with and supported by a surface",
+    "examples": [],
+    "word": "on"
+  },
+  "one": {
+    "ipa": "wʌn",
+    "pos": "number",
+    "level": "A1",
+    "chinese": "一",
+    "definition": "the lowest cardinal number",
+    "examples": [],
+    "word": "one"
+  },
+  "or": {
+    "ipa": "ɔː",
+    "pos": "conjunction",
+    "level": "A1",
+    "chinese": "或",
+    "definition": "used to link alternatives",
+    "examples": [],
+    "word": "or"
+  },
+  "other": {
+    "ipa": "ˈʌðə",
+    "pos": "determiner",
+    "level": "A1",
+    "chinese": "其他",
+    "definition": "used to refer to additional things or people",
+    "examples": [],
+    "word": "other"
+  },
+  "out": {
+    "ipa": "aʊt",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "出去",
+    "definition": "moving away from a place",
+    "examples": [],
+    "word": "out"
+  },
+  "people": {
+    "ipa": "ˈpiːpl",
+    "pos": "noun",
+    "level": "A1",
+    "chinese": "人",
+    "definition": "human beings in general",
+    "examples": [],
+    "word": "people"
+  },
+  "say": {
+    "ipa": "seɪ",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "说",
+    "definition": "to speak words",
+    "examples": [],
+    "word": "say"
+  },
+  "see": {
+    "ipa": "siː",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "看见",
+    "definition": "to perceive with the eyes",
+    "examples": [],
+    "word": "see"
+  },
+  "she": {
+    "ipa": "ʃiː",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "她",
+    "definition": "used to refer to a female person or animal",
+    "examples": [],
+    "word": "she"
+  },
+  "so": {
+    "ipa": "səʊ",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "如此",
+    "definition": "to such a great extent",
+    "examples": [],
+    "word": "so"
+  },
+  "some": {
+    "ipa": "sʌm",
+    "pos": "determiner",
+    "level": "A1",
+    "chinese": "一些",
+    "definition": "an unspecified amount or number of",
+    "examples": [],
+    "word": "some"
+  },
+  "take": {
+    "ipa": "teɪk",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "拿",
+    "definition": "to lay hold of with one's hands",
+    "examples": [],
+    "word": "take"
+  },
+  "than": {
+    "ipa": "ðæn",
+    "pos": "conjunction",
+    "level": "A1",
+    "chinese": "比",
+    "definition": "used in comparisons",
+    "examples": [],
+    "word": "than"
+  },
+  "that": {
+    "ipa": "ðæt",
+    "pos": "determiner",
+    "level": "A1",
+    "chinese": "那个",
+    "definition": "used to identify a specific person or thing",
+    "examples": [],
+    "word": "that"
+  },
+  "the": {
+    "ipa": "ðə, ðiː",
+    "pos": "article",
+    "level": "A1",
+    "chinese": "这个",
+    "definition": "used to point forward to a specific person or thing",
+    "examples": [],
+    "word": "the"
+  },
+  "their": {
+    "ipa": "ðeə",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "他们的",
+    "definition": "belonging to or associated with people or things",
+    "examples": [],
+    "word": "their"
+  },
+  "them": {
+    "ipa": "ðəm",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "他们",
+    "definition": "used as the object of a verb or preposition",
+    "examples": [],
+    "word": "them"
+  },
+  "there": {
+    "ipa": "ðeə",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "那里",
+    "definition": "in, at, or to that place",
+    "examples": [],
+    "word": "there"
+  },
+  "they": {
+    "ipa": "ðeɪ",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "他们",
+    "definition": "used to refer to people or things",
+    "examples": [],
+    "word": "they"
+  },
+  "think": {
+    "ipa": "θɪŋk",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "想",
+    "definition": "to have a particular opinion or belief",
+    "examples": [],
+    "word": "think"
+  },
+  "this": {
+    "ipa": "ðɪs",
+    "pos": "determiner",
+    "level": "A1",
+    "chinese": "这个",
+    "definition": "used to identify a specific person or thing close at hand",
+    "examples": [],
+    "word": "this"
+  },
+  "time": {
+    "ipa": "taɪm",
+    "pos": "noun",
+    "level": "A1",
+    "chinese": "时间",
+    "definition": "the indefinite continued progress of existence",
+    "examples": [],
+    "word": "time"
+  },
+  "to": {
+    "ipa": "tuː, tə",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "到",
+    "definition": "expressing motion in the direction of",
+    "examples": [],
+    "word": "to"
+  },
+  "up": {
+    "ipa": "ʌp",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "向上",
+    "definition": "towards a higher place or position",
+    "examples": [],
+    "word": "up"
+  },
+  "use": {
+    "ipa": "juːz",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "使用",
+    "definition": "to employ for a purpose",
+    "examples": [],
+    "word": "use"
+  },
+  "very": {
+    "ipa": "ˈveri",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "很",
+    "definition": "used to emphasize an adjective or adverb",
+    "examples": [],
+    "word": "very"
+  },
+  "want": {
+    "ipa": "wɒnt",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "想要",
+    "definition": "to have a desire for something",
+    "examples": [],
+    "word": "want"
+  },
+  "was": {
+    "ipa": "wɒz",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "是过去式",
+    "definition": "first and third person singular past of be",
+    "examples": [],
+    "word": "was"
+  },
+  "we": {
+    "ipa": "wiː",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "我们",
+    "definition": "used by a speaker to refer to themselves and others",
+    "examples": [],
+    "word": "we"
+  },
+  "well": {
+    "ipa": "wel",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "好",
+    "definition": "in a good or satisfactory way",
+    "examples": [],
+    "word": "well"
+  },
+  "were": {
+    "ipa": "wɜː",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "是过去式",
+    "definition": "second person singular past, plural past of be",
+    "examples": [],
+    "word": "were"
+  },
+  "what": {
+    "ipa": "wɒt",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "什么",
+    "definition": "asking for information",
+    "examples": [],
+    "word": "what"
+  },
+  "when": {
+    "ipa": "wen",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "何时",
+    "definition": "at what time",
+    "examples": [],
+    "word": "when"
+  },
+  "where": {
+    "ipa": "weə",
+    "pos": "adverb",
+    "level": "A1",
+    "chinese": "哪里",
+    "definition": "in or to what place",
+    "examples": [],
+    "word": "where"
+  },
+  "which": {
+    "ipa": "wɪtʃ",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "哪个",
+    "definition": "asking for information specifying one or more from a set",
+    "examples": [],
+    "word": "which"
+  },
+  "who": {
+    "ipa": "huː",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "谁",
+    "definition": "what or which person or people",
+    "examples": [],
+    "word": "who"
+  },
+  "will": {
+    "ipa": "wɪl",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "将",
+    "definition": "expressing the future tense",
+    "examples": [],
+    "word": "will"
+  },
+  "with": {
+    "ipa": "wɪð",
+    "pos": "preposition",
+    "level": "A1",
+    "chinese": "和",
+    "definition": "accompanied by",
+    "examples": [],
+    "word": "with"
+  },
+  "work": {
+    "ipa": "wɜːk",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "工作",
+    "definition": "to be engaged in physical or mental activity",
+    "examples": [],
+    "word": "work"
+  },
+  "would": {
+    "ipa": "wʊd",
+    "pos": "verb",
+    "level": "A1",
+    "chinese": "会",
+    "definition": "past of will, expressing conditional",
+    "examples": [],
+    "word": "would"
+  },
+  "you": {
+    "ipa": "juː",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "你",
+    "definition": "used to refer to the person being addressed",
+    "examples": [],
+    "word": "you"
+  },
+  "your": {
+    "ipa": "jɔː",
+    "pos": "pronoun",
+    "level": "A1",
+    "chinese": "你的",
+    "definition": "belonging to or associated with the person being addressed",
+    "examples": [],
+    "word": "your"
+  },
+  "investigate": {
+    "ipa": "ɪnˈvestɪɡeɪt",
+    "pos": "verb",
+    "level": "B2",
+    "chinese": "调查；研究",
+    "definition": "carry out research or study into a subject",
+    "examples": [
+      "Police are investigating the crime."
+    ],
+    "word": "investigate"
+  },
+  "curiosity": {
+    "ipa": "ˌkjʊəriˈɒsəti",
+    "pos": "noun",
+    "level": "B1",
+    "chinese": "好奇心；求知欲",
+    "definition": "a strong desire to know or learn something",
+    "examples": [
+      "Curiosity killed the cat."
+    ],
+    "word": "curiosity"
+  },
+  "overcome": {
+    "ipa": "ˌəʊvəˈkʌm",
+    "pos": "verb",
+    "level": "B2",
+    "chinese": "克服；战胜",
+    "definition": "succeed in dealing with a problem or difficulty",
+    "examples": [
+      "She overcame her fear of heights."
+    ],
+    "word": "overcome"
+  },
+  "fear": {
+    "ipa": "fɪə",
+    "pos": "noun",
+    "level": "A2",
+    "chinese": "恐惧；害怕",
+    "definition": "an unpleasant emotion caused by threat of danger",
+    "examples": [
+      "He has a fear of flying."
+    ],
+    "word": "fear"
+  },
+  "suggest": {
+    "ipa": "səˈdʒest",
+    "pos": "verb",
+    "level": "B1",
+    "chinese": "建议；提议",
+    "definition": "put forward for consideration",
+    "examples": [
+      "I suggest we leave now."
+    ],
+    "word": "suggest"
+  },
+  "perhaps": {
+    "ipa": "pəˈhæps",
+    "pos": "adverb",
+    "level": "A2",
+    "chinese": "也许；可能",
+    "definition": "used to express uncertainty",
+    "examples": [
+      "Perhaps it will rain tomorrow."
+    ],
+    "word": "perhaps"
+  },
+  "ancient": {
+    "ipa": "ˈeɪnʃənt",
+    "pos": "adjective",
+    "level": "B1",
+    "chinese": "古代的；古老的",
+    "definition": "belonging to the very distant past",
+    "examples": [
+      "Ancient Rome was a powerful empire."
+    ],
+    "word": "ancient"
+  }
+}

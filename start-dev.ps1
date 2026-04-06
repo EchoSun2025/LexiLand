@@ -1,8 +1,24 @@
-﻿# LexiLand Read Development Startup Script
+# LexiLand Read Development Startup Script
 # This script starts both backend and frontend servers concurrently
 
 Write-Host "=== Starting LexiLand Read Development Servers ===" -ForegroundColor Cyan
 Write-Host ""
+
+# Clean up stale Node.js processes first to avoid running old frontend/backend builds
+$existingNode = Get-Process -Name node -ErrorAction SilentlyContinue
+if ($existingNode) {
+    Write-Host "Found $($existingNode.Count) existing Node.js process(es), stopping them first..." -ForegroundColor Yellow
+    $existingNode | ForEach-Object {
+        try {
+            Stop-Process -Id $_.Id -Force -ErrorAction Stop
+            Write-Host "  Stopped Node process $($_.Id)" -ForegroundColor Gray
+        } catch {
+            Write-Host "  Failed to stop process $($_.Id): $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+    Write-Host ""
+    Start-Sleep -Seconds 1
+}
 
 # Get the script directory
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path

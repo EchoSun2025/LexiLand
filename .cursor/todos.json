@@ -1,0 +1,47 @@
+[
+  {
+    "id": "card-history",
+    "content": "右侧卡片历史：显示最近15个单词/短语",
+    "status": "completed"
+  },
+  {
+    "id": "card-delete",
+    "content": "右侧卡片：添加删除按钮",
+    "status": "completed"
+  },
+  {
+    "id": "bookmark-storage",
+    "content": "书签功能：数据结构和存储",
+    "status": "completed"
+  },
+  {
+    "id": "bookmark-add",
+    "content": "书签功能：右键添加书签",
+    "status": "completed"
+  },
+  {
+    "id": "bookmark-jump",
+    "content": "书签功能：大纲跳转按钮",
+    "status": "completed"
+  },
+  {
+    "id": "auto-pronounce-hover",
+    "content": "自动发音：hover 3s 触发",
+    "status": "completed"
+  },
+  {
+    "id": "auto-pronounce-settings",
+    "content": "自动发音：设置开关",
+    "status": "completed"
+  },
+  {
+    "id": "card-ui-refactor",
+    "content": "右侧卡片UI重构：折叠/展开模式",
+    "status": "completed"
+  },
+  {
+    "id": "ai-regenerate",
+    "content": "添加AI重新生成解释按钮",
+    "status": "completed"
+  }
+]

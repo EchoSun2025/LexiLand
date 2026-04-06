@@ -1,0 +1,130 @@
+"filename", "language", "Markdown", "Shell Script", "PowerShell", "JSON with Comments", "JavaScript", "JSON", "TypeScript", "HTML", "Python", "TypeScript JSX", "PostCSS", "XML", "comment", "blank", "total"
+"d:\00working\20260110_CODE_Lexiland_read\AI_EMOJI_GENERATION.md", "Markdown", 261, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 75, 336
+"d:\00working\20260110_CODE_Lexiland_read\AUTO_ANNOTATE_FEATURE.md", "Markdown", 107, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 133
+"d:\00working\20260110_CODE_Lexiland_read\AUTO_ANNOTATE_FIX.md", "Markdown", 102, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 124
+"d:\00working\20260110_CODE_Lexiland_read\CHANGELOG_PURPLE_ORANGE.md", "Markdown", 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 38, 153
+"d:\00working\20260110_CODE_Lexiland_read\CHECKLIST.md", "Markdown", 326, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 406
+"d:\00working\20260110_CODE_Lexiland_read\DICTIONARY_30K_BNC.md", "Markdown", 68, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 86
+"d:\00working\20260110_CODE_Lexiland_read\DICTIONARY_GUIDE.md", "Markdown", 133, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 51, 184
+"d:\00working\20260110_CODE_Lexiland_read\DICTIONARY_INTEGRATION.md", "Markdown", 201, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 69, 270
+"d:\00working\20260110_CODE_Lexiland_read\ECDICT_SETUP.md", "Markdown", 221, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 67, 288
+"d:\00working\20260110_CODE_Lexiland_read\EMOJI_EMOJILIB_UPGRADE.md", "Markdown", 205, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 53, 258
+"d:\00working\20260110_CODE_Lexiland_read\EMOJI_FALLBACK_MECHANISM.md", "Markdown", 118, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 158
+"d:\00working\20260110_CODE_Lexiland_read\EMOJI_FEATURES_V1.5.md", "Markdown", 196, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 63, 259
+"d:\00working\20260110_CODE_Lexiland_read\EMOJI_LOCAL_STORAGE.md", "Markdown", 220, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 269
+"d:\00working\20260110_CODE_Lexiland_read\EMOJI_STORE_SYNC_FIX.md", "Markdown", 83, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 107
+"d:\00working\20260110_CODE_Lexiland_read\EMOJI_UPGRADE_SUMMARY.md", "Markdown", 152, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 197
+"d:\00working\20260110_CODE_Lexiland_read\EPUB_SUPPORT.md", "Markdown", 113, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 145
+"d:\00working\20260110_CODE_Lexiland_read\FEATURES_v1.3.md", "Markdown", 190, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 246
+"d:\00working\20260110_CODE_Lexiland_read\FILES.md", "Markdown", 185, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 29, 214
+"d:\00working\20260110_CODE_Lexiland_read\FRONTEND_CACHE_FIX.md", "Markdown", 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 85
+"d:\00working\20260110_CODE_Lexiland_read\GPT_IMAGE_MINI_UPGRADE.md", "Markdown", 98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 128
+"d:\00working\20260110_CODE_Lexiland_read\HOW_TO_RUN.md", "Markdown", 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 77
+"d:\00working\20260110_CODE_Lexiland_read\IMPLEMENTATION_v1.3.md", "Markdown", 203, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 259
+"d:\00working\20260110_CODE_Lexiland_read\INTERACTION_GUIDE.md", "Markdown", 181, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 66, 247
+"d:\00working\20260110_CODE_Lexiland_read\LEMMATIZATION_COMPLETE.md", "Markdown", 104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 127
+"d:\00working\20260110_CODE_Lexiland_read\MIGRATION_v1.3.md", "Markdown", 160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 63, 223
+"d:\00working\20260110_CODE_Lexiland_read\POS_FIX_LANDMARKS.md", "Markdown", 82, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 100
+"d:\00working\20260110_CODE_Lexiland_read\QUICKSTART.md", "Markdown", 208, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 79, 287
+"d:\00working\20260110_CODE_Lexiland_read\QUICKSTART_v1.3.md", "Markdown", 159, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 55, 214
+"d:\00working\20260110_CODE_Lexiland_read\README.md", "Markdown", 87, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 31, 118
+"d:\00working\20260110_CODE_Lexiland_read\SIMPLIFY_COMPLETE.md", "Markdown", 130, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 57, 187
+"d:\00working\20260110_CODE_Lexiland_read\SMART_POS_DISPLAY.md", "Markdown", 113, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 138
+"d:\00working\20260110_CODE_Lexiland_read\SPRINT1_COMPLETE.md", "Markdown", 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 34, 135
+"d:\00working\20260110_CODE_Lexiland_read\STARTUP_GUIDE.md", "Markdown", 153, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 61, 214
+"d:\00working\20260110_CODE_Lexiland_read\SUMMARY.md", "Markdown", 248, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 90, 338
+"d:\00working\20260110_CODE_Lexiland_read\TAGS_LOGIC.md", "Markdown", 167, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 209
+"d:\00working\20260110_CODE_Lexiland_read\TAURI-SETUP.md", "Markdown", 203, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 82, 285
+"d:\00working\20260110_CODE_Lexiland_read\TECHNICAL_DESIGN.md", "Markdown", 1371, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 315, 1686
+"d:\00working\20260110_CODE_Lexiland_read\TEST_PHRASE_API.md", "Markdown", 72, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 92
+"d:\00working\20260110_CODE_Lexiland_read\TEST_v1.3.md", "Markdown", 204, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 61, 265
+"d:\00working\20260110_CODE_Lexiland_read\TMP\layoutReference.html", "HTML", 0, 0, 0, 0, 0, 0, 0, 247, 0, 0, 0, 0, 7, 26, 280
+"d:\00working\20260110_CODE_Lexiland_read\TRANSLATION_SIMPLIFY.md", "Markdown", 115, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 43, 158
+"d:\00working\20260110_CODE_Lexiland_read\UNSPLASH_500_DEBUG.md", "Markdown", 130, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 54, 184
+"d:\00working\20260110_CODE_Lexiland_read\UNSPLASH_FALLBACK_STRATEGY.md", "Markdown", 135, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 184
+"d:\00working\20260110_CODE_Lexiland_read\UNSPLASH_INTEGRATION.md", "Markdown", 206, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 69, 275
+"d:\00working\20260110_CODE_Lexiland_read\UNSPLASH_TROUBLESHOOTING.md", "Markdown", 133, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52, 185
+"d:\00working\20260110_CODE_Lexiland_read\USER\lexiland-userdata-2026-01-31T11-22-57.json", "JSON", 0, 0, 0, 0, 0, 5714, 0, 0, 0, 0, 0, 0, 0, 0, 5714
+"d:\00working\20260110_CODE_Lexiland_read\WORD_EMOJI_FEATURE.md", "Markdown", 177, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 213
+"d:\00working\20260110_CODE_Lexiland_read\WORD_FORMS_DISPLAY.md", "Markdown", 96, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 124
+"d:\00working\20260110_CODE_Lexiland_read\backend\package.json", "JSON", 0, 0, 0, 0, 0, 26, 0, 0, 0, 0, 0, 0, 0, 1, 27
+"d:\00working\20260110_CODE_Lexiland_read\backend\src\index.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 394, 0, 0, 0, 0, 0, 22, 53, 469
+"d:\00working\20260110_CODE_Lexiland_read\backend\test-backend-api.js", "JavaScript", 0, 0, 0, 0, 44, 0, 0, 0, 0, 0, 0, 0, 2, 9, 55
+"d:\00working\20260110_CODE_Lexiland_read\backend\test-unsplash.js", "JavaScript", 0, 0, 0, 0, 51, 0, 0, 0, 0, 0, 0, 0, 2, 15, 68
+"d:\00working\20260110_CODE_Lexiland_read\backend\test-word.js", "JavaScript", 0, 0, 0, 0, 57, 0, 0, 0, 0, 0, 0, 0, 3, 17, 77
+"d:\00working\20260110_CODE_Lexiland_read\backend\tsconfig.json", "JSON with Comments", 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 18
+"d:\00working\20260110_CODE_Lexiland_read\check-tauri-linux.sh", "Shell Script", 0, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 19, 205
+"d:\00working\20260110_CODE_Lexiland_read\check-tauri-windows.ps1", "PowerShell", 0, 0, 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 11, 132
+"d:\00working\20260110_CODE_Lexiland_read\docs\API.md", "Markdown", 320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 112, 432
+"d:\00working\20260110_CODE_Lexiland_read\docs\GESTURES.md", "Markdown", 345, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 78, 423
+"d:\00working\20260110_CODE_Lexiland_read\frontend\README.md", "Markdown", 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 74
+"d:\00working\20260110_CODE_Lexiland_read\frontend\eslint.config.js", "JavaScript", 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 24
+"d:\00working\20260110_CODE_Lexiland_read\frontend\index.html", "HTML", 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 1, 14
+"d:\00working\20260110_CODE_Lexiland_read\frontend\package.json", "JSON", 0, 0, 0, 0, 0, 45, 0, 0, 0, 0, 0, 0, 0, 1, 46
+"d:\00working\20260110_CODE_Lexiland_read\frontend\postcss.config.js", "JavaScript", 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7
+"d:\00working\20260110_CODE_Lexiland_read\frontend\public\dictionaries\core-1000.json", "JSON", 0, 0, 0, 0, 0, 812, 0, 0, 0, 0, 0, 0, 0, 0, 812
+"d:\00working\20260110_CODE_Lexiland_read\frontend\public\dictionaries\core-10000.json", "JSON", 0, 0, 0, 0, 0, 90002, 0, 0, 0, 0, 0, 0, 0, 0, 90002
+"d:\00working\20260110_CODE_Lexiland_read\frontend\public\dictionaries\core-30000.json", "JSON", 0, 0, 0, 0, 0, 270002, 0, 0, 0, 0, 0, 0, 0, 0, 270002
+"d:\00working\20260110_CODE_Lexiland_read\frontend\public\dictionaries\core-50000.json", "JSON", 0, 0, 0, 0, 0, 450002, 0, 0, 0, 0, 0, 0, 0, 0, 450002
+"d:\00working\20260110_CODE_Lexiland_read\frontend\public\dictionaries\word-forms.json", "JSON", 0, 0, 0, 0, 0, 29175, 0, 0, 0, 0, 0, 0, 0, 0, 29175
+"d:\00working\20260110_CODE_Lexiland_read\frontend\public\known-words-3000.json", "JSON", 0, 0, 0, 0, 0, 107, 0, 0, 0, 0, 0, 0, 0, 1, 108
+"d:\00working\20260110_CODE_Lexiland_read\frontend\public\vite.svg", "XML", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\App.css", "PostCSS", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 37, 0, 0, 6, 43
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\App.test.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 0, 4, 22
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\App.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1509, 0, 0, 177, 198, 1884
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\api\index.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 169, 0, 0, 0, 0, 0, 0, 19, 188
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\assets\react.svg", "XML", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\components\Paragraph.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 93, 0, 0, 1, 5, 99
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\components\PhraseCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 89, 0, 0, 6, 10, 105
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\components\Sentence.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 195, 0, 0, 16, 19, 230
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\components\Word.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 81, 0, 0, 12, 13, 106
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\components\WordCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 370, 0, 0, 35, 44, 449
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\db\index.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 376, 0, 0, 0, 0, 0, 74, 53, 503
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\index.css", "PostCSS", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 6, 29
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\main.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 2, 11
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\services\llifConverter.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 169, 0, 0, 0, 0, 0, 25, 17, 211
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\services\localDictionary.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 157, 0, 0, 0, 0, 0, 46, 35, 238
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\store\appStore.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 123, 0, 0, 0, 0, 0, 7, 25, 155
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\types\llif.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 80, 0, 0, 0, 0, 0, 4, 12, 96
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\utils\emojiHelper.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 136, 0, 0, 0, 0, 0, 33, 27, 196
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\utils\epubParser.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 85, 0, 0, 0, 0, 0, 23, 20, 128
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\utils\index.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 3
+"d:\00working\20260110_CODE_Lexiland_read\frontend\src\utils\tokenize.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 116, 0, 0, 0, 0, 0, 25, 32, 173
+"d:\00working\20260110_CODE_Lexiland_read\frontend\tailwind.config.js", "JavaScript", 0, 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 1, 1, 20
+"d:\00working\20260110_CODE_Lexiland_read\frontend\tsconfig.app.json", "JSON", 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 2, 3, 29
+"d:\00working\20260110_CODE_Lexiland_read\frontend\tsconfig.json", "JSON with Comments", 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 8
+"d:\00working\20260110_CODE_Lexiland_read\frontend\tsconfig.node.json", "JSON", 0, 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 2, 3, 27
+"d:\00working\20260110_CODE_Lexiland_read\frontend\vite.config.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 1, 2, 8
+"d:\00working\20260110_CODE_Lexiland_read\init-all.ps1", "PowerShell", 0, 0, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 10, 43
+"d:\00working\20260110_CODE_Lexiland_read\init-backend.ps1", "PowerShell", 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 13, 69
+"d:\00working\20260110_CODE_Lexiland_read\init-frontend.ps1", "PowerShell", 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 15, 49
+"d:\00working\20260110_CODE_Lexiland_read\known-words-3000.json", "JSON", 0, 0, 0, 0, 0, 107, 0, 0, 0, 0, 0, 0, 0, 1, 108
+"d:\00working\20260110_CODE_Lexiland_read\package-lock.json", "JSON", 0, 0, 0, 0, 0, 5946, 0, 0, 0, 0, 0, 0, 0, 1, 5947
+"d:\00working\20260110_CODE_Lexiland_read\package.json", "JSON", 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 1, 22
+"d:\00working\20260110_CODE_Lexiland_read\scripts\check_bnc_data.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 2, 6
+"d:\00working\20260110_CODE_Lexiland_read\scripts\check_dazzle.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 2, 15
+"d:\00working\20260110_CODE_Lexiland_read\scripts\check_dict_content.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 3, 4, 21
+"d:\00working\20260110_CODE_Lexiland_read\scripts\check_trill_forms.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 2, 4, 14
+"d:\00working\20260110_CODE_Lexiland_read\scripts\convert_ecdict.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 248, 0, 0, 0, 68, 65, 381
+"d:\00working\20260110_CODE_Lexiland_read\scripts\count_valid_words.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 47, 0, 0, 0, 1, 9, 57
+"d:\00working\20260110_CODE_Lexiland_read\scripts\debug_dazzle.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 7, 40
+"d:\00working\20260110_CODE_Lexiland_read\scripts\download_ecdict.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 95, 0, 0, 0, 21, 21, 137
+"d:\00working\20260110_CODE_Lexiland_read\scripts\find_dazzle.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 3, 17
+"d:\00working\20260110_CODE_Lexiland_read\scripts\generate_core_dict.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 128, 0, 0, 0, 14, 15, 157
+"d:\00working\20260110_CODE_Lexiland_read\scripts\make_bnc_dict.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 101, 0, 0, 0, 15, 21, 137
+"d:\00working\20260110_CODE_Lexiland_read\scripts\test_emojilib.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 0, 2, 8, 43
+"d:\00working\20260110_CODE_Lexiland_read\scripts\test_lemmatization.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 46, 0, 0, 0, 8, 12, 66
+"d:\00working\20260110_CODE_Lexiland_read\scripts\test_simplify.py", "Python", 0, 0, 0, 0, 0, 0, 0, 0, 35, 0, 0, 0, 4, 9, 48
+"d:\00working\20260110_CODE_Lexiland_read\setup-dictionary.ps1", "PowerShell", 0, 0, 66, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 13, 85
+"d:\00working\20260110_CODE_Lexiland_read\shared\package.json", "JSON", 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 1, 14
+"d:\00working\20260110_CODE_Lexiland_read\shared\src\index.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 1, 6
+"d:\00working\20260110_CODE_Lexiland_read\shared\src\types\api.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 47, 0, 0, 0, 0, 0, 11, 11, 69
+"d:\00working\20260110_CODE_Lexiland_read\shared\src\types\card.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 6, 6, 53
+"d:\00working\20260110_CODE_Lexiland_read\shared\src\types\document.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 59, 0, 0, 0, 0, 0, 9, 9, 77
+"d:\00working\20260110_CODE_Lexiland_read\shared\src\types\gesture.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 4, 4, 27
+"d:\00working\20260110_CODE_Lexiland_read\shared\src\types\word.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 3, 3, 21
+"d:\00working\20260110_CODE_Lexiland_read\shared\tsconfig.json", "JSON with Comments", 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 18
+"d:\00working\20260110_CODE_Lexiland_read\start-dev-simple.ps1", "PowerShell", 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 5, 18
+"d:\00working\20260110_CODE_Lexiland_read\start-dev.ps1", "PowerShell", 0, 0, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 12, 61
+"d:\00working\20260110_CODE_Lexiland_read\stop-dev.ps1", "PowerShell", 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 7, 28
+"Total", "-", 8868, 170, 345, 41, 198, 852018, 2030, 260, 786, 2364, 60, 2, 768, 3643, 871553

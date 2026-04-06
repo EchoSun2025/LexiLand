@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import staticPlugin from '@fastify/static';
 import 'dotenv/config';
 import OpenAI from 'openai';
 import * as fs from 'fs';
@@ -9,6 +10,16 @@ import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const DEFAULT_DATA_DIR = 'D:\\0_EnglishLearning';
+const LEARNING_DATA_DIR = path.resolve(process.env.LEARNING_DATA_DIR || DEFAULT_DATA_DIR);
+const LEARNING_IMAGES_DIR = path.join(LEARNING_DATA_DIR, 'images');
+const LEARNING_BACKUPS_DIR = path.join(LEARNING_DATA_DIR, 'backups');
+
+for (const dir of [LEARNING_DATA_DIR, LEARNING_IMAGES_DIR, LEARNING_BACKUPS_DIR]) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
 
 const fastify = Fastify({
   logger: true
@@ -27,9 +38,19 @@ await fastify.register(cors, {
   credentials: true,
 });
 
+// Serve learning images from fixed data directory
+await fastify.register(staticPlugin, {
+  root: LEARNING_IMAGES_DIR,
+  prefix: '/learning-images/',
+});
+
 // 健康检查路由
 fastify.get('/health', async (request, reply) => {
-  return { status: 'ok', timestamp: Date.now() };
+  return {
+    status: 'ok',
+    timestamp: Date.now(),
+    dataDir: LEARNING_DATA_DIR,
+  };
 });
 
 // 测试路由
@@ -220,12 +241,7 @@ async function downloadImageToLocal(imageUrl: string, word: string): Promise<str
   const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const extension = imageUrl.toLowerCase().includes('.png') ? 'png' : 'jpg';
   const filename = `${sanitizedWord}_${Date.now()}.${extension}`;
-  const imagesDir = path.join(__dirname, '..', '..', 'frontend', 'public', 'emoji-images');
-  const filepath = path.join(imagesDir, filename);
-
-  if (!fs.existsSync(imagesDir)) {
-    fs.mkdirSync(imagesDir, { recursive: true });
-  }
+  const filepath = path.join(LEARNING_IMAGES_DIR, filename);
 
   const imageData = await fetch(imageUrl);
   if (!imageData.ok) {
@@ -235,7 +251,7 @@ async function downloadImageToLocal(imageUrl: string, word: string): Promise<str
   const buffer = Buffer.from(await imageData.arrayBuffer());
   fs.writeFileSync(filepath, buffer);
 
-  return `/emoji-images/${filename}`;
+  return `/learning-images/${filename}`;
 }
 
 fastify.post<{ Body: SearchImageRequest }>('/api/search-image', async (request, reply) => {
@@ -295,7 +311,7 @@ fastify.post<{ Body: SearchImageRequest }>('/api/search-image', async (request, 
     }
 
     if (!remoteImageUrl) {
-      throw new Error('No images found from Google or Unsplash');
+      throw new Error('No images found from Unsplash');
     }
 
     const localPath = await downloadImageToLocal(remoteImageUrl, word);
@@ -365,15 +381,10 @@ fastify.post<{ Body: SavePastedImageRequest }>('/api/save-pasted-image', async (
 
     const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const filename = `${sanitizedWord}_${Date.now()}.${ext}`;
-    const imagesDir = path.join(__dirname, '..', '..', 'frontend', 'public', 'emoji-images');
-    const filepath = path.join(imagesDir, filename);
-
-    if (!fs.existsSync(imagesDir)) {
-      fs.mkdirSync(imagesDir, { recursive: true });
-    }
+    const filepath = path.join(LEARNING_IMAGES_DIR, filename);
     fs.writeFileSync(filepath, buffer);
 
-    const localPath = `/emoji-images/${filename}`;
+    const localPath = `/learning-images/${filename}`;
     fastify.log.info({ word, localPath, size: buffer.length }, 'Saved pasted image locally');
     return {
       success: true,
@@ -390,6 +401,81 @@ fastify.post<{ Body: SavePastedImageRequest }>('/api/save-pasted-image', async (
       error: error.message || 'Failed to save pasted image',
     });
   }
+});
+
+interface SaveUserBackupRequest {
+  jsonData: string;
+}
+
+fastify.post<{ Body: SaveUserBackupRequest }>('/api/user-backup/save', async (request, reply) => {
+  const { jsonData } = request.body;
+  if (!jsonData || typeof jsonData !== 'string') {
+    return reply.code(400).send({ success: false, error: 'jsonData is required' });
+  }
+
+  try {
+    // validate json before saving
+    JSON.parse(jsonData);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const snapshotPath = path.join(LEARNING_BACKUPS_DIR, `userdata-${timestamp}.json`);
+    const latestPath = path.join(LEARNING_BACKUPS_DIR, 'userdata-latest.json');
+    fs.writeFileSync(snapshotPath, jsonData, 'utf-8');
+    fs.writeFileSync(latestPath, jsonData, 'utf-8');
+
+    return {
+      success: true,
+      data: {
+        savedAt: new Date().toISOString(),
+        snapshotPath,
+        latestPath,
+      },
+    };
+  } catch (error: any) {
+    fastify.log.error({ error: error.message }, 'Failed to save user backup');
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to save user backup',
+    });
+  }
+});
+
+fastify.get('/api/user-backup/load', async (request, reply) => {
+  try {
+    const latestPath = path.join(LEARNING_BACKUPS_DIR, 'userdata-latest.json');
+    if (!fs.existsSync(latestPath)) {
+      return reply.code(404).send({
+        success: false,
+        error: `No backup found in ${LEARNING_BACKUPS_DIR}`,
+      });
+    }
+    const jsonData = fs.readFileSync(latestPath, 'utf-8');
+    return {
+      success: true,
+      data: {
+        jsonData,
+        path: latestPath,
+      },
+    };
+  } catch (error: any) {
+    fastify.log.error({ error: error.message }, 'Failed to load user backup');
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to load user backup',
+    });
+  }
+});
+
+fastify.get('/api/user-backup/status', async () => {
+  const latestPath = path.join(LEARNING_BACKUPS_DIR, 'userdata-latest.json');
+  return {
+    success: true,
+    data: {
+      dataDir: LEARNING_DATA_DIR,
+      imagesDir: LEARNING_IMAGES_DIR,
+      backupsDir: LEARNING_BACKUPS_DIR,
+      hasLatestBackup: fs.existsSync(latestPath),
+    },
+  };
 });
 
 // AI 生成 Emoji 图片 API
@@ -491,13 +577,7 @@ Return ONLY the visual description, no explanation.`;
     // Step 3: 下载图片到本地
     const sanitizedWord = word.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const filename = `${sanitizedWord}_${Date.now()}.png`;
-    const imagesDir = path.join(__dirname, '..', '..', 'frontend', 'public', 'emoji-images');
-    const filepath = path.join(imagesDir, filename);
-    
-    // 确保目录存在
-    if (!fs.existsSync(imagesDir)) {
-      fs.mkdirSync(imagesDir, { recursive: true });
-    }
+    const filepath = path.join(LEARNING_IMAGES_DIR, filename);
 
     // 下载图片
     fastify.log.info({ imageUrl, filepath }, 'Downloading image');
@@ -509,7 +589,7 @@ Return ONLY the visual description, no explanation.`;
     const buffer = Buffer.from(await imageData.arrayBuffer());
     fs.writeFileSync(filepath, buffer);
     
-    const localPath = `/emoji-images/${filename}`;
+    const localPath = `/learning-images/${filename}`;
     fastify.log.info({ word, localPath, model: modelUsed! }, 'Saved emoji image locally');
 
     return {
