@@ -104,6 +104,9 @@ Please provide the following information in JSON format:
 }
 
 Important: 
+- If context is provided, interpret the word ONLY as it is used in that sentence. Do not default to the most common dictionary meaning if the sentence clearly indicates another sense.
+- Identify the actual part of speech in the sentence. For inflected forms such as gerunds, participles, past tense, or plural forms, explain the contextual meaning of the inflected form, not a different lemma's common noun meaning.
+- Example: in "Relief coursed through her", "coursed" is a verb meaning something like "surged/flowed through", not the noun "course". In a sentence where "springing" describes movement, treat it as a verb meaning "jumping/leaping", not the season "spring".
 - If the word is an irregular past tense (e.g., 'ran'), past participle (e.g., 'spoken'), or other inflected form, provide the baseForm.
 - The "example" field MUST contain a complete, natural sentence demonstrating the word's usage. NEVER leave it empty.
 - Return ONLY the JSON object, no additional text.`;
