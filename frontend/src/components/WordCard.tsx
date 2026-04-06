@@ -994,7 +994,7 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
         <div className="text-lg text-gray-900 flex-1">{annotation.chinese}</div>
         {onRegenerateAI && (
           <button
-            onClick={() => onRegenerateAI(annotation.word, annotation.sentence || '')}
+            onClick={() => onRegenerateAI(shownWord, annotation.sentence || '')}
             className="text-xs px-2 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
             title="Re-generate with AI"
           >
