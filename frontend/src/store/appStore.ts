@@ -188,7 +188,7 @@ export const useAppStore = create<AppState>((set) => ({
     const newHistory = [
       { type, word, timestamp: Date.now() },
       ...filtered
-    ].slice(0, 50);
+    ];
     return { cardHistory: newHistory };
   }),
   
