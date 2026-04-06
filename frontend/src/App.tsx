@@ -540,7 +540,7 @@ function App() {
           } else if (annotationMode === 'local-first') {
             // 本地没找到，使用 AI
             console.log(`[Local Dict] Not found "${wordItem.word}", falling back to AI`);
-            const result = await annotateWord(wordItem.word);
+            const result = await annotateWord(wordItem.word, level, wordItem.sentence);
             if (!result.success || !result.data) {
               failed++;
               console.error(`Failed to annotate "${wordItem.word}":`, result.error);
@@ -559,7 +559,7 @@ function App() {
           }
         } else {
           // annotationMode === 'ai'，直接使用 AI
-          const result = await annotateWord(wordItem.word);
+          const result = await annotateWord(wordItem.word, level, wordItem.sentence);
           if (!result.success || !result.data) {
             failed++;
             console.error(`Failed to annotate "${wordItem.word}":`, result.error);
@@ -740,9 +740,19 @@ function App() {
       console.log('[AI Regenerate]', type, ':', word, 'Sentence:', sentence);
       
       if (type === 'word') {
-        const result = await annotateWord(word, sentence, currentDocument?.title || 'Unknown');
+        const result = await annotateWord(word, level, sentence);
         if (result.success && result.data) {
-          const mergedAnnotation = mergeAnnotationMeanings(annotations.get(word.toLowerCase()) as WordAnnotation | undefined, result.data).annotation;
+          const existingAnnotation = annotations.get(word.toLowerCase()) as WordAnnotation | undefined;
+          const annotationWithContext: WordAnnotation = {
+            ...result.data,
+            sentence,
+            documentTitle: currentDocument?.title || 'Unknown',
+            wordForms: result.data.wordForms ?? existingAnnotation?.wordForms,
+          };
+          const mergedAnnotation = mergeAnnotationMeanings(
+            existingAnnotation,
+            annotationWithContext
+          ).annotation;
           addAnnotation(word, mergedAnnotation);
           await cacheAnnotation(word, mergedAnnotation);
           console.log('[AI Regenerate] Success:', mergedAnnotation);

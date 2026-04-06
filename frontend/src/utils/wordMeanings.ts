@@ -318,6 +318,26 @@ export function mergeAnnotationMeanings<T extends AnnotationWithMeanings>(
   };
 }
 
+export function appendManualMeaning<T extends AnnotationWithMeanings>(
+  existing: T,
+  incoming: WordAnnotation,
+): { annotation: T; activeMeaningId: string } {
+  const normalized = ensureEncounteredMeanings(existing);
+  const newMeaning = createMeaningFromAnnotation(incoming);
+  const annotation = applyMeaningToAnnotation(
+    {
+      ...normalized,
+      encounteredMeanings: [...normalized.encounteredMeanings!, newMeaning],
+    } as T,
+    newMeaning.id,
+  );
+
+  return {
+    annotation,
+    activeMeaningId: newMeaning.id,
+  };
+}
+
 export function findBestMeaningIdForSentence<T extends AnnotationWithMeanings>(
   annotation: T,
   sentence?: string,

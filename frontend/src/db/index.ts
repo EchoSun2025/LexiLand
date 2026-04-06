@@ -1,6 +1,7 @@
 import Dexie from 'dexie';
 import type { Table } from 'dexie';
 import {
+  appendManualMeaning,
   applyMeaningToAnnotation,
   applyUpdatesToActiveMeaning,
   ensureEncounteredMeanings,
@@ -368,6 +369,30 @@ export async function setActiveMeaning(word: string, meaningId: string, onUpdate
 
   if (onUpdate) {
     onUpdate(updatedAnnotation);
+  }
+}
+
+export async function addManualMeaning(word: string, meaning: Omit<CachedAnnotation, 'word' | 'cachedAt' | 'encounteredMeanings' | 'activeMeaningId'>, onUpdate?: (updates: Partial<CachedAnnotation>) => void): Promise<void> {
+  const annotation = await db.annotations.get(word.toLowerCase());
+  if (!annotation) {
+    console.warn('[DB] Annotation not found for word:', word, '- Cannot add manual meaning');
+    return;
+  }
+
+  const normalized = ensureEncounteredMeanings(annotation);
+  const appended = appendManualMeaning(normalized, {
+    ...normalized,
+    ...meaning,
+    word,
+  });
+
+  await db.annotations.put({
+    ...appended.annotation,
+    cachedAt: annotation.cachedAt,
+  });
+
+  if (onUpdate) {
+    onUpdate(appended.annotation);
   }
 }
 
