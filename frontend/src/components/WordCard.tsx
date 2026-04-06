@@ -770,7 +770,7 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
               onClick={(e) => {
                 e.stopPropagation();
                 if (confirm(`Delete "${annotation.word}" from cards and add to known words?`)) {
-                  onDelete(annotation.word);
+                  onDelete(shownWord);
                 }
               }}
               className="text-gray-400 hover:text-red-600 text-lg leading-none px-2"

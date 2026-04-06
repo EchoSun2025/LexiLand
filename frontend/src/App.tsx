@@ -871,21 +871,38 @@ function App() {
   // Handle delete from cards
   const handleDeleteFromCards = async (word: string) => {
     try {
+      const entry = findAnnotationEntry(annotations, word.toLowerCase());
+      const canonicalWord = entry?.key || word.toLowerCase();
+      const surfaceWord = word.toLowerCase();
+
       // Remove annotation from store
-      removeAnnotation(word);
+      removeAnnotation(canonicalWord);
+      if (surfaceWord !== canonicalWord) {
+        removeAnnotation(surfaceWord);
+      }
 
       // Remove from IndexedDB
-      await deleteAnnotation(word);
+      await deleteAnnotation(canonicalWord);
+      if (surfaceWord !== canonicalWord) {
+        await deleteAnnotation(surfaceWord);
+      }
 
       // Add to known words
-      addKnownWord(word);
-      await addKnownWordToDB(word);
+      addKnownWord(surfaceWord);
+      await addKnownWordToDB(surfaceWord);
+      if (surfaceWord !== canonicalWord) {
+        addKnownWord(canonicalWord);
+        await addKnownWordToDB(canonicalWord);
+      }
 
       // Close the card and remove from history
       setExpandedCardKey(null);
-      removeFromCardHistory(word);
+      removeFromCardHistory(surfaceWord);
+      if (surfaceWord !== canonicalWord) {
+        removeFromCardHistory(canonicalWord);
+      }
 
-      console.log(`Deleted "${word}" from cards and added to known words`);
+      console.log(`Deleted "${surfaceWord}" (canonical: "${canonicalWord}") from cards and added to known words`);
     } catch (error) {
       console.error('Failed to delete from cards:', error);
     }
