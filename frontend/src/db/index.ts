@@ -112,10 +112,40 @@ export class LexiLandDB extends Dexie {
       }
       console.log('[DB Migration v7] Migrated emoji data structure for', annotations.length, 'annotations');
     });
+
+    this.version(8).stores({
+      knownWords: 'word, level, addedAt',
+      learntWords: 'word, learntAt',
+      annotations: 'word, cachedAt',
+      phraseAnnotations: 'phrase, cachedAt',
+      documents: 'id, createdAt, lastOpenedAt',
+    }).upgrade(async (trans) => {
+      const annotations = await trans.table('annotations').toArray();
+      for (const annotation of annotations) {
+        await trans.table('annotations').put({
+          ...annotation,
+          emojiImagePath: normalizeEmojiImagePaths((annotation as any).emojiImagePath),
+        });
+      }
+      console.log('[DB Migration v8] Normalized emoji image paths to /learning-images/ for', annotations.length, 'annotations');
+    });
   }
 }
 
 export const db = new LexiLandDB();
+
+function normalizeEmojiImagePath(path?: string): string | undefined {
+  if (!path) return path;
+  if (path.startsWith('/emoji-images/')) {
+    return path.replace('/emoji-images/', '/learning-images/');
+  }
+  return path;
+}
+
+function normalizeEmojiImagePaths(paths?: string[]): string[] {
+  if (!paths) return [];
+  return paths.map(normalizeEmojiImagePath).filter((path): path is string => Boolean(path));
+}
 
 /**
  * Load known words from JSON file and save to IndexedDB
@@ -184,6 +214,7 @@ export async function cacheAnnotation(word: string, annotation: Omit<CachedAnnot
   await db.annotations.put({
     word: word.toLowerCase(),
     ...annotation,
+    emojiImagePath: normalizeEmojiImagePaths(annotation.emojiImagePath),
     cachedAt: Date.now(),
   });
 }
@@ -192,14 +223,23 @@ export async function cacheAnnotation(word: string, annotation: Omit<CachedAnnot
  * Get cached annotation from IndexedDB
  */
 export async function getCachedAnnotation(word: string): Promise<CachedAnnotation | undefined> {
-  return await db.annotations.get(word.toLowerCase());
+  const annotation = await db.annotations.get(word.toLowerCase());
+  if (!annotation) return annotation;
+  return {
+    ...annotation,
+    emojiImagePath: normalizeEmojiImagePaths(annotation.emojiImagePath),
+  };
 }
 
 /**
  * Get all cached annotations from IndexedDB
  */
 export async function getAllCachedAnnotations(): Promise<CachedAnnotation[]> {
-  return await db.annotations.toArray();
+  const annotations = await db.annotations.toArray();
+  return annotations.map(annotation => ({
+    ...annotation,
+    emojiImagePath: normalizeEmojiImagePaths(annotation.emojiImagePath),
+  }));
 }
 
 /**
@@ -233,7 +273,7 @@ export async function addEmojiImagePath(word: string, imagePath: string, model?:
     }
     
     // 添加新图片路径到数组开头（最新的在前面）
-    annotation.emojiImagePath.unshift(imagePath);
+    annotation.emojiImagePath.unshift(normalizeEmojiImagePath(imagePath)!);
     
     // 限制最多保存 5 张历史图片
     if (annotation.emojiImagePath.length > 5) {
@@ -365,7 +405,7 @@ export async function exportUserData(): Promise<string> {
         sentenceContext: a.sentence,  // 保持向后兼容，但导出时使用 sentenceContext
         documentTitle: a.documentTitle,
         emoji: a.emoji,  // Unicode emoji
-        emojiImagePath: a.emojiImagePath,  // 图片路径数组
+        emojiImagePath: normalizeEmojiImagePaths(a.emojiImagePath),  // 图片路径数组
         emojiModel: a.emojiModel,  // 生成图片的模型
         cachedAt: new Date(a.cachedAt).toISOString()
       }))
@@ -457,7 +497,7 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
               sentence: item.sentenceContext || item.sentence,  // 支持新旧格式
               documentTitle: item.documentTitle,
               emoji: item.emoji,  // Unicode emoji
-              emojiImagePath: item.emojiImagePath || [],  // 图片路径数组
+              emojiImagePath: normalizeEmojiImagePaths(item.emojiImagePath),  // 图片路径数组
               emojiModel: item.emojiModel,  // 生成图片的模型
               cachedAt: new Date(item.cachedAt).getTime()
             });

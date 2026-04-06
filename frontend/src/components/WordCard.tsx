@@ -392,7 +392,6 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
   ];
 
   const isImageEmoji =
-    displayedEmoji?.startsWith('/emoji-images/') ||
     displayedEmoji?.startsWith('/learning-images/') ||
     displayedEmoji?.startsWith('http');
 

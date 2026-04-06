@@ -2,6 +2,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export function resolveAssetUrl(urlOrPath: string): string {
   if (!urlOrPath) return urlOrPath;
+  if (urlOrPath.startsWith('/emoji-images/')) {
+    urlOrPath = urlOrPath.replace('/emoji-images/', '/learning-images/');
+  }
   if (urlOrPath.startsWith('/learning-images/')) {
     return `${API_BASE_URL}${urlOrPath}`;
   }
