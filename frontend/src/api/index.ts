@@ -64,6 +64,15 @@ export interface AnnotateResponse {
   };
 }
 
+export interface GenerateMeaningFieldResponse {
+  success: boolean;
+  data?: {
+    field: 'definition' | 'example' | 'wordForms';
+    text: string;
+  };
+  error?: string;
+}
+
 export interface PhraseAnnotateResponse {
   success: boolean;
   data?: PhraseAnnotation;
@@ -100,6 +109,36 @@ export async function annotateWord(
     return {
       success: false,
       error: error.message || 'Failed to fetch annotation',
+    };
+  }
+}
+
+export async function generateMeaningField(
+  word: string,
+  field: 'definition' | 'example' | 'wordForms',
+  chinese: string,
+  partOfSpeech?: string,
+  sentenceContext?: string,
+): Promise<GenerateMeaningFieldResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/generate-meaning-field`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ word, field, chinese, partOfSpeech, sentenceContext }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error('API Error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to generate meaning field',
     };
   }
 }

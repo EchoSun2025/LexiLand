@@ -27,9 +27,32 @@ type AnnotationWithMeanings = WordAnnotation & {
   activeMeaningId?: string;
 };
 
-export function getCanonicalWord(word: string, annotation?: Pick<WordAnnotation, 'baseForm'>): string {
+export function getCanonicalWord(
+  word: string,
+  annotation?: Pick<WordAnnotation, 'baseForm' | 'partOfSpeech'>,
+): string {
+  const surface = word.trim().toLowerCase();
   const baseForm = annotation?.baseForm?.trim().toLowerCase();
-  return baseForm || word.trim().toLowerCase();
+  const pos = normalizePos(annotation?.partOfSpeech);
+
+  if (!baseForm || baseForm === surface) {
+    return surface;
+  }
+
+  // Only reuse the lemma when the inflection pattern is high-confidence.
+  if (pos === 'verb') {
+    return baseForm;
+  }
+
+  if (pos === 'noun' && /s$/.test(surface)) {
+    return baseForm;
+  }
+
+  if ((pos === 'adjective' || pos === 'adverb') && /(er|est)$/.test(surface)) {
+    return baseForm;
+  }
+
+  return surface;
 }
 
 function normalizeText(value?: string): string {
@@ -185,11 +208,16 @@ export function applyUpdatesToActiveMeaning<T extends AnnotationWithMeanings>(
           emoji: updates.emoji !== undefined ? updates.emoji : meaning.emoji,
           emojiImagePath: updates.emojiImagePath !== undefined ? updates.emojiImagePath : meaning.emojiImagePath,
           emojiModel: updates.emojiModel !== undefined ? updates.emojiModel : meaning.emojiModel,
+          baseForm: updates.baseForm !== undefined ? updates.baseForm : meaning.baseForm,
+          ipa: updates.ipa !== undefined ? updates.ipa : meaning.ipa,
           chinese: updates.chinese !== undefined ? updates.chinese : meaning.chinese,
           definition: updates.definition !== undefined ? updates.definition : meaning.definition,
           example: updates.example !== undefined ? updates.example : meaning.example,
+          level: updates.level !== undefined ? updates.level : meaning.level,
+          partOfSpeech: updates.partOfSpeech !== undefined ? updates.partOfSpeech : meaning.partOfSpeech,
           sentence: updates.sentence !== undefined ? updates.sentence : meaning.sentence,
           documentTitle: updates.documentTitle !== undefined ? updates.documentTitle : meaning.documentTitle,
+          wordForms: updates.wordForms !== undefined ? updates.wordForms : meaning.wordForms,
           updatedAt: Date.now(),
           shortLabel:
             updates.chinese !== undefined || updates.definition !== undefined

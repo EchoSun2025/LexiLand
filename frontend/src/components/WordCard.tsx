@@ -1,7 +1,7 @@
 import type { WordAnnotation } from '../api';
-import { generateEmojiImage, searchImage, savePastedImage, resolveAssetUrl } from '../api';
+import { generateEmojiImage, generateMeaningField, searchImage, savePastedImage, resolveAssetUrl } from '../api';
 import { useState, useEffect, useRef } from 'react';
-import { updateEmoji, addEmojiImagePathToActiveMeaning, setActiveMeaning, addManualMeaning } from '../db';
+import { updateEmoji, addEmojiImagePathToActiveMeaning, setActiveMeaning, addManualMeaning, updateActiveMeaningDetails } from '../db';
 import { getWordEmoji, getAllEmojiKeywords, getDetailedPartOfSpeech } from '../utils/emojiHelper';
 import { useAppStore } from '../store/appStore';
 import { applyMeaningToAnnotation, ensureEncounteredMeanings, getActiveMeaning } from '../utils/wordMeanings';
@@ -36,11 +36,16 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
   const longPressTimer = useRef<number | undefined>(undefined);
   const isLongPress = useRef(false);
   const [showManualMeaningForm, setShowManualMeaningForm] = useState(false);
+  const [manualMeaningMode, setManualMeaningMode] = useState<'new' | 'edit'>('new');
   const [manualMeaningChinese, setManualMeaningChinese] = useState('');
   const [manualMeaningDefinition, setManualMeaningDefinition] = useState('');
   const [manualMeaningExample, setManualMeaningExample] = useState('');
   const [manualMeaningSentence, setManualMeaningSentence] = useState('');
+  const [manualMeaningDocumentTitle, setManualMeaningDocumentTitle] = useState('');
   const [manualMeaningPos, setManualMeaningPos] = useState('');
+  const [manualMeaningBaseForm, setManualMeaningBaseForm] = useState('');
+  const [manualMeaningWordForms, setManualMeaningWordForms] = useState('');
+  const [manualFieldLoading, setManualFieldLoading] = useState<'definition' | 'example' | 'wordForms' | null>(null);
   const annotationWithMeanings = ensureEncounteredMeanings(annotation);
   const activeMeaning = getActiveMeaning(annotationWithMeanings);
   const shownWord = displayWord || annotation.word;
@@ -110,13 +115,67 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
   };
 
   const resetManualMeaningForm = () => {
+    setManualMeaningMode('new');
     setManualMeaningChinese('');
     setManualMeaningDefinition('');
     setManualMeaningExample('');
     setManualMeaningSentence('');
+    setManualMeaningDocumentTitle('');
     setManualMeaningPos('');
+    setManualMeaningBaseForm('');
+    setManualMeaningWordForms('');
     setShowManualMeaningForm(false);
   };
+
+  const openNewMeaningForm = () => {
+    setManualMeaningMode('new');
+    setManualMeaningChinese('');
+    setManualMeaningDefinition('');
+    setManualMeaningExample('');
+    setManualMeaningSentence(annotation.sentence || '');
+    setManualMeaningDocumentTitle(annotation.documentTitle || '');
+    setManualMeaningPos('');
+    setManualMeaningBaseForm('');
+    setManualMeaningWordForms('');
+    setShowManualMeaningForm(true);
+  };
+
+  const openEditMeaningForm = () => {
+    setManualMeaningMode('edit');
+    setManualMeaningChinese(activeMeaning.chinese || '');
+    setManualMeaningDefinition(activeMeaning.definition || '');
+    setManualMeaningExample(activeMeaning.example || '');
+    setManualMeaningSentence(activeMeaning.sentence || annotation.sentence || '');
+    setManualMeaningDocumentTitle(activeMeaning.documentTitle || annotation.documentTitle || '');
+    setManualMeaningPos(activeMeaning.partOfSpeech || '');
+    setManualMeaningBaseForm(activeMeaning.baseForm || '');
+    setManualMeaningWordForms((activeMeaning.wordForms || []).join(', '));
+    setShowManualMeaningForm(true);
+  };
+
+  const parseWordForms = (value: string): string[] | undefined => {
+    const forms = value
+      .split(/[,\n]/)
+      .map(item => item.trim())
+      .filter(Boolean);
+    return forms.length > 0 ? forms : undefined;
+  };
+
+  const buildManualMeaningPayload = () => ({
+    baseForm: manualMeaningBaseForm.trim() || undefined,
+    ipa: annotation.ipa,
+    chinese: manualMeaningChinese.trim(),
+    definition: manualMeaningDefinition.trim(),
+    example: manualMeaningExample.trim(),
+    level: annotation.level,
+    partOfSpeech: manualMeaningPos.trim(),
+    sentence: manualMeaningSentence.trim() || undefined,
+    documentTitle: manualMeaningDocumentTitle.trim() || undefined,
+    wordForms: parseWordForms(manualMeaningWordForms),
+    emoji: undefined,
+    emojiImagePath: [],
+    emojiModel: undefined,
+  });
 
   const handleAddManualMeaning = async () => {
     if (!manualMeaningChinese.trim() || !manualMeaningDefinition.trim()) {
@@ -126,27 +185,60 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
 
     await addManualMeaning(
       annotation.word,
-      {
-        baseForm: annotation.baseForm,
-        ipa: annotation.ipa,
-        chinese: manualMeaningChinese.trim(),
-        definition: manualMeaningDefinition.trim(),
-        example: manualMeaningExample.trim() || annotation.example,
-        level: annotation.level,
-        partOfSpeech: manualMeaningPos.trim() || annotation.partOfSpeech,
-        sentence: manualMeaningSentence.trim() || annotation.sentence,
-        documentTitle: annotation.documentTitle,
-        wordForms: annotation.wordForms,
-        emoji: undefined,
-        emojiImagePath: [],
-        emojiModel: undefined,
-      },
+      buildManualMeaningPayload(),
       (updates) => {
         updateAnnotation(annotation.word, updates);
       },
     );
 
     resetManualMeaningForm();
+  };
+
+  const handleSaveCurrentMeaning = async () => {
+    if (!manualMeaningChinese.trim() || !manualMeaningDefinition.trim()) {
+      alert('Chinese and definition are required.');
+      return;
+    }
+
+    await updateActiveMeaningDetails(annotation.word, buildManualMeaningPayload(), (updates) => {
+      updateAnnotation(annotation.word, updates);
+    });
+
+    resetManualMeaningForm();
+  };
+
+  const handleGenerateManualField = async (field: 'definition' | 'example' | 'wordForms') => {
+    if (!manualMeaningChinese.trim()) {
+      alert('Fill in the Chinese meaning first.');
+      return;
+    }
+
+    setManualFieldLoading(field);
+    try {
+      const result = await generateMeaningField(
+        annotation.word,
+        field,
+        manualMeaningChinese.trim(),
+        manualMeaningPos.trim() || undefined,
+        manualMeaningSentence.trim() || undefined,
+      );
+
+      if (!result.success || !result.data?.text) {
+        throw new Error(result.error || `Failed to generate ${field}`);
+      }
+
+      if (field === 'definition') {
+        setManualMeaningDefinition(result.data.text);
+      } else if (field === 'example') {
+        setManualMeaningExample(result.data.text);
+      } else {
+        setManualMeaningWordForms(result.data.text);
+      }
+    } catch (error: any) {
+      alert(error?.message || `Failed to generate ${field}`);
+    } finally {
+      setManualFieldLoading(null);
+    }
   };
 
   // 搜索真实照片 (Unsplash)
@@ -456,7 +548,13 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
     displayedEmoji?.startsWith('http');
 
   return (
-    <div className="bg-white border border-border rounded-2xl p-4 mb-3 shadow-sm">
+    <div
+      className="bg-white border border-border rounded-2xl p-4 mb-3 shadow-sm"
+      onContextMenu={(e) => {
+        e.preventDefault();
+        openEditMeaningForm();
+      }}
+    >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 text-center">
@@ -700,12 +798,11 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
             <div className="text-xs font-semibold text-muted">Encountered Meanings</div>
             <button
               onClick={() => {
-                setManualMeaningChinese('');
-                setManualMeaningDefinition('');
-                setManualMeaningExample('');
-                setManualMeaningSentence(annotation.sentence || '');
-                setManualMeaningPos(annotation.partOfSpeech || '');
-                setShowManualMeaningForm(prev => !prev);
+                if (showManualMeaningForm && manualMeaningMode === 'new') {
+                  resetManualMeaningForm();
+                } else {
+                  openNewMeaningForm();
+                }
               }}
               className="text-xs px-2 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded border border-amber-200"
             >
@@ -735,12 +832,11 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
         <div className="mb-3 flex justify-end">
           <button
             onClick={() => {
-              setManualMeaningChinese('');
-              setManualMeaningDefinition('');
-              setManualMeaningExample('');
-              setManualMeaningSentence(annotation.sentence || '');
-              setManualMeaningPos(annotation.partOfSpeech || '');
-              setShowManualMeaningForm(prev => !prev);
+              if (showManualMeaningForm && manualMeaningMode === 'new') {
+                resetManualMeaningForm();
+              } else {
+                openNewMeaningForm();
+              }
             }}
             className="text-xs px-2 py-1 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded border border-amber-200"
           >
@@ -751,7 +847,9 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
 
       {showManualMeaningForm && (
         <div className="mb-3 border border-amber-200 bg-amber-50 rounded-lg p-3">
-          <div className="text-xs font-semibold text-amber-800 mb-2">Add Manual Meaning</div>
+          <div className="text-xs font-semibold text-amber-800 mb-2">
+            {manualMeaningMode === 'edit' ? 'Edit Current Meaning' : 'Add Manual Meaning'}
+          </div>
           <input
             type="text"
             value={manualMeaningChinese}
@@ -759,38 +857,128 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
             placeholder="Chinese meaning"
             className="w-full px-3 py-2 mb-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
-          <textarea
-            value={manualMeaningDefinition}
-            onChange={(e) => setManualMeaningDefinition(e.target.value)}
-            placeholder="English definition"
-            className="w-full px-3 py-2 mb-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[72px]"
-          />
-          <input
-            type="text"
-            value={manualMeaningPos}
-            onChange={(e) => setManualMeaningPos(e.target.value)}
-            placeholder="Part of speech"
-            className="w-full px-3 py-2 mb-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
-          />
-          <textarea
-            value={manualMeaningExample}
-            onChange={(e) => setManualMeaningExample(e.target.value)}
-            placeholder="Example"
-            className="w-full px-3 py-2 mb-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[72px]"
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+            <select
+              value={manualMeaningPos}
+              onChange={(e) => setManualMeaningPos(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+            >
+              <option value="">Part of speech</option>
+              <option value="noun">noun</option>
+              <option value="verb">verb</option>
+              <option value="adjective">adjective</option>
+              <option value="adverb">adverb</option>
+              <option value="pronoun">pronoun</option>
+              <option value="preposition">preposition</option>
+              <option value="conjunction">conjunction</option>
+              <option value="interjection">interjection</option>
+              <option value="determiner">determiner</option>
+              <option value="phrase">phrase</option>
+              <option value="other">other</option>
+            </select>
+            <input
+              type="text"
+              value={manualMeaningBaseForm}
+              onChange={(e) => setManualMeaningBaseForm(e.target.value)}
+              placeholder="Base form / lemma (optional)"
+              className="w-full px-3 py-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+            />
+          </div>
+          <div className="mb-2">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="text-xs text-amber-800">Definition</div>
+              <button
+                onClick={() => void handleGenerateManualField('definition')}
+                disabled={manualFieldLoading !== null}
+                className={`text-xs px-2 py-1 rounded border ${
+                  manualFieldLoading === 'definition'
+                    ? 'bg-gray-200 text-gray-500 border-gray-200 cursor-wait'
+                    : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                }`}
+              >
+                {manualFieldLoading === 'definition' ? 'Generating...' : 'AI'}
+              </button>
+            </div>
+            <textarea
+              value={manualMeaningDefinition}
+              onChange={(e) => setManualMeaningDefinition(e.target.value)}
+              placeholder="English definition"
+              className="w-full px-3 py-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[72px]"
+            />
+          </div>
+          <div className="mb-2">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="text-xs text-amber-800">Example</div>
+              <button
+                onClick={() => void handleGenerateManualField('example')}
+                disabled={manualFieldLoading !== null}
+                className={`text-xs px-2 py-1 rounded border ${
+                  manualFieldLoading === 'example'
+                    ? 'bg-gray-200 text-gray-500 border-gray-200 cursor-wait'
+                    : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                }`}
+              >
+                {manualFieldLoading === 'example' ? 'Generating...' : 'AI'}
+              </button>
+            </div>
+            <textarea
+              value={manualMeaningExample}
+              onChange={(e) => setManualMeaningExample(e.target.value)}
+              placeholder="Example"
+              className="w-full px-3 py-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[72px]"
+            />
+          </div>
+          <div className="mb-2">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <div className="text-xs text-amber-800">Word Forms</div>
+              <button
+                onClick={() => void handleGenerateManualField('wordForms')}
+                disabled={manualFieldLoading !== null}
+                className={`text-xs px-2 py-1 rounded border ${
+                  manualFieldLoading === 'wordForms'
+                    ? 'bg-gray-200 text-gray-500 border-gray-200 cursor-wait'
+                    : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                }`}
+              >
+                {manualFieldLoading === 'wordForms' ? 'Generating...' : 'AI'}
+              </button>
+            </div>
+            <input
+              type="text"
+              value={manualMeaningWordForms}
+              onChange={(e) => setManualMeaningWordForms(e.target.value)}
+              placeholder="Comma-separated word forms"
+              className="w-full px-3 py-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+            />
+          </div>
           <textarea
             value={manualMeaningSentence}
             onChange={(e) => setManualMeaningSentence(e.target.value)}
             placeholder="Original sentence"
-            className="w-full px-3 py-2 mb-3 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[72px]"
+            className="w-full px-3 py-2 mb-2 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 min-h-[72px]"
+          />
+          <input
+            type="text"
+            value={manualMeaningDocumentTitle}
+            onChange={(e) => setManualMeaningDocumentTitle(e.target.value)}
+            placeholder="Document title"
+            className="w-full px-3 py-2 mb-3 text-sm border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
           <div className="flex gap-2">
             <button
-              onClick={() => void handleAddManualMeaning()}
+              onClick={() => void (manualMeaningMode === 'edit' ? handleSaveCurrentMeaning() : handleAddManualMeaning())}
               className="text-xs px-3 py-2 bg-amber-600 text-white hover:bg-amber-700 rounded"
             >
-              Save Meaning
+              {manualMeaningMode === 'edit' ? 'Save Changes' : 'Save Meaning'}
             </button>
+            {manualMeaningMode === 'edit' && (
+              <button
+                onClick={() => void handleAddManualMeaning()}
+                className="text-xs px-3 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded"
+              >
+                Save as New Meaning
+              </button>
+            )}
             <button
               onClick={resetManualMeaningForm}
               className="text-xs px-3 py-2 bg-white text-gray-700 hover:bg-gray-50 rounded border border-gray-200"

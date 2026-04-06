@@ -373,6 +373,25 @@ export async function setActiveMeaning(word: string, meaningId: string, onUpdate
   }
 }
 
+export async function updateActiveMeaningDetails(
+  word: string,
+  updates: Partial<CachedAnnotation>,
+  onUpdate?: (updates: Partial<CachedAnnotation>) => void,
+): Promise<void> {
+  const annotation = await db.annotations.get(word.toLowerCase());
+  if (!annotation) {
+    console.warn('[DB] Annotation not found for word:', word, '- Cannot update meaning');
+    return;
+  }
+
+  const updatedAnnotation = applyUpdatesToActiveMeaning(ensureEncounteredMeanings(annotation), updates);
+  await db.annotations.put(updatedAnnotation);
+
+  if (onUpdate) {
+    onUpdate(updatedAnnotation);
+  }
+}
+
 export async function addManualMeaning(word: string, meaning: Omit<CachedAnnotation, 'word' | 'cachedAt' | 'encounteredMeanings' | 'activeMeaningId'>, onUpdate?: (updates: Partial<CachedAnnotation>) => void): Promise<void> {
   const annotation = await db.annotations.get(word.toLowerCase());
   if (!annotation) {

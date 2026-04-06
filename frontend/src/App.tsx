@@ -465,7 +465,7 @@ function App() {
 
     // Collect words to annotate with their context
     const wordsToAnnotate: Array<{ word: string; sentence: string }> = [];
-    const wordsSet = new Set(Array.from(markedWords).filter(word => !findAnnotationEntry(annotations, word)));
+    const wordsSet = new Set(Array.from(markedWords).filter(word => !annotations.has(word)));
     
     // Find sentences containing marked words
     if (wordsSet.size > 0) {
@@ -576,7 +576,7 @@ function App() {
         
         // 保存标注
         const canonicalWord = getCanonicalWord(wordItem.word, annotationWithContext);
-        const existingAnnotation = findAnnotationEntry(annotations, canonicalWord)?.annotation;
+        const existingAnnotation = annotations.get(canonicalWord);
         const mergedAnnotation = mergeAnnotationMeanings(existingAnnotation as WordAnnotation | undefined, {
           ...annotationWithContext,
           word: canonicalWord,
@@ -749,8 +749,8 @@ function App() {
       if (type === 'word') {
         const result = await annotateWord(word, level, sentence);
         if (result.success && result.data) {
-          const existingAnnotation = findAnnotationEntry(annotations, word.toLowerCase())?.annotation as WordAnnotation | undefined;
           const canonicalWord = getCanonicalWord(word.toLowerCase(), result.data);
+          const existingAnnotation = annotations.get(canonicalWord) as WordAnnotation | undefined;
           const annotationWithContext: WordAnnotation = {
             ...result.data,
             word: canonicalWord,

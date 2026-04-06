@@ -72,6 +72,14 @@ interface AnnotatePhraseRequest {
   level?: string;
 }
 
+interface GenerateMeaningFieldRequest {
+  word: string;
+  field: 'definition' | 'example' | 'wordForms';
+  chinese: string;
+  partOfSpeech?: string;
+  sentenceContext?: string;
+}
+
 fastify.post<{ Body: AnnotateRequest }>('/api/annotate', async (request, reply) => {
   const { word, level = 'B2', context } = request.body;
 
@@ -128,6 +136,57 @@ Important:
     return reply.code(500).send({
       success: false,
       error: error.message || 'Failed to generate annotation',
+    });
+  }
+});
+
+fastify.post<{ Body: GenerateMeaningFieldRequest }>('/api/generate-meaning-field', async (request, reply) => {
+  const { word, field, chinese, partOfSpeech, sentenceContext } = request.body;
+
+  if (!word || typeof word !== 'string') {
+    return reply.code(400).send({ success: false, error: 'Word is required' });
+  }
+
+  if (field !== 'definition' && field !== 'example' && field !== 'wordForms') {
+    return reply.code(400).send({ success: false, error: 'Field must be definition, example, or wordForms' });
+  }
+
+  if (!chinese || typeof chinese !== 'string') {
+    return reply.code(400).send({ success: false, error: 'Chinese meaning is required' });
+  }
+
+  try {
+    const prompt =
+      field === 'definition'
+        ? `Write ONE short, clear English definition for the English word "${word}" meaning "${chinese}"${partOfSpeech ? ` as a ${partOfSpeech}` : ''}${sentenceContext ? ` in the sentence "${sentenceContext}"` : ''}. Return ONLY the definition text.`
+        : field === 'example'
+          ? `Write ONE natural English example sentence using the word "${word}" to mean "${chinese}"${partOfSpeech ? ` as a ${partOfSpeech}` : ''}${sentenceContext ? ` and stay close to this situation: "${sentenceContext}"` : ''}. Return ONLY the example sentence.`
+          : `List the common inflected forms for the English word "${word}"${partOfSpeech ? ` as a ${partOfSpeech}` : ''}. Return ONLY a short comma-separated list such as "stride, strides, striding, strode, stridden".`;
+
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.4,
+    });
+
+    const text = completion.choices[0]?.message?.content?.trim();
+    if (!text) {
+      throw new Error('No response from OpenAI');
+    }
+
+    return {
+      success: true,
+      data: {
+        field,
+        text,
+      },
+      usage: completion.usage,
+    };
+  } catch (error: any) {
+    fastify.log.error({ error, stack: error.stack }, 'Generate meaning field error');
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to generate meaning field',
     });
   }
 });
