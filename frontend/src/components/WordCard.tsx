@@ -391,7 +391,10 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
     '🔔', '🔕', '📢', '📣', '📯', '🔊', '🔇', '🔈', '🔉', '🔔',
   ];
 
-  const isImageEmoji = displayedEmoji?.startsWith('/emoji-images/') || displayedEmoji?.startsWith('http');
+  const isImageEmoji =
+    displayedEmoji?.startsWith('/emoji-images/') ||
+    displayedEmoji?.startsWith('/learning-images/') ||
+    displayedEmoji?.startsWith('http');
 
   return (
     <div className="bg-white border border-border rounded-2xl p-4 mb-3 shadow-sm">
