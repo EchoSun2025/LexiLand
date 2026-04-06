@@ -10,7 +10,7 @@ import PhraseCard from './components/PhraseCard'
 import { localDictionary } from './services/localDictionary'
 import { exportLLIFString } from './services/llifConverter'
 import { getWordEmoji, getAllEmojiKeywords } from './utils/emojiHelper'
-import { applyMeaningToAnnotation, findBestMeaningIdForSentence, mergeAnnotationMeanings } from './utils/wordMeanings'
+import { applyMeaningToAnnotation, findAnnotationEntry, findBestMeaningIdForSentence, getCanonicalWord, mergeAnnotationMeanings } from './utils/wordMeanings'
 
 const keywordToEmoji = getAllEmojiKeywords();
 const collapsedCommonEmojis = Array.from(new Set(Array.from(keywordToEmoji.values()))).slice(0, 120);
@@ -256,8 +256,9 @@ function App() {
 
   // When selectedWord changes, add to history (不自动展开)
   useEffect(() => {
-    if (selectedWord && annotations.has(selectedWord)) {
-      const annotation = annotations.get(selectedWord);
+    const selectedEntry = selectedWord ? findAnnotationEntry(annotations, selectedWord) : null;
+    if (selectedWord && selectedEntry) {
+      const annotation = selectedEntry.annotation;
       if (annotation && (annotation as any).definition) {
         // 添加到历史记录，但不自动展开
         addToCardHistory('word', selectedWord);
@@ -269,19 +270,20 @@ function App() {
   // Handle word click: toggle marked state
   const handleWordClick = (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => {
     const normalized = word.toLowerCase();
+    const wordEntry = findAnnotationEntry(annotations, normalized);
     // If word has a card, just select it to show the card (for double-click on orange words)
-    const hasCard = annotations.has(normalized) && (annotations.get(normalized) as any)?.definition;
+    const hasCard = wordEntry && (wordEntry.annotation as any)?.definition;
     if (hasCard) {
       if (pIndex !== undefined && sIndex !== undefined) {
         const sentenceText = displayParagraphs[pIndex]?.sentences[sIndex]?.text;
-        const annotation = annotations.get(normalized) as WordAnnotation | undefined;
+        const annotation = wordEntry?.annotation as WordAnnotation | undefined;
         if (annotation && sentenceText) {
           const meaningId = findBestMeaningIdForSentence(annotation, sentenceText);
           if (meaningId && meaningId !== annotation.activeMeaningId) {
             const projected = applyMeaningToAnnotation(annotation, meaningId);
-            addAnnotation(normalized, projected);
-            void setActiveMeaning(normalized, meaningId, (updates) => {
-              updateAnnotation(normalized, updates);
+            addAnnotation(wordEntry!.key, projected);
+            void setActiveMeaning(wordEntry!.key, meaningId, (updates) => {
+              updateAnnotation(wordEntry!.key, updates);
             });
           }
         }
@@ -463,7 +465,7 @@ function App() {
 
     // Collect words to annotate with their context
     const wordsToAnnotate: Array<{ word: string; sentence: string }> = [];
-    const wordsSet = new Set(Array.from(markedWords).filter(word => !annotations.has(word)));
+    const wordsSet = new Set(Array.from(markedWords).filter(word => !findAnnotationEntry(annotations, word)));
     
     // Find sentences containing marked words
     if (wordsSet.size > 0) {
@@ -573,15 +575,20 @@ function App() {
         }
         
         // 保存标注
-        const existingAnnotation = annotations.get(wordItem.word);
-        const mergedAnnotation = mergeAnnotationMeanings(existingAnnotation as WordAnnotation | undefined, annotationWithContext).annotation;
-        addAnnotation(wordItem.word, mergedAnnotation);
-        await cacheAnnotation(wordItem.word, mergedAnnotation);
+        const canonicalWord = getCanonicalWord(wordItem.word, annotationWithContext);
+        const existingAnnotation = findAnnotationEntry(annotations, canonicalWord)?.annotation;
+        const mergedAnnotation = mergeAnnotationMeanings(existingAnnotation as WordAnnotation | undefined, {
+          ...annotationWithContext,
+          word: canonicalWord,
+          encounteredForms: Array.from(new Set([wordItem.word, ...(annotationWithContext.encounteredForms || [])])),
+        }).annotation;
+        addAnnotation(canonicalWord, mergedAnnotation);
+        await cacheAnnotation(canonicalWord, mergedAnnotation);
         
         // 计算并保存默认 emoji
         const defaultEmoji = getWordEmoji(mergedAnnotation);
-        await updateEmoji(wordItem.word, defaultEmoji, (updates) => {
-          updateAnnotation(wordItem.word, updates);
+        await updateEmoji(canonicalWord, defaultEmoji, (updates) => {
+          updateAnnotation(canonicalWord, updates);
         });
         console.log(`[App] Saved default emoji for "${wordItem.word}": ${defaultEmoji}`);
         
@@ -742,19 +749,22 @@ function App() {
       if (type === 'word') {
         const result = await annotateWord(word, level, sentence);
         if (result.success && result.data) {
-          const existingAnnotation = annotations.get(word.toLowerCase()) as WordAnnotation | undefined;
+          const existingAnnotation = findAnnotationEntry(annotations, word.toLowerCase())?.annotation as WordAnnotation | undefined;
+          const canonicalWord = getCanonicalWord(word.toLowerCase(), result.data);
           const annotationWithContext: WordAnnotation = {
             ...result.data,
+            word: canonicalWord,
             sentence,
             documentTitle: currentDocument?.title || 'Unknown',
             wordForms: result.data.wordForms ?? existingAnnotation?.wordForms,
+            encounteredForms: Array.from(new Set([word.toLowerCase(), ...(existingAnnotation?.encounteredForms || [])])),
           };
           const mergedAnnotation = mergeAnnotationMeanings(
             existingAnnotation,
             annotationWithContext
           ).annotation;
-          addAnnotation(word, mergedAnnotation);
-          await cacheAnnotation(word, mergedAnnotation);
+          addAnnotation(canonicalWord, mergedAnnotation);
+          await cacheAnnotation(canonicalWord, mergedAnnotation);
           console.log('[AI Regenerate] Success:', mergedAnnotation);
           alert('✅ AI re-generated successfully!');
         } else {
@@ -936,7 +946,7 @@ ${sortedWords.join(' ')}
       // Collect words that will be added (not already known and not annotated)
       const wordsToAdd: string[] = [];
       for (const word of allWords) {
-        if (!knownWords.has(word) && !annotations.has(word)) {
+        if (!knownWords.has(word) && !findAnnotationEntry(annotations, word)) {
           wordsToAdd.push(word);
         }
       }
@@ -1606,7 +1616,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 const word = token.text.toLowerCase();
                 
                 // Check for word annotations (but skip if marked as known/learnt)
-                if (annotations.has(word)) {
+                if (findAnnotationEntry(annotations, word)) {
                   // Only show if not marked as known/learnt
                   if (!learntWords.has(word)) {
                     addToCardHistory('word', word);
@@ -2343,7 +2353,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
                   {cardHistory.map((item: { type: 'word' | 'phrase'; word: string; timestamp: number }) => {
                     const annotation = item.type === 'word' 
-                      ? annotations.get(item.word)
+                      ? findAnnotationEntry(annotations, item.word)?.annotation
                       : phraseAnnotations.get(item.word.toLowerCase());
                     
                     if (!annotation) return null;
@@ -2378,6 +2388,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                             {item.type === 'word' ? (
                               <WordCard
                                 annotation={annotation as WordAnnotation}
+                                displayWord={item.word}
                                 isLearnt={learntWords.has(item.word.toLowerCase())}
                                 onClose={() => setExpandedCardKey(null)}
                                 onMarkKnown={handleMarkKnown}

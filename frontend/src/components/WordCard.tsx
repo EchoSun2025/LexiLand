@@ -8,6 +8,7 @@ import { applyMeaningToAnnotation, ensureEncounteredMeanings, getActiveMeaning }
 
 interface WordCardProps {
   annotation: WordAnnotation;
+  displayWord?: string;
   isLearnt: boolean;
   onClose: () => void;
   onMarkKnown?: (word: string) => void;
@@ -18,7 +19,7 @@ interface WordCardProps {
 // 获取所有 emoji 关键词（用于搜索）
 const keywordToEmoji = getAllEmojiKeywords();
 
-export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, onDelete, onRegenerateAI }: WordCardProps) {
+export default function WordCard({ annotation, displayWord, isLearnt, onClose, onMarkKnown, onDelete, onRegenerateAI }: WordCardProps) {
   const updateAnnotation = useAppStore((state: any) => state.updateAnnotation);
   const [displayedEmoji, setDisplayedEmoji] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -42,6 +43,7 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
   const [manualMeaningPos, setManualMeaningPos] = useState('');
   const annotationWithMeanings = ensureEncounteredMeanings(annotation);
   const activeMeaning = getActiveMeaning(annotationWithMeanings);
+  const shownWord = displayWord || annotation.word;
 
   // 组件加载时，确定显示哪个 emoji
   useEffect(() => {
@@ -92,7 +94,7 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
   };
 
   const handlePronounce = () => {
-    const utterance = new SpeechSynthesisUtterance(annotation.word);
+    const utterance = new SpeechSynthesisUtterance(shownWord);
     utterance.lang = 'en-US';
     utterance.rate = 0.9;
     window.speechSynthesis.speak(utterance);
@@ -609,7 +611,7 @@ export default function WordCard({ annotation, isLearnt, onClose, onMarkKnown, o
               )}
             </div>
             <span>
-              {annotation.word}
+              {shownWord}
               {annotation.baseForm && (
                 <span className="text-sm text-gray-500 font-normal ml-2">
                   (from: {annotation.baseForm})

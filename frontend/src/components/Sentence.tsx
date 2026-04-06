@@ -1,6 +1,7 @@
 import type { Sentence as SentenceType } from '../utils/tokenize';
 import Word from './Word';
 import { useState, Fragment } from 'react';
+import { findAnnotationEntry } from '../utils/wordMeanings';
 
 interface SentenceProps {
   sentence: SentenceType;
@@ -131,7 +132,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
               onDoubleClick={(e) => {
                 // Priority: Word card > Phrase card
                 // Check if this word itself has a card
-                const wordAnnotation = annotations.get(token.text.toLowerCase());
+                const wordAnnotation = findAnnotationEntry(annotations as Map<string, any>, token.text.toLowerCase())?.annotation;
                 const hasWordCard = wordAnnotation && (wordAnnotation as any).definition;
                 
                 if (hasWordCard) {
@@ -152,7 +153,7 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
                 isAnnotatedPhrase={isInAnnotatedPhraseRange}
                 isHoveredPhrase={isInHoveredAnnotatedPhrase || isInHoveredPhraseMarked}
                 isLearnt={learntWords.has(token.text.toLowerCase())}
-                annotation={annotations.get(token.text.toLowerCase())}
+                annotation={findAnnotationEntry(annotations as Map<string, any>, token.text.toLowerCase())?.annotation}
                 showIPA={showIPA}
                 showChinese={showChinese}
                 autoMark={autoMark}

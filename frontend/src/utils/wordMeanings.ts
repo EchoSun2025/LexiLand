@@ -22,9 +22,15 @@ export interface EncounteredMeaning {
 }
 
 type AnnotationWithMeanings = WordAnnotation & {
+  encounteredForms?: string[];
   encounteredMeanings?: EncounteredMeaning[];
   activeMeaningId?: string;
 };
+
+export function getCanonicalWord(word: string, annotation?: Pick<WordAnnotation, 'baseForm'>): string {
+  const baseForm = annotation?.baseForm?.trim().toLowerCase();
+  return baseForm || word.trim().toLowerCase();
+}
 
 function normalizeText(value?: string): string {
   return (value || '')
@@ -113,6 +119,7 @@ export function ensureEncounteredMeanings<T extends AnnotationWithMeanings>(anno
     const activeMeaningId = annotation.activeMeaningId || annotation.encounteredMeanings[0].id;
     return {
       ...annotation,
+      encounteredForms: Array.from(new Set([annotation.word.toLowerCase(), ...(annotation.encounteredForms || [])])),
       activeMeaningId,
       encounteredMeanings: annotation.encounteredMeanings.map(meaning => ({
         ...meaning,
@@ -125,6 +132,7 @@ export function ensureEncounteredMeanings<T extends AnnotationWithMeanings>(anno
   const firstMeaning = createMeaningFromAnnotation(annotation);
   return {
     ...annotation,
+    encounteredForms: Array.from(new Set([annotation.word.toLowerCase(), ...(annotation.encounteredForms || [])])),
     encounteredMeanings: [firstMeaning],
     activeMeaningId: firstMeaning.id,
   };
@@ -198,6 +206,7 @@ export function applyUpdatesToActiveMeaning<T extends AnnotationWithMeanings>(
     {
       ...normalized,
       ...updates,
+      encounteredForms: normalized.encounteredForms,
       encounteredMeanings: nextMeanings,
     },
     activeMeaning.id,
@@ -252,6 +261,7 @@ export function mergeAnnotationMeanings<T extends AnnotationWithMeanings>(
   }
 
   const normalized = ensureEncounteredMeanings(existing);
+  const incomingSurface = incoming.word.toLowerCase();
   const meanings = normalized.encounteredMeanings || [];
   let bestMeaning = meanings[0];
   let bestScore = -1;
@@ -290,6 +300,7 @@ export function mergeAnnotationMeanings<T extends AnnotationWithMeanings>(
     const annotation = applyMeaningToAnnotation(
       {
         ...normalized,
+        encounteredForms: Array.from(new Set([...(normalized.encounteredForms || []), incomingSurface])),
         encounteredMeanings: next,
       } as T,
       mergedMeaning.id,
@@ -306,6 +317,7 @@ export function mergeAnnotationMeanings<T extends AnnotationWithMeanings>(
   const annotation = applyMeaningToAnnotation(
     {
       ...normalized,
+      encounteredForms: Array.from(new Set([...(normalized.encounteredForms || []), incomingSurface])),
       encounteredMeanings: [...normalized.encounteredMeanings!, newMeaning],
     } as T,
     newMeaning.id,
@@ -363,4 +375,23 @@ export function findBestMeaningIdForSentence<T extends AnnotationWithMeanings>(
   });
 
   return bestMeaning?.id || null;
+}
+
+export function findAnnotationEntry<T extends AnnotationWithMeanings>(
+  annotations: Map<string, T>,
+  surfaceWord: string,
+): { key: string; annotation: T } | null {
+  const normalizedSurface = surfaceWord.toLowerCase();
+  const direct = annotations.get(normalizedSurface);
+  if (direct) {
+    return { key: normalizedSurface, annotation: direct };
+  }
+
+  for (const [key, annotation] of annotations.entries()) {
+    if (annotation.encounteredForms?.includes(normalizedSurface)) {
+      return { key, annotation };
+    }
+  }
+
+  return null;
 }

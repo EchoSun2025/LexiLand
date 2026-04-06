@@ -34,6 +34,7 @@ export interface CachedAnnotation {
   emoji?: string;  // Unicode emoji锛堥粯璁ょ敓鎴愭垨鎵嬪姩閫夋嫨锛?
   emojiImagePath?: string[];  // 鍥剧墖璺緞鏁扮粍锛圓I/Unsplash锛屾敮鎸佸涓巻鍙茶褰曪級
   emojiModel?: string;  // 鏈€鏂板浘鐗囦娇鐢ㄧ殑妯″瀷
+  encounteredForms?: string[];
   encounteredMeanings?: EncounteredMeaning[];
   activeMeaningId?: string;
   cachedAt: number;
