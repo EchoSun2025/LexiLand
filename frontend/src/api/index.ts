@@ -307,6 +307,9 @@ export async function saveUserBackup(jsonData: string): Promise<UserBackupRespon
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jsonData }),
     });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     return await response.json();
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to save backup' };
@@ -316,6 +319,9 @@ export async function saveUserBackup(jsonData: string): Promise<UserBackupRespon
 export async function loadUserBackup(): Promise<UserBackupResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/user-backup/load`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     return await response.json();
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to load backup' };
@@ -325,6 +331,9 @@ export async function loadUserBackup(): Promise<UserBackupResponse> {
 export async function getUserBackupStatus(): Promise<UserBackupResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/user-backup/status`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     return await response.json();
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to get backup status' };

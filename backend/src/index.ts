@@ -22,7 +22,9 @@ for (const dir of [LEARNING_DATA_DIR, LEARNING_IMAGES_DIR, LEARNING_BACKUPS_DIR]
 }
 
 const fastify = Fastify({
-  logger: true
+  logger: true,
+  // User-data backups can grow past Fastify's default body limit.
+  bodyLimit: 20 * 1024 * 1024,
 });
 
 // 初始化 OpenAI 客户端

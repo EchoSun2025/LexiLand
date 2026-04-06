@@ -13,3 +13,4 @@ cache.db
 coverage/
 .turbo/
 TMP/
+handoff/
