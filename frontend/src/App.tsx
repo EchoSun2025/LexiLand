@@ -45,6 +45,18 @@ type StatsBucket = {
   cardKeys: string[];
 };
 
+type ReviewDisplayRow =
+  | {
+      type: 'divider';
+      key: string;
+      label: string;
+    }
+  | {
+      type: 'card';
+      key: string;
+      item: ReviewCardItem;
+    };
+
 function App() {
   const {
     documents,
@@ -116,19 +128,19 @@ function App() {
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [showSpeedControl, setShowSpeedControl] = useState(false);
-  const [autoAnnotate, setAutoAnnotate] = useState(false); // 自动标注模式
+  const [autoAnnotate, setAutoAnnotate] = useState(false); // 闂傚倸鍊搁崐鐑芥嚄閸洖鍌ㄧ憸鏃堝Υ閸愨晜鍎熼柕蹇嬪焺濞茬鈹戦悩璇у伐閻庢凹鍙冨畷锝堢疀濞戞瑧鍘撻梺鍛婄箓鐎氼參宕宠ぐ鎺撶厱闁硅埇鍔屾禍楣冩⒒閸屾瑧鍔嶉柟顔肩埣瀹曟洟顢涢悙鑼槷閻庡箍鍎遍ˇ顖毿ч弻銉︾厱妞ゆ劑鍊曢弸宥囩磼鐠囧弶顥為柕鍥у瀵粙濡搁敐鍕崟闂備胶顭堥鍡涘箰閹间焦鍋╅柣鎴ｆ閻愬﹪鏌嶉崫鍕舵敾闁?
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
   
-  // 今日标注统计
+  // 婵犵數濮烽弫鎼佸磻濞戙埄鏁嬫い鎾跺枑閸欏繘鏌熺紒銏犳灍闁哄懏绻堥弻鏇熷緞閸繂澹斿┑鐐村灟閸ㄥ綊鎮″☉銏＄厱婵炴垵宕獮鏍煕閻愵亜濮傛慨濠冩そ楠炴牠鎮欓幓鎺戭潙闂備礁鎲￠弻銊х矓閻熼偊鍤曢柟鎯版闁卞洭鏌曡箛瀣伄闁挎稒绻冪换娑欐綇閸撗冨煂闂佸湱鈷堥崑濠傤嚕缁嬪簱鏋庨柟鎵虫櫃缁?
   const [todayAnnotations, setTodayAnnotations] = useState<{ date: string; count: number; words: Array<{type: 'word' | 'phrase', word: string}> }>(() => {
     const stored = localStorage.getItem('todayAnnotations');
     if (stored) {
       const data = JSON.parse(stored);
       const today = new Date().toDateString();
-      // 如果存储的日期是今天，返回存储的数据；否则重置
+      // 婵犵數濮烽弫鍛婃叏閻戝鈧倹绂掔€ｎ亞鍔﹀銈嗗坊閸嬫捇鏌涢悢閿嬪仴闁糕斁鍋撳銈嗗坊閸嬫挾绱撳鍜冭含妤犵偛鍟灒閻犲洩灏欑粣鐐烘煟韫囨洖浠фい顓炵墛缁傚秹鎮欓鍌滎啎闂佺懓顕崕鎰閻愵兙浜滈煫鍥ㄦ尵婢ф洜鐥幑鎰惞闁逞屽墮缁犲秹宕曢柆宓ュ洦瀵奸弶鎴狅紵閻庡箍鍎遍ˇ浼存偂閺囥垺鐓涢柛銉ｅ劚婵＄厧顭胯閸ㄥ爼寮婚妸銉㈡婵妫欓埢鍫ユ⒑閸濆嫮鐒跨紒缁樼箓閻ｉ攱绺界粙娆炬綂闂佺粯锚绾绢參鍩€椤掍礁鍔ら柍瑙勫灴閸╁嫰宕橀妸褏銈烽梻浣侯攰椤曟粎妲愰弴鐘插灊閻庯綆鍠栫粻鎶芥煙閹冾暢闁伙箑鐗撳铏圭矙閹稿孩鎷遍柣顏勵樀閺屾盯骞嬪鍛厯濠殿喖锕ュ浠嬬嵁閹邦厽鍎熼柨婵嗗€归～宥夋⒒娴ｈ銇熼柛妯绘そ閹虫宕奸弴鐐殿唹闂侀潧绻堥崐鏇犵不閿濆鐓ラ柡鍥殔娴滈箖姊虹紒妯哄闁挎洦浜濠氭晲婢跺﹦鐤€濡炪倖鐗楀銊バ掗姀銈嗏拺闁革富鍘藉▍鏇炩攽閻愨晛浜鹃梻浣告惈閺堫剛绮欓幘瀵割浄闁挎梻鍋撶€氭岸鏌熺紒妯轰刊闁诲酣鏀辩换婵嬫偨闂堟稐绮堕梺缁橆殔閿曨亜鐣疯ぐ鎺戝瀭妞ゆ洖鎳庡▓銊ヮ渻閵堝棗濮ч梻鍕瀹曟垹鈧綆鍠楅悡鏇熴亜閹板墎鎮肩紒鐘筹耿閺屾洟宕奸鍌滄殼濠殿喖锕ュ浠嬬嵁閹邦厽鍎熼柨婵嗗€搁～宀€绱撻崒娆戭槮妞ゆ垵妫濆畷褰掑锤濡ゅ啫绁﹂梺绯曞墲椤洭鎮疯ぐ鎺撶厓鐟滄粓宕滃▎鎾村仼鐎瑰嫰鍋婂鈺傘亜閹达絽袚闁诲骸顭峰铏规喆閸曨偆顦ㄥ┑鐐叉噺濞茬喖銆侀弮鍫熷亜闁惧繐婀遍敍?
       if (data.date === today) {
-        // 兼容旧版本：如果没有words字段，添加空数组
+        // 闂傚倸鍊搁崐鐑芥嚄閸洍鈧箓宕奸姀鈥冲簥闂佸湱鍎ら〃鍛村磼閵娧勫枑闁哄啫鐗勯埀顑跨閳诲酣骞樺畷鍥╂澑闂備礁鎼ˇ鍐测枖閺囥垺鍎撻柛鏇ㄥ灡閸嬧剝绻濇繝鍌氭殶缂佺姵鐓￠弻锟犲川閻楀牏銆愰柧缁樼墵閺屾稑鈽夐崡鐐茬闂佺粯绻冮敋妞ゎ亜鍟存俊鍫曞幢濡ゅ啰鎳嗛梻浣瑰濞测晜淇婇崶鈺佸灊闁挎繂鎲橀弮鍫濈劦妞ゆ帒瀚悡姗€鏌熸潏鍓х暠闁诲繑濞婇弻娑㈠箛椤撶姰鍋為梺绋款儐閹逛線濡甸幇鏉跨闁圭偓鏋奸崑鎾舵崉娓氼垳鍞甸柣鐘叉惈瑜板潡宕奸妷銉ㄦ憰闂佹寧娲栭崐褰掓偂閸愵喗鐓冮弶鐐村椤︼箓鏌￠崱娆忎户缂佽鲸甯￠幃鈺呭礃濞堝妲檙ds闂傚倸鍊峰ù鍥敋瑜忛埀顒佺▓閺呮繄鍒掑▎鎾崇婵＄偛鐨烽崑鎾诲礃椤旂厧鑰垮┑鐐村灱妞存悂寮查埡鍛€甸柛蹇擃槸娴滈箖姊洪崨濠冨闁告挻鑹鹃埢宥夊冀椤撶喓鍘介棅顐㈡处濞叉牗绂掗敃鍌涚厱閹肩补鈧櫕姣愬銈庡幖濞差參鐛€ｎ喗鏅滈柣锝呰嫰楠炲牓姊绘担鍛婃儓闁哥噥鍋婂畷鎰矙閹稿孩鐦庨梻鍌氬€风粈渚€鎮块崶顒婄稏濠㈣埖鍔栭崑瀣煟濡儤鈻曢柛銈嗘礃閵囧嫰骞囬崜浣烘殸缂備胶濮伴崕鏌ュΦ閸曨垰妫橀柛顭戝枓閹稿啴姊?
         return {
           date: data.date,
           count: data.count || 0,
@@ -147,11 +159,11 @@ function App() {
   const [isOutlineCollapsed, setIsOutlineCollapsed] = useState(true); // Default collapsed like Notion
   const [isOutlineHovered, setIsOutlineHovered] = useState(false);
   const [phraseAnnotations, setPhraseAnnotations] = useState<Map<string, PhraseAnnotation>>(new Map());
-  const [annotatedPhraseRanges, setAnnotatedPhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; phrase: string }>>([]); // 已标注的短语范围
-  const [phraseTranslationInserts, setPhraseTranslationInserts] = useState<Map<string, boolean>>(new Map()); // 短语翻译插入状态
+  const [annotatedPhraseRanges, setAnnotatedPhraseRanges] = useState<Array<{ pIndex: number; sIndex: number; startTokenIndex: number; endTokenIndex: number; phrase: string }>>([]); // 闂傚倷娴囬褎顨ョ粙鍖¤€块梺顒€绉埀顒婄畵瀹曠厧鈹戦幇顒侇吙闂備礁澹婇崑鍛哄鈧畷鎴炲緞閹邦厾鍙嗗┑鐘绘涧濡瑩宕抽幎鑺ョ厸閻庯綆鍋嗘晶鐢告煛鐏炵偓绀冪紒缁樼椤︽煡鎮楀鐓庢珝鐎殿喗濞婇幃鈺冪磼濡攱瀚兼繝鐢靛仩鐏忣亪顢氳椤曪絾銈ｉ崘鈺冨幈濠电偛妫楅懟顖涚閻愵兛绻嗛柣鎰典簻閳ь剚鐗曠叅闊洦绋戦崹鍌毭归悩宸剰缂佺姷濞€閺岋絽螣濞嗘儳娈紓浣插亾闁告劦鍠楅悡蹇撯攽閻樿尙绠版い鈺婂墴閺?
+  const [phraseTranslationInserts, setPhraseTranslationInserts] = useState<Map<string, boolean>>(new Map()); // 闂傚倸鍊搁崐鐑芥倿閿曗偓椤啴宕稿Δ鈧惌妤呭箹濞ｎ剙濡奸柣顓燁殜閺屽秷顧侀柛鎾村哺婵＄敻宕熼姘祮濠碘槅鍨靛▍锝嗗閸曨厾纾藉ù锝勭矙閸濇椽鏌ｉ悢鍙夋珔妞ゆ洩缍侀獮蹇撶暆閳ь剟鎮块埀顒勬⒑閸濆嫭宸濋柛鐔该埞鎴犫偓锝庡亐閹锋椽姊洪棃鈺佺槣闁告ê澧介弫顔尖槈閵忊€充缓濡炪倖鐗楃粙鎴澝归閿亾鐟欏嫭绌跨紓宥勭閻ｇ兘宕￠悙鈺傤潔濠电偛妫楃换瀣уΔ鍛拻濞达絽鎼敮鍫曟煙閼恒儳鐭掗柕鍡楀€圭粋鎺斺偓锝庝簽閿?
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [showSettings, setShowSettings] = useState(false); // 设置面板
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; pIndex: number; sIndex: number } | null>(null); // 右键菜单
+  const [showSettings, setShowSettings] = useState(false); // 闂傚倸鍊峰ù鍥х暦閸偅鍙忕€规洖娲ㄩ惌鍡椕归敐鍫綈婵炲懐濮撮湁闁绘ê妯婇崕鎰版煕鐎ｅ吀閭柡灞剧洴閸╁嫰宕橀浣割潓婵＄偑鍊戦崕閬嶆偋閹捐钃熼柡鍥风磿閻も偓婵犵數濮撮崐鎼佸煕婢跺瞼纾?
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; pIndex: number; sIndex: number } | null>(null); // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画闂佹寧姊婚弲顐ょ不閹€鏀介柣妯哄级閹兼劙鏌＄€ｂ晝鍔嶉柕鍥у楠炴﹢宕￠悙鍏哥棯闂備焦鎮堕崐鏍哄Ο鍏煎床婵犻潧娲ㄧ弧鈧梺绋挎湰绾板秴鈻撻鐘电＝濞达絾褰冩禍?
   const [expandedCardKeys, setExpandedCardKeys] = useState<Set<string>>(new Set());
   const [collapsedImageMenu, setCollapsedImageMenu] = useState<{ panel: 'emoji' | 'web'; word: string; top: number; left: number } | null>(null);
   const [collapsedEmojiSearchQuery, setCollapsedEmojiSearchQuery] = useState('');
@@ -163,7 +175,7 @@ function App() {
     const stored = localStorage.getItem('autoFixedBackupEnabled');
     return stored === null ? true : stored === 'true';
   });
-  const prevMarkedWordsSize = useRef<number>(0); // 追踪上次的 markedWords 大小
+  const prevMarkedWordsSize = useRef<number>(0); // 闂傚倸鍊风粈渚€骞栭位鍥敃閿曗偓閻ょ偓绻涢幋娆忕仼闁绘帒鐏氶妵鍕箳閹存績鍋撻幖浣稿嚑婵炴垯鍨洪悡鏇㈡煏閸繃濯奸柛搴＄箻閺屽秹鎸婃径妯烩枅濡ょ姷鍋為…鍥╁垝閻㈠灚鍠嗛柛鏇ㄥ墯濮ｅ骸鈹戦敍鍕杭闁稿﹥鐗犲畷婵嬪即閵忕姈褔鏌熼梻瀵割槮缂?markedWords 婵犵數濮烽弫鍛婃叏娴兼潙鍨傜憸鐗堝笚閸嬪鏌曡箛瀣偓鏇犵矆閸愨斂浜滈煫鍥ㄦ尰閸ｈ姤淇?
 
   const closeCard = (cardKey: string) => {
     setExpandedCardKeys(prev => {
@@ -177,10 +189,7 @@ function App() {
     setExpandedCardKeys(new Set([cardKey]));
   };
 
-  const expandMultipleCards = (cardKeys: string[]) => {
-    setExpandedCardKeys(new Set(cardKeys));
-  };
-
+  
   // Initialize local dictionary
   useEffect(() => {
     localDictionary.initialize().then(() => {
@@ -279,43 +288,73 @@ function App() {
   }, [reviewCards, reviewStatsRange]);
 
   const reviewVisibleCards = useMemo(() => {
-    const next = [...reviewCards];
+    let next = [...reviewCards];
+
+    if (reviewSortMode === 'stats') {
+      if (!reviewSelectedBucketKey) {
+        return [];
+      }
+      const selectedBucket = reviewStatsBuckets.find((bucket) => bucket.key === reviewSelectedBucketKey);
+      if (!selectedBucket) {
+        return [];
+      }
+      const selectedCardKeys = new Set(selectedBucket.cardKeys);
+      next = next.filter((item) => selectedCardKeys.has(item.cardKey));
+    }
+
     if (reviewSortMode === 'alphabet') {
       next.sort((a, b) => a.normalizedWord.localeCompare(b.normalizedWord));
     } else {
       next.sort((a, b) => b.cachedAt - a.cachedAt || a.normalizedWord.localeCompare(b.normalizedWord));
     }
     return next;
-  }, [reviewCards, reviewSortMode]);
+  }, [reviewCards, reviewSortMode, reviewSelectedBucketKey, reviewStatsBuckets]);
 
-  const reviewExpandedCount = useMemo(() => {
-    return reviewVisibleCards.filter((item) => expandedCardKeys.has(item.cardKey)).length;
-  }, [reviewVisibleCards, expandedCardKeys]);
+  const reviewDisplayRows = useMemo<ReviewDisplayRow[]>(() => {
+    const rows: ReviewDisplayRow[] = [];
+    let lastDividerLabel: string | null = null;
 
-  const reviewColumns = useMemo(() => {
-    const left: ReviewCardItem[] = [];
-    const right: ReviewCardItem[] = [];
+    reviewVisibleCards.forEach((item) => {
+      let dividerLabel: string | null = null;
 
-    reviewVisibleCards.forEach((item, index) => {
-      if (index % 2 === 0) {
-        left.push(item);
-      } else {
-        right.push(item);
+      if (reviewSortMode === 'date') {
+        const date = item.cachedAt ? new Date(item.cachedAt) : null;
+        dividerLabel = date
+          ? `${date.getFullYear()} ${date.getMonth() + 1}.${String(date.getDate()).padStart(2, '0')}`
+          : 'Unknown date';
+      } else if (reviewSortMode === 'alphabet') {
+        const firstChar = item.normalizedWord.charAt(0).toUpperCase();
+        dividerLabel = /^[A-Z]$/.test(firstChar) ? firstChar : '#';
       }
+
+      if (dividerLabel && dividerLabel !== lastDividerLabel) {
+        rows.push({
+          type: 'divider',
+          key: `divider-${dividerLabel}`,
+          label: dividerLabel,
+        });
+        lastDividerLabel = dividerLabel;
+      }
+
+      rows.push({
+        type: 'card',
+        key: item.cardKey,
+        item,
+      });
     });
 
-    return { left, right };
-  }, [reviewVisibleCards]);
+    return rows;
+  }, [reviewVisibleCards, reviewSortMode]);
 
   // Auto-annotate when markedWords increases (if autoAnnotate is enabled)
   useEffect(() => {
-    // 只在标记词增加时触发（不在减少时触发）
+    // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画濡炪倖鐗楃粙鎾汇€呴崣澶岀瘈濠电姴鍊搁弸锕傛煠閻楀牆顕滈柕鍥у缁犳盯骞樼捄渚毇闂備礁鎲￠崝蹇涘磻閹剧粯鈷掑ù锝堫潐閸嬬娀鏌涙惔锝呭妺缂佸倸绉瑰畷濂稿即閻愯泛鐓橀梻浣稿閸嬪懎煤濮椻偓瀹曟垿鏁愭径瀣幈闂侀潧顦伴崹鐢稿箟濞戙垹顫呴幒铏濠婂牊鐓忛柛顐ｇ箖閸ｅ綊鏌￠崱顓犳偧闁逞屽墲椤煤濡吋宕查柛顐犲劚缁犳牠鏌嶉崫鍕櫤闁诡垳鍋為妵鍕箛闂堟稐绨奸悶姘€鍥ㄢ拻濞达綀妫勯崥褰掓煕閻樺啿濮嶉柟顕€鏀卞蹇涘煛閸愌呯憹闂備胶顢婇幓顏嗗緤缂佹顩茬憸鐗堝笚閻撴洜鈧厜鍋撻柍褜鍓熷畷鎴︽倷閸濆嫮鏌у銈嗗笒鐎氼參鎮￠弴鐔翠簻闁规澘澧庨幃濂告煟椤撶偟鐒搁柡宀嬬秮閹垽宕妷褏鏉介梻浣告惈閺堫剟鎯勯鐐叉瀬闁稿瞼鍋涙导鐘绘煕閺囥劌浜介柣搴㈠▕濮婄粯绗熼埀顒€顭囬懡銈囩闁逞屽墯缁绘盯宕崘顏喩戠紓浣稿€哥粔褰掔嵁閺嶃劍濯撮柛婵勫労閸氬懘姊绘担铏瑰笡闁告梹鐗犻獮鍡欎沪鏉炲尅缍侀、娑㈡倷鐎电骞楅梻浣虹帛閺屻劑骞楀鍫濈疇闁哄洨濮风壕濂告煟濡搫鏆遍柣蹇涗憾閺屾洟宕堕妸銉ヮ潚閻庤娲樼敮锟犲箖濞嗘垟鍋撳☉娅虫垿鎮?
     if (autoAnnotate && markedWords.size > prevMarkedWordsSize.current && markedWords.size > 0 && !isLoadingAnnotation) {
       console.log('[Auto-Annotate] Triggered by word mark');
       handleAnnotate(true);
     }
     prevMarkedWordsSize.current = markedWords.size;
-  }, [markedWords.size]); // 只监听大小变化
+  }, [markedWords.size]); // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画濡炪倖鐗楃粙鎾汇€呴弻銉︾厽闁归偊鍨煎鎸庣箾瀹割喕绨荤紒鈧崘鈹夸簻闁哄啫娲らˉ宥囨偖濠靛洣绻嗛柣鎰典簻閳ь剚鐗曢蹇旂節濮橆剛锛涢梺鐟板⒔缁垶鎮¤箛娑欑厱闁靛鍨电€氼剛绮ｅ☉娆戠閻庢稒顭囬惌瀣煟閳╁啯绀堢紒顔款嚙閳藉濮€閻樻鍟嬮柣搴ゎ潐濞叉牕煤閵娿劉鍙洪梻?
 
   // Close export menu when clicking outside
   useEffect(() => {
@@ -417,13 +456,13 @@ function App() {
     window.speechSynthesis.onvoiceschanged = loadVoices;
   }, [selectedVoice]);
 
-  // When selectedWord changes, add to history (不自动展开)
+  // When selectedWord changes, add to history (婵犵數濮烽弫鎼佸磻閻愬搫鍨傞柛顐ｆ礀缁犱即鏌涘┑鍕姢闁活厽鎹囬弻锝夊箣閿濆棭妫勯梺鍛婁亢椤鎹㈠┑鍥╃瘈闁稿本绮岄。铏圭磽娴ｆ彃浜炬繝銏ｅ煐閸旀牠鎮¤箛鎾斀闁绘劘灏欐禒銏ゆ煕閺傝鈧牜鎹㈠☉銏犵闁稿繐鐨烽幏濠氭⒑闁偛鑻晶顖涖亜閺冣偓閻楃姴鐣锋导鏉戠婵°倐鍋撶痪?
   useEffect(() => {
     const selectedEntry = selectedWord ? findAnnotationEntry(annotations, selectedWord) : null;
     if (selectedWord && selectedEntry) {
       const annotation = selectedEntry.annotation;
       if (annotation && (annotation as any).definition) {
-        // 添加到历史记录，但不自动展开
+        // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓电紓鍌欒閸嬫捇鏌涢埄鍐姇闁绘挻绋戦…璺ㄦ崉閻氭潙濮涙繛瀵稿О閸ㄤ粙寮诲☉婊庢Щ闂佹寧娲︽禍顏勵嚕鐠囨祴妲堟俊顖炴敱閻庡姊洪崷顓炲妺闁搞劌銈稿顐﹀垂椤曞懏瀵岄梺闈涚墕濡瑩鎮￠妷锔剧婵炴潙顑嗗▍濠傗攽閿涘嫭鏆鐐叉喘瀵爼宕归鑲┿偖濠碉紕鍋戦崐鏇犳崲閹邦儵娑樷槈閳跺搫娲、娆撴偩瀹€鈧鏇㈡煛婢跺﹦澧曞褌绮欏畷姘舵偋閸粎绠氬銈嗗姧缁查箖鍩涢幒鏃傜＜妞ゆ洖鎳庨獮妤冣偓鍨緲鐎氫即鐛崶顒夋晣闁绘劕顕弶鐟扳攽閿涘嫬浜奸柛濠冩礈閹广垽骞囬鐟颁壕婵鍘ф晶鍙夈亜閵堝懎顏慨濠呮閹风娀鎳犻鍌ゅ敽闂備胶顭堥鍥磻濞戞艾寮查梻浣告惈缁嬩線宕戦崨杈剧稏?
         addToCardHistory('word', selectedWord);
       }
     }
@@ -505,7 +544,7 @@ function App() {
     } else {
       // Add mark
       setMarkedWords(prev => new Set(prev).add(normalized));
-      // useEffect 会自动触发标注
+      // useEffect 婵犵數濮烽弫鎼佸磻閻愬樊鐒芥繛鍡樻尭鐟欙箓鎮楅敐搴′簽闁崇懓绉电换娑橆啅椤旇崵鐩庨梺鍛婁亢椤鎹㈠┑鍥╃瘈闁稿本绮岄。铏圭磽娴ｆ彃浜炬繝銏ｅ煐閸旀牠鎮¤箛鎾斀闁绘劘灏欐禒銏狀熆閻熼偊妯€闁哄矉绻濆畷鍫曞Ψ閵壯傛偅闂備焦妞块崢浠嬨€冩繝鍥ц摕闁绘棁銆€閸嬫捇鎮藉▓璺ㄥ姼婵炲濮嶉崶銊у幈闂侀潧顭堥崕閬嶅箖閹寸姷纾?
     }
   };
 
@@ -559,7 +598,7 @@ function App() {
       return;
     }
 
-    // 防止双击触发紫色标记：只有选中多个token时才认为是真正的拖动选择
+    // 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸閻ゎ喗銇勯幇鈺佺労闁搞倖娲熼弻娑㈩敃閿濆棗顦╅梺杞扮濡瑧鎹㈠☉銏犵婵炲棗绻掓禒濂告⒑濞茶骞楁い銊ワ躬楠炲啫顫滈埀顒勫箖濞嗘挻鍤嬫繛鍫熷椤ュ绻濆▓鍨珯缂佽弓绮欓弫鍐敂閸繄鐣洪悗鐟板婢瑰寮告惔銏㈢闁糕剝锚閻忊晠鏌￠崱娆忊枅闁诡喖鍢查…銊╁礋椤掑倸鍤掗梻浣侯焾閿曘劑顢氳瀹撳嫰姊洪柅娑樺祮闁稿锕顐﹀礃椤旂晫鍘繝銏ｆ硾閻楀棝宕濈€涙ü绻嗘い鎰╁灮閻掑憡鎱ㄦ繝鍐┿仢鐎规洦鍋婂畷鐔碱敇婢跺牆鐏紒缁樼☉闇夐悗锝庡亝閻濇艾顪冮妶鍐ㄧ仾闁荤啿鏅涢悾鐑藉醇閺囥劍鏅㈡繛杈剧秬椤鎮甸锝囩瘈婵炲牆鐏濋弸鐔兼煥閺囨娅婄€规洘绮岄埢搴ょ疀婵犲喚娼旈柣鐔哥矋濡啫顕ｆ繝姘櫢闁绘ɑ鐓￠崬璺衡攽閻樿尙浠涢柛鏃€鐗犻崺銏ゅ醇閵夛腹鎷洪梻渚囧亞閸嬫盯鎳熼娑欐珷妞ゆ柨顫曟禍婊堟煥閺冨浂鍤欐繛鍛Ч閺岀喖鎼归銈嗗櫚濡ょ姷鍋涢澶愬箖濞嗘挻鍤戞い鎺戝€诲畵浣糕攽閻樻剚鍟忛柛鐘愁殜閺佸啴鍩￠崨顓狅紱婵犵數濮村ú銈夊触閻熸壋鏀芥い鏍电稻閹虫悊en闂傚倸鍊搁崐椋庣矆娓氣偓楠炴牠顢曢敃鈧悿顕€鏌熼幆鐗堫棄闁哄嫨鍎甸弻鈥愁吋閸愩劌顬夊┑鐐叉噽婵炩偓闁哄矉绲借灒闁惧繘鈧稓椹冲┑鐘愁問閸ㄤ即濡堕幖浣歌摕闁哄洢鍨归柋鍥ㄧ節闂堟稒锛嶅ù鐓庡€荤槐鎾存媴閹绘帊澹曢梺璇插嚱缂嶅棝宕板Δ鍛亗婵炴垯鍨洪悡鏇㈡煛閸ャ儱鐏繛鎳峰洦鐓熼煫鍥ュ劤缁嬭崵绱掔紒妯肩疄闁糕斁鍋撳銈嗗笒鐎氼剟鎮橀幎鑺ョ厵濡鑳堕崝宥嗕繆濡炵厧濮傛慨濠冩そ楠炴劖鎯旈敐鍥╂殼婵犵數鍋犻婊呯不閹捐绠栧Δ锝呭暞閻掕偐鈧箍鍎卞Λ娑㈠储閻㈠憡鈷掑ù锝呮憸娴犮垺銇勯幋婵囧闁哄懎鐖奸、鏃堝礋閵婏附鏉告俊鐐€栧Λ渚€锝炴径濞炬瀺濠电姴娲﹂悡娑㈡倶閻愯泛袚闁革綀娅ｉ埀顒€鐏氬妯尖偓姘煎櫍閸┾偓妞ゆ帒锕︾粔闈浢瑰鍡楃厫缂?
     if (tokenPositions.length === 1) {
       selection.removeAllRanges();
       return;
@@ -688,13 +727,13 @@ function App() {
       try {
         let annotationWithContext: WordAnnotation;
         
-        // 根据标注模式选择标注方式
+        // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炴牠顢曢妶鍥╃厠闂佺粯鍨堕弸鑽ょ礊閺嵮岀唵閻犺櫣灏ㄩ崝鐔兼煛閸℃劕鈧洟濡撮幒鎴僵闁挎繂鎳嶆竟鏇㈡煟鎼淬埄鍟忛柛鐘虫礈閸掓帒鈻庤箛鏇熸闂佸壊鍋呭ú鏍ㄥ劔闂備焦瀵уΛ浣规叏閵堝鍋╅柛蹇氬亹缁♀偓缂佸墽澧楄摫妞ゎ偄锕弻娑⑩€﹂幋婊堝仐闂佺硶鏂侀崑鎾愁渻閵堝棗鍧婇柛瀣尵閻ヮ亞绱掗姀鐘茬濠电偞鍨归弫濠氬春閳ь剚銇勯幒鎴濐仾闁抽攱甯掗妴鎺戭潩椤掍焦鎮欐繛瀛樼矋缁秹濡甸崟顖涙櫆闁芥ê顦藉Λ鍡涙⒑闁偛鑻晶顖炴煕濠靛棝鍙勭€规洘绻堥獮瀣攽閹邦剚顓垮┑鐐差嚟婵挳顢栭崨瀛樺€峰┑鐘叉处閻撳繐鈹戦悩鑼婵＄虎鍠楃换娑㈠醇閻曞倽鈧寧鎱ㄦ繝鍐┿仢鐎规洦鍋婂畷鐔碱敃閻旇渹澹曟繝鐢靛У閼瑰墽绮婚悩缁樼厵闁硅鍔曢悡鎰亜?
         if (annotationMode === 'local' || annotationMode === 'local-first') {
-          // 尝试本地词典查询
+          // 闂傚倸鍊峰ù鍥敋瑜忛幑銏ゅ箛椤旇棄搴婇梺鐟邦嚟婵潧鐣烽弻銉︾厱闁斥晛鍟伴埊鏇㈡煕鎼粹槄鏀婚柕鍥у瀵粙顢曢～顓犳崟闂佽瀛╅懝楣兯囨导鏉懳﹂柛鏇ㄥ灠缁犳娊鏌涢埄鍐︿沪濠㈣娲樼换婵嬫偨闂堟刀娑㈡煕鐎ｎ偅宕岄柟顔筋殜濡啫鈽夊▎蹇旀畼闂佽瀛╃喊宥咁潩閵娾晛鐒垫い鎺嗗亾缂佺姴绉瑰畷鏇㈡焼瀹ュ懐鐤囬柟鍏肩暘閸斿瞼绮婚弽褋鈧帒顫濋敐鍛闂備礁鎼惌澶屾閺囩喓顩烽柨鏃傚亾鐎氭岸鏌熺紒妯虹瑨鐞氭艾鈹?
           const localResult = await localDictionary.lookup(wordItem.word);
           
           if (localResult) {
-            // 本地词典找到了
+            // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炴牠顢曢敂钘変罕濠电姴锕ら悧鍡欑矆閸喓绠鹃柛鈩冾殜閻涙粓鏌ら弶鎸庡仴闁诡喗顨婂Λ鍐ㄢ槈濞嗗繑娈橀梺璇插绾板秴顫濋妸鈺佺劦妞ゆ巻鍋撶紒鐘茬Ч瀹曟洟鏌嗗鍛枃闁瑰吋鐣崝宀€绮婚弽褋鈧帒顫濋敐鍛闂備礁鎼惉濂稿窗閺嵮呮殾鐟滅増甯╅弫鍐煏韫囨洖孝鐞氭﹢姊婚崒娆掑厡缁绢厼鐖煎鎻掆槈閵忕姴鐝樺銈嗗笒閸婂鎯?
             console.log(`[Local Dict] Found "${wordItem.word}"`);
             annotationWithContext = {
               ...localResult,
@@ -703,7 +742,7 @@ function App() {
             };
             console.log('[Local Dict] Annotation data:', annotationWithContext);
           } else if (annotationMode === 'local-first') {
-            // 本地没找到，使用 AI
+            // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炴牠顢曢敂钘変罕濠电姴锕ら悧鍡欑矆閸喓绠鹃柛鈩冾殜閻涙粓鏌ら弶鎸庡仴闁哄备鍓濆鍕偓锝庝簽娴滃爼姊洪崫鍕効缂佺姵鎹囧璇差吋婢跺﹦鍘告繛杈剧到閹测€斥枔椤撶儐娓婚柕鍫濆暙閸旀粎绱掔拠鑼ⅵ鐎殿喛顕ч埥澶愬閻樻鍞洪梻浣烘嚀閻°劎鎹㈤崟顖涘剮閹艰揪绲跨壕钘壝归敐鍕煓闁告繆娅ｇ槐鎺旀嫚閹绘帗娈诲Δ鐘靛仜缁绘ê鐣烽妸鈺婃晬婵炴垶顭囬敍蹇涙⒒娓氣偓濞佳団€﹂銏♀挃闁告洦鍋€閺?AI
             console.log(`[Local Dict] Not found "${wordItem.word}", falling back to AI`);
             const result = await annotateWord(wordItem.word, level, wordItem.sentence);
             if (!result.success || !result.data) {
@@ -717,13 +756,13 @@ function App() {
               documentTitle: currentDocument.title
             };
           } else {
-            // annotationMode === 'local' 且本地没找到，跳过
+            // annotationMode === 'local' 婵犵數濮烽弫鎼佸磻閻愬搫鍨傞柛顐ｆ礀缁犱即鎮归崶褎鈻曟繛鍏肩墵閺岋綁鎮㈠畡鎵泿闂佸吋婢橀悘婵嬫箒闂佺绻愰崥瀣礊閹达附鐓欓柣鐔稿閸╋綁鏌″畝瀣埌閾绘牠鏌嶈閸撶喖骞冭缁犳盯骞欓崘鈺冪▉濠德板€х徊浠嬪疮椤栫偞鍋傛繛鍡樻尰閻撴洘銇勯鐔风仴濞存粍绮撻弻娑㈠棘鐠囨祴鍋撳┑瀣摕婵炴垯鍨归悡娑樏归敐鍫燁仩闁告棏鍨跺鐑樻姜閹殿噮妲紓浣割槹閹告娊骞冮幆褉鏀介悗锝庝簽椤︺劌顪冮妶鍛閻庢凹鍓氶幈銊╁即閵忊檧鎷?
             failed++;
             console.warn(`[Local Dict] Word "${wordItem.word}" not in dictionary, skipping (local-only mode)`);
             continue;
           }
         } else {
-          // annotationMode === 'ai'，直接使用 AI
+          // annotationMode === 'ai'闂傚倸鍊搁崐鐑芥倿閿旈敮鍋撶粭娑樻噽閻瑩鏌熸潏楣冩闁稿孩妫冮弻锝夊箻瀹曞洨妲忓┑鐐叉▕娴滄粓鏌ㄩ妶鍡曠箚闁靛牆鍊告禍鍓х磽娴ｅ搫校濠电偛锕濠氬即閻旈绐為梺鍓插亝缁洪箖宕戦幘璇插嵆闁靛繒濮烽崢娲椤愩垺澶勭紒瀣浮閹?AI
           const result = await annotateWord(wordItem.word, level, wordItem.sentence);
           if (!result.success || !result.data) {
             failed++;
@@ -737,7 +776,7 @@ function App() {
           };
         }
         
-        // 保存标注
+        // 婵犵數濮烽弫鎼佸磿閹寸姴绶ら柦妯侯棦濞差亝鏅滈柣鎰靛墮鎼村﹪姊虹粙璺ㄧ伇闁稿鍋ゅ畷鎴﹀Χ婢跺鍘繝鐢靛仧閸嬫挸鈻嶉崨瀛樼厱闁硅埇鍔屾禍楣冩⒒閸屾瑧鍔嶉柟顔肩埣瀹曟洟顢涢悙鑼槷閻庡箍鍎遍ˇ顖毿?
         const canonicalWord = getCanonicalWord(wordItem.word, annotationWithContext);
         const existingAnnotation = annotations.get(canonicalWord);
         const cachedAt = Date.now();
@@ -750,14 +789,14 @@ function App() {
         addAnnotation(canonicalWord, mergedAnnotation);
         await cacheAnnotation(canonicalWord, mergedAnnotation);
         
-        // 计算并保存默认 emoji
+        // 闂傚倸鍊峰ù鍥х暦閸偅鍙忕€规洖娲﹂浠嬫煏閸繃澶勬い顐ｆ礋閺岋繝宕堕妷銉т痪闂佺顑傞弲娑㈠煘閹达附鍋愰柧蹇ｅ亞濞堛倝鎮楃憴鍕矮缂佽埖宀稿濠氭晸閻樻煡鍞堕梺闈涚箚閸撴繂袙閸曨厾纾藉ù锝呮惈灏忕紓渚囧枟閻熲晠鐛崘銊庢棃鍩€椤掑嫬鐓″璺号堥弸搴㈢箾閸℃ê鍧婇柛瀣尵閹瑰嫰濡歌閿涙粌顪冮妶鍡樼闁瑰啿閰ｉ幃姗€鏁愭径瀣幍?emoji
         const defaultEmoji = getWordEmoji(mergedAnnotation);
         await updateEmoji(canonicalWord, defaultEmoji, (updates) => {
           updateAnnotation(canonicalWord, updates);
         });
         console.log(`[App] Saved default emoji for "${wordItem.word}": ${defaultEmoji}`);
         
-        // 添加到历史记录（折叠状态）
+        // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓电紓鍌欒閸嬫捇鏌涢埄鍐姇闁绘挻绋戦…璺ㄦ崉閻氭潙濮涙繛瀵稿О閸ㄤ粙寮诲☉婊庢Щ闂佹寧娲︽禍顏勵嚕鐠囨祴妲堟俊顖炴敱閻庡姊洪崷顓炲妺闁搞劌銈稿顐﹀垂椤曞懏瀵岄梺闈涚墕濡瑩鎮￠妷锔剧婵炴潙顑嗗▍濠傗攽閿涘嫭鏆鐐叉喘瀵爼宕归鑲┿偖濠碉紕鍋戦崐鏇犳崲閹邦儵娑樷槈閳跺搫娲崺锟犲川椤旇瀚肩紓浣鸿檸閸樺ジ骞婃惔銊﹀亗闁规壆澧楅悡銉︽叏濡潡鍝洪柛鐘冲姍閺岋絽螖閳ь剟鎮ф繝鍥佸宕奸妷锔惧幍濡炪倖妫侀～澶娾枍婵犲洦鐓欓柧蹇ｅ亞閻矂鏌涢悩璇у伐閾伙綁寮堕悙瀛樼凡妞ゃ儲鑹鹃埞鎴︽倷鐎涙ê闉嶉梺鐓庣秺缁犳牠寮崘顔芥櫆闁告挆鍛姸?
         addToCardHistory('word', wordItem.word);
         
         newAnnotations.push(mergedAnnotation);
@@ -785,7 +824,7 @@ function App() {
           const cachedAt = Date.now();
           const phraseData = {
             ...result.data,
-            documentTitle: currentDocument.title,  // 添加文章标题
+            documentTitle: currentDocument.title,  // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓垫繝纰樻閸嬪懘鏁冮姀銈呰摕婵炴垯鍨瑰敮闂侀潧绻嗛崜婵嬫偟閺嶎厽鍋℃繝濠傚缁跺弶绻涚涵椋庣瘈鐎殿喖顭烽崹楣冨箛娴ｅ憡鍊梻浣告啞娓氭宕伴弽顓炲嚑闁绘ê妯婂〒?
             cachedAt,
           };
           
@@ -812,7 +851,7 @@ function App() {
             setAnnotatedPhraseRanges(prev => [...prev, { ...range, phrase: phrase.text.toLowerCase() }]);
           }
           
-          // 添加到历史记录，但不自动展开
+          // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓电紓鍌欒閸嬫捇鏌涢埄鍐姇闁绘挻绋戦…璺ㄦ崉閻氭潙濮涙繛瀵稿О閸ㄤ粙寮诲☉婊庢Щ闂佹寧娲︽禍顏勵嚕鐠囨祴妲堟俊顖炴敱閻庡姊洪崷顓炲妺闁搞劌銈稿顐﹀垂椤曞懏瀵岄梺闈涚墕濡瑩鎮￠妷锔剧婵炴潙顑嗗▍濠傗攽閿涘嫭鏆鐐叉喘瀵爼宕归鑲┿偖濠碉紕鍋戦崐鏇犳崲閹邦儵娑樷槈閳跺搫娲、娆撴偩瀹€鈧鏇㈡煛婢跺﹦澧曞褌绮欏畷姘舵偋閸粎绠氬銈嗗姧缁查箖鍩涢幒鏃傜＜妞ゆ洖鎳庨獮妤冣偓鍨緲鐎氫即鐛崶顒夋晣闁绘劕顕弶鐟扳攽閿涘嫬浜奸柛濠冩礈閹广垽骞囬鐟颁壕婵鍘ф晶鍙夈亜閵堝懎顏慨濠呮閹风娀鎳犻鍌ゅ敽闂備胶顭堥鍥磻濞戞艾寮查梻浣告惈缁嬩線宕戦崨杈剧稏?
           addToCardHistory('phrase', phrase.text);
           successfullyAnnotated.push({ type: 'phrase', word: phrase.text });
           completed++;
@@ -853,7 +892,7 @@ function App() {
       });
     }
     
-    // 只在非静默模式下显示提示
+    // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画濡炪倖鐗楃粙鎾汇€呴崣澶岀瘈濠电姴鍊搁弸锕傛煠閻楀牆顕滈柕鍥у缁犳盯骞樼捄渚澑婵＄偑鍊戦崕閬嶆偋閹捐钃熼柨婵嗩槸缁犳稒銇勯弮鍌氬付濠碉紕鍎ゆ穱濠囧Χ閸♀晜顓归梺鎼炲妺閸楁娊鏁愰悙鍙傛棃鍩€椤掑嫬鐓″璺号堥弸宥夋煣韫囷絽浜滈柣蹇涗憾閺屾盯鎮ゆ担鍝ヤ桓闂佽鍠楅〃鍛村煝閹捐鍨傛い鏃傛櫕娴滎亞绱撻崒娆愮グ妞ゆ泦鍥舵晞闁搞儮鏅涢崹婵囥亜閹惧崬鐏╃€瑰憡绻堥弻鈩冨緞鐎ｎ亞浠撮悗娈垮枤閸忔ê顫忓ú顏勫窛濠电姴鍟惁閿嬬箾鏉堝墽绉い銉︽尰閵囨瑩骞庨懞銉㈡嫽婵炶揪绲介幉锛勬嫻閿涘嫮纾兼い鏇炴噹閻忥妇鈧娲樼换鍌濈亙闂佸憡渚楅崢?
     if (!silent) {
       alert(`Annotation complete!\nWords: ${wordsToAnnotate.length}\nPhrases: ${phrasesToAnnotate.length}\nSuccess: ${completed}\nFailed: ${failed}`);
     }
@@ -897,7 +936,7 @@ function App() {
     const phraseLower = phrase.toLowerCase();
     const annotation = phraseAnnotations.get(phraseLower);
     if (annotation) {
-      // 添加到历史记录，但不自动展开
+      // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓电紓鍌欒閸嬫捇鏌涢埄鍐姇闁绘挻绋戦…璺ㄦ崉閻氭潙濮涙繛瀵稿О閸ㄤ粙寮诲☉婊庢Щ闂佹寧娲︽禍顏勵嚕鐠囨祴妲堟俊顖炴敱閻庡姊洪崷顓炲妺闁搞劌銈稿顐﹀垂椤曞懏瀵岄梺闈涚墕濡瑩鎮￠妷锔剧婵炴潙顑嗗▍濠傗攽閿涘嫭鏆鐐叉喘瀵爼宕归鑲┿偖濠碉紕鍋戦崐鏇犳崲閹邦儵娑樷槈閳跺搫娲、娆撴偩瀹€鈧鏇㈡煛婢跺﹦澧曞褌绮欏畷姘舵偋閸粎绠氬銈嗗姧缁查箖鍩涢幒鏃傜＜妞ゆ洖鎳庨獮妤冣偓鍨緲鐎氫即鐛崶顒夋晣闁绘劕顕弶鐟扳攽閿涘嫬浜奸柛濠冩礈閹广垽骞囬鐟颁壕婵鍘ф晶鍙夈亜閵堝懎顏慨濠呮閹风娀鎳犻鍌ゅ敽闂備胶顭堥鍥磻濞戞艾寮查梻浣告惈缁嬩線宕戦崨杈剧稏?
       addToCardHistory('phrase', phrase);
     }
   };
@@ -908,7 +947,7 @@ function App() {
     setContextMenu({ x: e.clientX, y: e.clientY, pIndex, sIndex });
   };
   
-  // AI 重新生成解释
+  // AI 闂傚倸鍊搁崐鎼佸磹閻戣姤鍊块柨鏇氶檷娴滃綊鏌涢幇鍏哥敖闁活厽鎹囬弻锝夊閵忊晝鍔搁梺钘夊暟閸犲酣鍩為幋锔藉亹闁告瑥顦ˇ鈺呮⒑缁嬫鍎嶉柛鏃€鍨垮濠氭晲婢跺﹦鐫勯梺绋胯閸婃宕濋幖浣光拺閻犲洩灏欑粻鐗堢箾瀹割喖寮鐐插暙閻ｏ繝骞嶉搹顐も偓璇测攽閻愬弶顥為柛銊ь攰閳敻姊?
   const handleRegenerateAI = async (word: string, sentence: string, type: 'word' | 'phrase') => {
     try {
       console.log('[AI Regenerate]', type, ':', word, 'Sentence:', sentence);
@@ -946,10 +985,10 @@ function App() {
             addAnnotation(surfaceWord, normalizedMergedAnnotation);
             await cacheAnnotation(surfaceWord, normalizedMergedAnnotation);
           }
-          alert('✅ AI re-generated successfully!');
+          alert('? AI re-generated successfully!');
         } else {
           console.error('[AI Regenerate] Failed:', result.error);
-          alert('❌ Failed to regenerate: ' + result.error);
+          alert('? Failed to regenerate: ' + result.error);
         }
       } else {
         // Phrase
@@ -971,15 +1010,15 @@ function App() {
             documentTitle: result.data.documentTitle,
           });
           console.log('[AI Regenerate] Success:', result.data);
-          alert('✅ AI re-generated successfully!');
+          alert('? AI re-generated successfully!');
         } else {
           console.error('[AI Regenerate] Failed:', result.error);
-          alert('❌ Failed to regenerate: ' + result.error);
+          alert('? Failed to regenerate: ' + result.error);
         }
       }
     } catch (error) {
       console.error('[AI Regenerate] Error:', error);
-      alert('❌ Error: ' + error);
+      alert('? Error: ' + error);
     }
   };
   
@@ -995,7 +1034,7 @@ function App() {
     );
     
     setContextMenu(null);
-    alert('📌 Bookmark added!');
+    alert('Bookmark added!');
   };
   
   // Jump to latest bookmark
@@ -1107,7 +1146,7 @@ function App() {
   };
 
   const handleClearReviewCards = () => {
-    if (reviewExpandedCount === 0 && !reviewSelectedBucketKey) return;
+    if (reviewVisibleCards.length === 0 && !reviewSelectedBucketKey) return;
 
     setExpandedCardKeys(new Set());
     setReviewSelectedBucketKey(null);
@@ -1212,15 +1251,15 @@ ${sortedWords.join(' ')}
 
       // If no words to add and no next chapter, just show message
       if (wordsToAdd.length === 0) {
-        alert('All words in this chapter are already known!\n\n没有需要添加的新单词。');
+        alert('All words in this chapter are already known!');
         return;
       }
 
       const confirmed = confirm(
-        `将添加 ${wordsToAdd.length} 个单词到 Known Words\n\n` +
         `Add ${wordsToAdd.length} words to known words?\n\n` +
-        '确认完成本篇阅读？'
+        'Confirm finish reading?'
       );
+
 
       if (!confirmed) return;
 
@@ -1250,7 +1289,7 @@ ${sortedWords.join(' ')}
           }
         }, 300);
       } else {
-        alert(`✓ 本篇学习完毕！\n\n已添加 ${wordsToAdd.length} 个新单词到 Known Words`);
+        alert(`? 闂傚倸鍊搁崐椋庣矆娓氣偓楠炴牠顢曢敂钘変罕濠电姴锕ら悧鍡欑矆閸喓绠鹃柟瀛樼懃閻忣亪鏌涙惔鈽呰含闁哄瞼鍠栭幃婊兾熼懡銈呭箰闂備胶顭堥鍡涘箰閹间礁鐓″璺猴功閺嗭箓鏌涢妷銏℃珖闁绘稏鍎崇槐鎾诲磼濞嗘帩鍞归梺閫炲苯澧柛鐔锋健椤㈡棃顢曢敂鐣屽帗閻熸粍绮撳畷婊冣槈閵忕姷鐤囬梺瑙勫礃椤曆呪偓姘槹閵囧嫰骞掗幋婵愪痪闂佺楠搁敃銉╁Φ閸曨垰鍐€妞ゆ劦婢€濞岊亪姊洪崫鍕闁告挻鐟╅崺銉﹀緞閹邦剛鐫勯梺閫炲苯澧寸捄顖炴煕閹烘挻鍊ч梻鍌欐祰椤曆勵殽缁嬪尅鑰块梺顒€绉埀顒婄畵瀹曠厧鈹戦幇顒侇吙闂備礁澹婇崑鍛洪弽顓熺叆闁靛牆鎳夐弨浠嬫煟濡搫绾ч柟鍏煎姉缁辨帡鍩€?${wordsToAdd.length} 婵犵數濮烽弫鎼佸磻閻愬搫鍨傞柛顐ｆ礀缁犲綊鏌嶉崫鍕偓濠氥€呴崣澶岀瘈闂傚牊渚楅崕蹇涙煢閸愵亜鏋庨柍瑙勫灴閹晠宕ｆ径瀣€风紓浣鸿檸閸樻悂宕戦幘缁樷拻濞达絽鎲￠幆鍫熺箾閺夋垵顏俊鍙夊姍瀵挳鎮欏蹇曠М濠德ゅ煐瀵板嫮鈧綆鍓欓獮?Known Words`);
       }
       
       console.log(`[Finish] Successfully added ${wordsToAdd.length} words to known words`);
@@ -1546,11 +1585,11 @@ ${sortedWords.join(' ')}
             level: item.level,
             partOfSpeech: item.partOfSpeech,
             wordForms: item.wordForms,
-            // 加载emoji相关字段
+            // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鍨鹃幇浣圭稁缂傚倷鐒﹁摫闁告瑥绻橀弻鐔碱敍閿濆洣姹楅悷婊呭鐢帡姊婚鐐寸厓鐟滃繘骞嗛　绀縤闂傚倸鍊搁崐鐑芥嚄閸洖纾块柣銏㈩焾閻ょ偓绻濋棃娑卞剬闁逞屽墾缁犳挸鐣锋總绋课ㄩ柕澹懎骞€闂佽崵鍠愮划宀€鎹㈠鈧畷娲焵椤掍降浜滈柟鍝勭Х閸忓矂鏌嶉娑欑闁靛洤瀚版俊鎼佸Ψ閿旂粯锛嗘俊?
             emoji: item.emoji,
             emojiImagePath: item.emojiImagePath,
             emojiModel: item.emojiModel,
-            // 加载上下文字段
+            // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鍨鹃幇浣圭稁缂傚倷鐒﹁摫闁告瑥绻橀弻鐔碱敍閿濆洣姹楅悷婊呭鐢帡鎮欐繝鍥ㄧ厪濠电倯鈧崑鎾绘煛鐎ｎ偆澧紒缁樼箞閹粙妫冨ù璁圭節閺屻倝宕橀懠顒€鐓熼梺璇″枤閸忔﹢鐛Ο鑲╃＜婵☆垳鍘ч獮鎰版⒒娴ｄ警鐒鹃柡鍫墰閸犲﹤顓兼径濠勵啇闂佽澹嗘晶妤呮偂閻斿吋鐓冩い鏍ㄧ〒閹冲啴鏌涢悢鍝勨枅鐎?
             sentence: item.sentence,
             documentTitle: item.documentTitle,
             encounteredMeanings: item.encounteredMeanings,
@@ -1595,7 +1634,7 @@ ${sortedWords.join(' ')}
             chinese: item.chinese,
             explanation: item.explanation,
             sentenceContext: item.sentenceContext,
-            documentTitle: item.documentTitle,  // 加载文章标题
+            documentTitle: item.documentTitle,  // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鍨鹃幇浣圭稁缂傚倷鐒﹁摫闁告瑥绻橀弻鐔碱敍閿濆洣姹楅悷婊呭鐢帡鎮欐繝鍐︿簻闁瑰搫妫楁禍鎯р攽閳藉棗浜濋柨鏇樺灲瀵鈽夐姀鐘栥劑鏌曡箛濠傚⒉闁绘繃鐗犻幃宄邦煥閸曨剛鍑″┑鐐点€嬬换婵嗩嚕婵犳艾鐏抽柟棰佺閹垿姊洪崨濠佺繁闁哥姵鐗犲鎼佹偐瀹割喗瀵?
             cachedAt: item.cachedAt,
           });
         });
@@ -2074,9 +2113,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
   const handleReviewBucketClick = (bucket: StatsBucket) => {
     setReviewSelectedBucketKey(bucket.key);
     setReviewSortMode('stats');
-    if (bucket.cardKeys.length > 0) {
-      expandMultipleCards(bucket.cardKeys);
-    }
+    setExpandedCardKeys(new Set());
   };
 
   const renderReviewStatsPanel = () => {
@@ -2087,7 +2124,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
             <div className="text-sm font-semibold text-gray-900">Annotation Stats</div>
-            <div className="text-xs text-muted">Click a bar to expand cards from that day or month.</div>
+            <div className="text-xs text-muted">Click a bar to load cards from that day or month into the pool.</div>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -2168,7 +2205,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             className="absolute top-2 right-2 z-10 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"
             title={mode === 'read' ? 'Remove from history' : 'Delete card'}
           >
-            脳
+            x
           </button>
         )}
 
@@ -2293,7 +2330,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   }}
                   title={hiddenTranslations.has(cardKey) ? 'Click to show translation' : 'Click to hide translation'}
                 >
-                  {hiddenTranslations.has(cardKey) ? '••••••' : (annotation as WordAnnotation).chinese}
+                  {hiddenTranslations.has(cardKey) ? '......' : (annotation as WordAnnotation).chinese}
                 </span>
 
                 <button
@@ -2305,13 +2342,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
                   title="Re-generate with AI"
                 >
-                  馃
+                  AI
                 </button>
               </div>
             ) : (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl flex-shrink-0">馃摉</span>
+                  <span className="text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 rounded px-1.5 py-0.5 flex-shrink-0">PH</span>
                   <span className="font-bold text-sm flex-1">{item.word}</span>
                 </div>
 
@@ -2334,7 +2371,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     }}
                     title={hiddenTranslations.has(cardKey) ? 'Click to show translation' : 'Click to hide translation'}
                   >
-                    {hiddenTranslations.has(cardKey) ? '••••••' : (annotation as PhraseAnnotation).chinese}
+                    {hiddenTranslations.has(cardKey) ? '......' : (annotation as PhraseAnnotation).chinese}
                   </span>
                   <button
                     onClick={async (e) => {
@@ -2345,7 +2382,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
                     title="Re-generate with AI"
                   >
-                    馃
+                    AI
                   </button>
                 </div>
               </div>
@@ -2356,9 +2393,22 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     );
   };
 
-  const renderCardColumn = (items: ReviewCardItem[], mode: 'read' | 'review') => (
-    <div className="space-y-2">
-      {items.map((item) => renderCardItem(item, mode))}
+  const renderReviewBoard = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      {reviewDisplayRows.map((row) => {
+        if (row.type === 'divider') {
+          return (
+            <div
+              key={row.key}
+              className="lg:col-span-2 text-xs text-gray-400 font-semibold tracking-wide pt-2"
+            >
+              {row.label}
+            </div>
+          );
+        }
+
+        return renderCardItem(row.item, 'review');
+      })}
     </div>
   );
 
@@ -2543,11 +2593,11 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         {viewMode === 'read' && currentDocument && (
           <button
             onClick={handleJumpToBookmark}
-            className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
+            className="px-2 py-1 border border-red-300 bg-red-500 text-white rounded-lg hover:bg-red-600 text-xs font-semibold"
             title="Jump to latest bookmark"
             disabled={!getLatestBookmark(currentDocument.id)}
           >
-            🔖
+            M
           </button>
         )}
 
@@ -2557,7 +2607,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
           title="Settings"
         >
-          ⚙️
+          SET
         </button>
       </div>
 
@@ -2581,16 +2631,16 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 }`}
                 title="Hide outline"
               >
-                <span className="text-gray-600 text-sm font-bold">‹</span>
+                <span className="text-gray-600 text-sm font-bold">x</span>
               </button>
             </div>
             <div className="flex-1 p-3 overflow-auto">
-              {/* 如果当前文档是 EPUB，显示章节列表 */}
+              {/* 婵犵數濮烽弫鍛婃叏閻戝鈧倹绂掔€ｎ亞鍔﹀銈嗗坊閸嬫捇鏌涢悢閿嬪仴闁糕斁鍋撳銈嗗坊閸嬫挾绱撳鍜冭含妤犵偛鍟灒閻犲洩灏欑粣鐐烘煙閻撳海鎽犵紒瀣姇鏁堟俊銈呮噺閳锋垿鎮峰▎蹇擃仼闁告柣鍊濋弻娑㈡偄闁垮浠撮悹渚灦閺屾稑鈽夊Ο鍏兼喖闂佺粯鎸婚惄顖炲蓟濞戞矮娌柛鎾楀本娈瑰┑鐘灱濞夋稓鈧矮鍗冲濠氬即閵忕姴鑰垮┑掳鍊愰崑鎾绘煃瑜滈崜娆撴倶濠靛鏁?EPUB闂傚倸鍊搁崐鐑芥倿閿旈敮鍋撶粭娑樻噽閻瑩鏌熸潏鍓х暠閻庢艾顦伴妵鍕箳閸℃ぞ澹曢梺鍙ョ串缁蹭粙鈥︾捄銊﹀磯闁惧繐婀辨导鍥⒑濞茶骞栨俊顐ｇ箞瀵槒顦剁紒鐘崇洴楠炴澹曠€ｎ剦鏀ㄩ梺鑽ゅ枑缁秴顭垮Ο渚劷闁跨喓濮撮拑鐔兼煏閸繍妲稿ù鑲╁█閺屾盯寮撮妸銉ょ爱闂佺顑嗛幑鍥嵁閺嶃劍濯寸紒瀣硶閳ь剦鍘奸—鍐Χ閸涱垳顔囧┑鈽嗗亝閻熲晛鐣?*/}
               {currentDocument?.type === 'epub' && currentDocument.chapters ? (
                 <>
-                  {/* EPUB 书籍标题 */}
+                  {/* EPUB 婵犵數濮烽弫鎼佸磻閻愬搫鍨傞悹杞扮秿濞戙垹绠ｉ柣鎰缁犳岸姊洪幖鐐插姶闁告挻宀稿畷鏇㈠箻缂佹鍘遍梺鍝勬储閸斿矂鎮橀悩缁樼厱闁硅埇鍔屾禍楣冩⒒閸屾瑧鍔嶉柟顔肩埣瀹曟洖煤椤忓嫮顦梺鎸庢礀閸婄效?*/}
                   <div className="px-3 py-2 mb-2 font-bold text-lg border-b border-border">
-                    📖 {currentDocument.title}
+                    Book {currentDocument.title}
                   </div>
                   {currentDocument.author && (
                     <div className="px-3 py-1 mb-3 text-xs text-muted">
@@ -2598,7 +2648,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     </div>
                   )}
                   
-                  {/* 章节列表 */}
+                  {/* 缂傚倸鍊搁崐鎼佸磹閻戣姤鍊块柨鏇楀亾妞ゎ偄绻掔槐鎺懳熺拠鎻掍紟闂備胶绮崝锕傚礂濞戞碍宕查柛鈩兦滄禍婊堟煙閹冭埞闁诲繆鏅濈槐鎺楀焵椤掑嫬骞㈡俊顖氭贡缁犳岸姊洪棃娑氬闁瑰啿閰ｉ、鏃堝Ψ閳哄倻鍘?*/}
                   <div className="text-xs text-muted mb-2 px-3">Chapters ({currentDocument.chapters.length})</div>
                   {currentDocument.chapters.map((chapter: Chapter, idx: number) => {
                     // Check if this chapter contains the bookmark
@@ -2618,23 +2668,27 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       >
                         <span className="text-muted min-w-[24px]">{idx + 1}.</span>
                         <span className="flex-1">{chapter.title}</span>
-                        {hasBookmark && <span className="text-sm">🔖</span>}
+                        {hasBookmark && (
+                          <span className="text-[10px] font-semibold text-white bg-red-500 rounded px-1.5 py-0.5">
+                            M
+                          </span>
+                        )}
                       </div>
                     );
                   })}
                   
-                  {/* 返回文档列表按钮 */}
+                  {/* 闂傚倸鍊风粈渚€骞栭位鍥敃閿曗偓閻ょ偓绻濇繝鍌滃闁藉啰鍠栭弻鏇熺箾閸喖澹勫┑鐐叉▕娴滄粓宕橀埀顒€顪冮妶鍡樺暗闁稿鍋よ棢婵犻潧顑嗛埛鎴︽煙閼测晛浠滈柛鏃€锕㈤弻娑㈠棘閸柭ゅ惈闂佺硶鏂侀崑鎾愁渻閵堝棗鍧婇柛瀣崌閺屾稒绻濋崒婊€铏庨梺浼欑到閸㈡煡锝炲┑瀣垫晞闁冲搫鍊归ˉ鍫⑩偓瑙勬礈閸犳牠宕洪悙鍝勭畾鐟滃本绔熼弴銏♀拺闁告稑锕ゆ慨锕傛煕閻樺磭澧辩紒顔碱煼瀵泛鈻庨崜褍鏁搁梻浣稿悑閹倸顭囪閹便劑宕奸妷锕€鈧?*/}
                   <div className="mt-4 pt-3 border-t border-border">
                     <button
                       onClick={() => setCurrentDocument('')}
                       className="w-full px-3 py-2 rounded-lg hover:bg-hover text-sm flex items-center gap-2"
                     >
-                      ← Back to Documents
+                      Back to Documents
                     </button>
                   </div>
                 </>
               ) : (
-                /* 否则显示文档列表 */
+                /* 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭簻濡炪倖甯掗崐缁樼▔瀹ュ鐓欓弶鍫濆⒔閻ｉ亶鏌涢妸銉モ偓褰掑Φ閸曨垰鍐€妞ゆ劦婢€缁爼姊洪崨濠勬噧闁挎洦浜璇测槈閵忕姷顔掑┑锛勫仧閸嬫捇藝妞嬪海纾兼い鏃傚亾閺嗩剚鎱ㄦ繝鍐┿仢鐎规洦鍋婂畷鐔碱敃閻旇渹澹曠紓浣割儐閿涙洖煤椤忓懏娅囬梺绋挎湰椤曢亶濡烽埡鍌滃幈閻庡厜鍋撻柍褜鍓熷畷鎴濃槈濮樿京鐒奸梺绯曞墲鐪夌紒璇叉閺屾洟宕煎┑鍥ф濡炪倕绻堥崕鐢稿蓟?*/
                 <>
                   {documents.map((doc: Document) => (
                     <div
@@ -2643,7 +2697,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       className={`px-3 py-2 rounded-lg ${doc.id === currentDocumentId ? 'bg-active font-bold' : 'hover:bg-hover'} flex items-center justify-between cursor-pointer`}
                     >
                       <span className="flex items-center gap-2">
-                        {doc.type === 'epub' ? '📖' : '📄'}
+                        {doc.type === 'epub' ? 'EPUB' : 'FILE'}
                         {doc.title}
                       </span>
                       {doc.type === 'epub' && doc.chapters && (
@@ -2757,9 +2811,9 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 <div className="text-xs text-muted mb-4 leading-relaxed">
                   {currentDocument.type === 'epub' && currentChapter ? (
                     <>
-                      📖 {currentDocument.title}
+                      Book {currentDocument.title}
                       {currentDocument.author && <> by {currentDocument.author}</>}
-                      <span className="mx-2">•</span>
+                      <span className="mx-2">?</span>
                       {displayParagraphs.length} paragraphs
                     </>
                   ) : (
@@ -2790,8 +2844,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     >
                       {/* Bookmark indicator */}
                       {hasBookmark && (
-                        <div className="absolute left-[-24px] top-0 text-lg">
-                          🔖
+                        <div className="absolute left-[-20px] top-1 w-2.5 h-6 rounded bg-red-500 shadow-sm">
                         </div>
                       )}
                       
@@ -2843,7 +2896,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                         className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold shadow-md"
                         title="Mark all unannotated words as known"
                       >
-                        {hasNextChapter ? '✓ Finish → Next Chapter' : '✓ Finish Reading'}
+                        {hasNextChapter ? 'Finish -> Next Chapter' : 'Finish Reading'}
                       </button>
                     </div>
                   );
@@ -2869,16 +2922,11 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 {reviewSortMode === 'stats' && renderReviewStatsPanel()}
 
                 <div className="flex items-center justify-between gap-3 mb-4 text-xs text-muted">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div>
-                      Total cards: <span className="font-semibold text-gray-700">{reviewVisibleCards.length}</span>
-                    </div>
-                    <div>
-                      Cards (<span className="font-semibold text-gray-700">{reviewExpandedCount}</span>)
-                    </div>
+                  <div>
+                    Cards (<span className="font-semibold text-gray-700">{reviewVisibleCards.length}</span>)
                   </div>
                   <div className="flex items-center gap-2">
-                    {reviewVisibleCards.length > 0 && (
+                    {reviewSortMode === 'stats' && reviewVisibleCards.length > 0 && (
                       <button
                         onClick={() => {
                           handleClearReviewCards();
@@ -2905,13 +2953,12 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
 
                 {reviewVisibleCards.length === 0 ? (
                   <div className="text-sm text-muted leading-relaxed">
-                    No cards yet. Annotate words or phrases in `read` mode first.
+                    {reviewSortMode === 'stats'
+                      ? 'Card pool is empty. Click a day or month above to load cards in collapsed view.'
+                      : 'No cards yet. Annotate words or phrases in `read` mode first.'}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
-                    {renderCardColumn(reviewColumns.left, 'review')}
-                    {renderCardColumn(reviewColumns.right, 'review')}
-                  </div>
+                  renderReviewBoard()
                 )}
               </>
             )}
@@ -2928,7 +2975,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             </div>
           )}
 
-          {/* Card History - 始终显示所有历史卡片 */}
+          {/* Card History - 婵犵數濮烽弫鍛婃叏閻㈠壊鏁婇柡宥庡幖缁愭鏌″搴″季闁轰礁瀚伴弻娑㈠Ψ閵忊剝鐝旈梺鎼炲妽缁诲牓寮婚悢鐓庣闁逛即娼у▓顓㈡⒑閸涘﹦鎳冮柨鏇ㄤ邯瀵鈽夐姀鐘殿啋濠碉紕鍋熼崑鎾凰囨搴ｇ＜妞ゆ梻鍋撻弳顒佹叏婵犲啯銇濈€规洜鍏橀、妯款槼婵絽鐭傚铏圭矙濞嗘儳鍓遍梺鍦嚀濞差厼顕ｆ繝姘櫢闁绘ɑ鐓￠崬璺衡攽閻樿尙浠涢柛鏃€鐗滈悷褔姊虹拠鏌ヮ€楁繝鈧柆宥佲偓锕傚醇閵夆懇鍋撻敃鈧悾锟犲箥椤旇姤顔曢梻浣瑰缁诲倿藝椤栨粎涓嶉柣銏犳啞閻撴瑩鏌ｉ幋鐏活亪鎮橀妷鈺傜厾闁哄瀵ч崑銉︽叏?*/}
           {!isLoadingAnnotation && (
             <div className="border border-border rounded-2xl p-3 bg-white mb-3">
               <div className="flex items-center justify-between mb-2">
@@ -2949,7 +2996,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       className="text-xs px-2 py-0.5 text-blue-600 hover:bg-blue-50 rounded border border-blue-300"
                       title={hiddenTranslations.size === 0 ? "Hide all translations for self-testing" : "Show all translations"}
                     >
-                      👁️ {hiddenTranslations.size === 0 ? 'Hide' : 'Show'}
+                      {hiddenTranslations.size === 0 ? 'Hide' : 'Show'}
                     </button>
                     <button
                       onClick={() => {
@@ -2962,7 +3009,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       className="text-xs px-2 py-0.5 text-red-600 hover:bg-red-50 rounded border border-red-300"
                       title="Clear all cards"
                     >
-                      🗑️ Clear
+                      Clear
                     </button>
                   </div>
                 )}
@@ -2979,240 +3026,28 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     const annotation = item.type === 'word' 
                       ? findAnnotationEntry(annotations, item.word)?.annotation
                       : phraseAnnotations.get(item.word.toLowerCase());
-                    
+
                     if (!annotation) return null;
-                    
-                    const cardKey = `${item.type}-${item.word}`;
-                    const isExpanded = expandedCardKeys.has(cardKey);
-                    
-                    return (
-                      <div
-                        key={`${item.type}-${item.word}-${item.timestamp}`}
-                        className={`border-2 rounded-lg relative ${
-                          isExpanded ? 'border-blue-500' : 'border-border'
-                        }`}
-                      >
-                        {/* Delete button - 只在折叠状态显示 */}
-                        {!isExpanded && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeFromCardHistory(item.word);
-                            }}
-                            className="absolute top-2 right-2 z-10 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"
-                            title="Remove from history"
-                          >
-                            ×
-                          </button>
-                        )}
-                        
-                        {/* 展开状态：显示完整卡片 */}
-                        {isExpanded ? (
-                          <div className="p-0">
-                            {item.type === 'word' ? (
-                              <WordCard
-                                annotation={annotation as WordAnnotation}
-                                displayWord={item.word}
-                                isLearnt={learntWords.has(item.word.toLowerCase())}
-                                onClose={() => closeCard(cardKey)}
-                                onMarkKnown={handleMarkKnown}
-                                onDelete={handleDeleteFromCards}
-                                onRegenerateAI={(word, sentence) => handleRegenerateAI(word, sentence, 'word')}
-                              />
-                            ) : (
-                              <PhraseCard
-                                annotation={annotation as PhraseAnnotation}
-                                isInserted={phraseTranslationInserts.get(item.word.toLowerCase()) || false}
-                                onClose={() => closeCard(cardKey)}
-                                onToggleInsert={handleTogglePhraseInsert}
-                                onRegenerateAI={(phrase, sentence) => handleRegenerateAI(phrase, sentence, 'phrase')}
-                                onDelete={async (phrase) => {
-                                  setPhraseAnnotations(prev => {
-                                    const next = new Map(prev);
-                                    next.delete(phrase.toLowerCase());
-                                    return next;
-                                  });
-                                  closeCard(cardKey);
-                                  
-                                  setAnnotatedPhraseRanges(prev => 
-                                    prev.filter(r => r.phrase !== phrase.toLowerCase())
-                                  );
-                                  
-                                  await deletePhraseAnnotation(phrase);
-                                  removeFromCardHistory(phrase);
-                                }}
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          /* 折叠状态：显示简要信息 */
-                          <div
-                            className="p-2 hover:bg-gray-50 cursor-pointer pr-8"
-                            onClick={() => {
-                              expandSingleCard(cardKey);
-                            }}
-                          >
-                            {item.type === 'word' ? (
-                              /* 单词卡：使用上一版布局（flex-wrap，min-w-0）*/
-                              <div className="flex items-center gap-2 flex-wrap">
-                                {/* Emoji/Image - 支持左键/右键/长按功能（仅对单词）*/}
-                                <div 
-                                  className="w-10 h-10 flex-shrink-0 flex items-center justify-center text-2xl bg-gray-100 rounded hover:ring-2 hover:ring-blue-300 transition-all"
-                                  onClick={(e) => {
-                                    openCollapsedWebMenu(e, item.word);
-                                  }}
-                                  onContextMenu={(e) => {
-                                    void handleCollapsedUnsplashRightClick(e, item.word);
-                                  }}
-                                  onMouseDown={(e) => {
-                                    if (e.button !== 0) return;
-                                    // 长按检测
-                                    const timer = window.setTimeout(async () => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      // 长按：AI生成图片
-                                      try {
-                                        const sentence = (annotation as WordAnnotation).sentence || '';
-                                        const result = await generateEmojiImage(item.word, sentence);
-                                        if (result.success && result.data?.imageUrl) {
-                                          await addEmojiImagePathToActiveMeaning(item.word, result.data.imageUrl, result.data.model, (updates) => {
-                                            updateAnnotation(item.word, updates);
-                                          });
-                                          console.log('[AI Image] Generated:', item.word, result.data.imageUrl);
-                                        } else {
-                                          console.error('[AI Image] Failed:', result.error);
-                                          alert('Failed to generate AI image');
-                                        }
-                                      } catch (error) {
-                                        console.error('[AI Image] Error:', error);
-                                      }
-                                    }, 800);
-                                    
-                                    const clearTimer = () => {
-                                      clearTimeout(timer);
-                                      document.removeEventListener('mouseup', clearTimer);
-                                    };
-                                    document.addEventListener('mouseup', clearTimer);
-                                  }}
-                                >
-                                  {(annotation as WordAnnotation).emojiImagePath?.[0] ? (
-                                    <img 
-                                      src={resolveAssetUrl((annotation as WordAnnotation).emojiImagePath![0])} 
-                                      alt="emoji" 
-                                      className="w-full h-full object-cover rounded"
-                                    />
-                                  ) : (annotation as WordAnnotation).emoji ? (
-                                    <span>{(annotation as WordAnnotation).emoji}</span>
-                                  ) : (
-                                    <span>{getWordEmoji(annotation as WordAnnotation)}</span>
-                                  )}
-                                </div>
-                                
-                                {/* 英文 */}
-                                <span className="font-bold text-sm flex-shrink-0">
-                                  {item.word}
-                                </span>
-                                
-                                {/* 音标（可点击发音）*/}
-                                {(annotation as WordAnnotation).ipa && (
-                                  <span
-                                    className="text-xs text-blue-600 cursor-pointer hover:underline flex-shrink-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const utterance = new SpeechSynthesisUtterance(item.word);
-                                      utterance.lang = 'en-US';
-                                      utterance.rate = 0.9;
-                                      window.speechSynthesis.speak(utterance);
-                                    }}
-                                  >
-                                    /{(annotation as WordAnnotation).ipa}/
-                                  </span>
-                                )}
-                                
-                                {/* 中文 */}
-                                <span 
-                                  className={`text-sm flex-1 min-w-0 break-words cursor-pointer select-none ${
-                                    hiddenTranslations.has(cardKey) ? 'text-muted bg-muted' : 'text-muted'
-                                  }`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setHiddenTranslations(prev => {
-                                      const next = new Set(prev);
-                                      if (next.has(cardKey)) {
-                                        next.delete(cardKey);
-                                      } else {
-                                        next.add(cardKey);
-                                      }
-                                      return next;
-                                    });
-                                  }}
-                                  title={hiddenTranslations.has(cardKey) ? "Click to show translation" : "Click to hide translation"}
-                                >
-                                  {hiddenTranslations.has(cardKey) ? '••••••' : (annotation as WordAnnotation).chinese}
-                                </span>
-                                
-                                {/* AI 按钮 */}
-                                <button
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    const sentence = (annotation as WordAnnotation).sentence;
-                                    await handleRegenerateAI(item.word, sentence || '', 'word');
-                                  }}
-                                  className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
-                                  title="Re-generate with AI"
-                                >
-                                  🤖
-                                </button>
-                              </div>
-                            ) : (
-                              /* 短语卡：使用上上版布局（英文一行，中文一行）*/
-                              <div className="flex flex-col gap-1">
-                                {/* 第一行：图标、英文 */}
-                                <div className="flex items-center gap-2">
-                                  <span className="text-2xl flex-shrink-0">📖</span>
-                                  <span className="font-bold text-sm flex-1">{item.word}</span>
-                                </div>
-                                
-                                {/* 第二行：中文 + AI 按钮 */}
-                                <div className="flex items-center gap-2">
-                                  <span 
-                                    className={`text-sm flex-1 cursor-pointer select-none ${
-                                      hiddenTranslations.has(cardKey) ? 'text-muted bg-muted' : 'text-muted'
-                                    }`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setHiddenTranslations(prev => {
-                                        const next = new Set(prev);
-                                        if (next.has(cardKey)) {
-                                          next.delete(cardKey);
-                                        } else {
-                                          next.add(cardKey);
-                                        }
-                                        return next;
-                                      });
-                                    }}
-                                    title={hiddenTranslations.has(cardKey) ? "Click to show translation" : "Click to hide translation"}
-                                  >
-                                    {hiddenTranslations.has(cardKey) ? '••••••' : (annotation as PhraseAnnotation).chinese}
-                                  </span>
-                                  <button
-                                    onClick={async (e) => {
-                                      e.stopPropagation();
-                                      const sentence = (annotation as PhraseAnnotation).sentenceContext;
-                                      await handleRegenerateAI(item.word, sentence || '', 'phrase');
-                                    }}
-                                    className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
-                                    title="Re-generate with AI"
-                                  >
-                                    🤖
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
+
+                    const reviewItem: ReviewCardItem = item.type === 'word'
+                      ? {
+                          type: 'word',
+                          word: item.word,
+                          normalizedWord: item.word.toLowerCase(),
+                          cardKey: `word-${item.word}`,
+                          annotation: annotation as WordAnnotation,
+                          cachedAt: (annotation as WordAnnotation).cachedAt || 0,
+                        }
+                      : {
+                          type: 'phrase',
+                          word: item.word,
+                          normalizedWord: item.word.toLowerCase(),
+                          cardKey: `phrase-${item.word.toLowerCase()}`,
+                          annotation: annotation as PhraseAnnotation,
+                          cachedAt: (annotation as PhraseAnnotation).cachedAt || 0,
+                        };
+
+                    return renderCardItem(reviewItem, 'read');
                   })}
                 </div>
               )}
@@ -3446,8 +3281,8 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               <div className="text-sm font-semibold text-blue-900 mb-1">Local Dictionary Status</div>
               <div className="text-xs text-blue-700">
                 {localDictionary.getStats().isLoaded 
-                  ? `✓ Loaded: ${localDictionary.getStats().totalWords} words` 
-                  : '⚠ Not loaded yet'}
+                  ? `? Loaded: ${localDictionary.getStats().totalWords} words` 
+                  : '? Not loaded yet'}
               </div>
             </div>
             
@@ -3460,7 +3295,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   onClick={handleLoadSample}
                   className="w-full px-4 py-2 border border-border rounded-lg hover:bg-hover text-sm"
                 >
-                  📖 Load Sample Text
+                  Load Sample Text
                 </button>
                 
                 <div className="relative">
@@ -3479,7 +3314,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     className="w-full px-4 py-2 border border-green-500 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-semibold"
                     title="Export user data (right-click for options)"
                   >
-                    📤 Export Data
+                    Export Data
                   </button>
                   
                   {/* Export Context Menu */}
@@ -3524,7 +3359,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   className="w-full px-4 py-2 border border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-sm font-semibold"
                   title="Import user data from JSON file"
                 >
-                  📥 Import Data
+                  Import Data
                 </button>
 
                 <div className="h-px bg-border my-2" />
@@ -3534,7 +3369,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   className="w-full px-4 py-2 border border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-sm font-semibold"
                   title="Save current user data to fixed learning folder"
                 >
-                  💾 Save to Fixed Storage
+                  Save to Fixed Storage
                 </button>
 
                 <button
@@ -3542,7 +3377,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   className="w-full px-4 py-2 border border-indigo-500 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-semibold"
                   title="Load latest backup from fixed learning folder"
                 >
-                  📂 Load from Fixed Storage
+                  Load from Fixed Storage
                 </button>
 
                 <button
@@ -3621,7 +3456,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   onClick={openCollapsedWebImage}
                   className="w-full py-1 mb-2 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 rounded"
                 >
-                  🌐 Web Image Helper
+                  Web Image Helper
                 </button>
                 <button
                   onClick={() => setCollapsedImageMenu(null)}
@@ -3652,7 +3487,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   onClick={handleCollapsedOpenGoogleImages}
                   className="w-full py-1 mb-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded"
                 >
-                  🔎 Open Google Images
+                  Open Google Images
                 </button>
                 <button
                   onClick={handleCollapsedPasteFromClipboard}
@@ -3663,13 +3498,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
-                  {collapsedClipboardSaving ? 'Saving...' : '📋 Paste from Clipboard'}
+                  {collapsedClipboardSaving ? 'Saving...' : 'Paste from Clipboard'}
                 </button>
                 <button
                   onClick={() => setCollapsedImageMenu((prev) => prev ? { ...prev, panel: 'emoji' } : prev)}
                   className="w-full py-1 mb-2 text-sm bg-purple-100 text-purple-700 hover:bg-purple-200 rounded"
                 >
-                  😀 Back to Emoji Picker
+                  Back to Emoji Picker
                 </button>
                 <button
                   onClick={() => setCollapsedImageMenu(null)}
@@ -3683,16 +3518,16 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         </>
       )}
 
-      {/* Context Menu - 右键菜单 */}
+      {/* Context Menu - 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画闂佹寧姊婚弲顐ょ不閹€鏀介柣妯哄级閹兼劙鏌＄€ｂ晝鍔嶉柕鍥у楠炴﹢宕￠悙鍏哥棯闂備焦鎮堕崐鏍哄Ο鍏煎床婵犻潧娲ㄧ弧鈧梺绋挎湰绾板秴鈻撻鐘电＝濞达絾褰冩禍?*/}
       {contextMenu && (
         <>
-          {/* 遮罩层 */}
+          {/* 闂傚倸鍊搁崐鎼佸磹妞嬪孩顐介柨鐔哄Т缁€鍫ユ煥閺囩偛鈧摜绮ｅΔ浣瑰弿婵☆垱瀵х涵鍓х棯閸欍儳鐭欓柡宀嬬秮婵偓闁绘ê寮堕崐搴♀攽?*/}
           <div 
             className="fixed inset-0 z-40"
             onClick={() => setContextMenu(null)}
           />
           
-          {/* 菜单 */}
+          {/* 闂傚倸鍊搁崐椋庣矆娓氣偓瀹曘儳鈧綆鍏橀崑鎾剁箔濞戞ɑ鍣归柛銊︾箞閹﹢鎮欓崹顐ｇ彧闂?*/}
           <div
             className="fixed z-50 bg-white border-2 border-gray-300 rounded-lg shadow-2xl py-1 min-w-[160px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
@@ -3701,7 +3536,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               onClick={handleAddBookmark}
               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
             >
-              🔖 Add Bookmark
+              Add Bookmark
             </button>
             <button
               onClick={() => {
@@ -3710,7 +3545,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               }}
               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
             >
-              ▶️ Play from here
+              Play from here
             </button>
             {isSpeaking && (
               <button
@@ -3720,7 +3555,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 }}
                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
               >
-                ⏹️ Stop reading
+                Stop reading
               </button>
             )}
           </div>
