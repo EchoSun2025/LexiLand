@@ -31,6 +31,7 @@ export interface WordAnnotation {
   encounteredForms?: string[];
   encounteredMeanings?: EncounteredMeaning[];
   activeMeaningId?: string;
+  cachedAt?: number;
 }
 
 export interface PhraseAnnotation {
@@ -39,6 +40,7 @@ export interface PhraseAnnotation {
   explanation?: string;
   sentenceContext: string;
   documentTitle?: string;  // 文章标题
+  cachedAt?: number;
 }
 
 export interface GenerateEmojiResponse {

@@ -4,6 +4,7 @@ export interface PhraseAnnotation {
   explanation?: string;
   sentenceContext: string;
   documentTitle?: string;  // 文章标题
+  cachedAt?: number;
 }
 
 interface PhraseCardProps {

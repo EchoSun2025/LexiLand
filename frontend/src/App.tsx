@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { useAppStore, type Document, type Chapter, getLatestBookmark } from './store/appStore'
 import { tokenizeParagraphs, type Paragraph as ParagraphType, type Sentence, type Token } from './utils'
@@ -14,6 +14,36 @@ import { applyMeaningToAnnotation, findAnnotationEntry, findBestMeaningIdForSent
 
 const keywordToEmoji = getAllEmojiKeywords();
 const collapsedCommonEmojis = Array.from(new Set(Array.from(keywordToEmoji.values()))).slice(0, 120);
+
+type ViewMode = 'read' | 'review';
+type ReviewSortMode = 'stats' | 'date' | 'alphabet';
+type ReviewStatsRange = 'week' | 'month';
+
+type ReviewCardItem =
+  | {
+      type: 'word';
+      word: string;
+      normalizedWord: string;
+      cardKey: string;
+      annotation: WordAnnotation;
+      cachedAt: number;
+    }
+  | {
+      type: 'phrase';
+      word: string;
+      normalizedWord: string;
+      cardKey: string;
+      annotation: PhraseAnnotation;
+      cachedAt: number;
+    };
+
+type StatsBucket = {
+  key: string;
+  label: string;
+  sublabel: string;
+  count: number;
+  cardKeys: string[];
+};
 
 function App() {
   const {
@@ -61,6 +91,10 @@ function App() {
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('read');
+  const [reviewSortMode, setReviewSortMode] = useState<ReviewSortMode>('date');
+  const [reviewStatsRange, setReviewStatsRange] = useState<ReviewStatsRange>('week');
+  const [reviewSelectedBucketKey, setReviewSelectedBucketKey] = useState<string | null>(null);
   
   // Get current document and chapter
   const currentDocument = documents.find((d: Document) => d.id === currentDocumentId);
@@ -118,7 +152,7 @@ function App() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // 设置面板
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; pIndex: number; sIndex: number } | null>(null); // 右键菜单
-  const [expandedCardKey, setExpandedCardKey] = useState<string | null>(null); // 当前展开的卡片（格式：type-word）
+  const [expandedCardKeys, setExpandedCardKeys] = useState<Set<string>>(new Set());
   const [collapsedImageMenu, setCollapsedImageMenu] = useState<{ panel: 'emoji' | 'web'; word: string; top: number; left: number } | null>(null);
   const [collapsedEmojiSearchQuery, setCollapsedEmojiSearchQuery] = useState('');
   const [collapsedGoogleKeyword, setCollapsedGoogleKeyword] = useState('');
@@ -130,6 +164,22 @@ function App() {
     return stored === null ? true : stored === 'true';
   });
   const prevMarkedWordsSize = useRef<number>(0); // 追踪上次的 markedWords 大小
+
+  const closeCard = (cardKey: string) => {
+    setExpandedCardKeys(prev => {
+      const next = new Set(prev);
+      next.delete(cardKey);
+      return next;
+    });
+  };
+
+  const expandSingleCard = (cardKey: string) => {
+    setExpandedCardKeys(new Set([cardKey]));
+  };
+
+  const expandMultipleCards = (cardKeys: string[]) => {
+    setExpandedCardKeys(new Set(cardKeys));
+  };
 
   // Initialize local dictionary
   useEffect(() => {
@@ -143,6 +193,119 @@ function App() {
   useEffect(() => {
     localStorage.setItem('todayAnnotations', JSON.stringify(todayAnnotations));
   }, [todayAnnotations]);
+
+  useEffect(() => {
+    setReviewSelectedBucketKey(null);
+  }, [reviewStatsRange]);
+
+  const reviewCards = useMemo<ReviewCardItem[]>(() => {
+    const items: ReviewCardItem[] = [];
+    const seenWords = new Set<string>();
+
+    for (const annotation of annotations.values()) {
+      const normalizedWord = annotation.word.toLowerCase();
+      if (seenWords.has(normalizedWord)) continue;
+      seenWords.add(normalizedWord);
+
+      items.push({
+        type: 'word',
+        word: annotation.word,
+        normalizedWord,
+        cardKey: `word-${annotation.word}`,
+        annotation,
+        cachedAt: annotation.cachedAt || 0,
+      });
+    }
+
+    for (const [phraseKey, annotation] of phraseAnnotations.entries()) {
+      items.push({
+        type: 'phrase',
+        word: annotation.phrase || phraseKey,
+        normalizedWord: phraseKey,
+        cardKey: `phrase-${phraseKey}`,
+        annotation,
+        cachedAt: annotation.cachedAt || 0,
+      });
+    }
+
+    return items;
+  }, [annotations, phraseAnnotations]);
+
+  const reviewStatsBuckets = useMemo<StatsBucket[]>(() => {
+    const now = new Date();
+    const bucketMap = new Map<string, StatsBucket>();
+
+    if (reviewStatsRange === 'week') {
+      for (let offset = 6; offset >= 0; offset--) {
+        const date = new Date(now);
+        date.setHours(0, 0, 0, 0);
+        date.setDate(now.getDate() - offset);
+        const key = date.toISOString().slice(0, 10);
+        bucketMap.set(key, {
+          key,
+          label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          sublabel: `${date.getMonth() + 1}/${date.getDate()}`,
+          count: 0,
+          cardKeys: [],
+        });
+      }
+    } else {
+      for (let offset = 5; offset >= 0; offset--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        bucketMap.set(key, {
+          key,
+          label: date.toLocaleDateString('en-US', { month: 'short' }),
+          sublabel: String(date.getFullYear()),
+          count: 0,
+          cardKeys: [],
+        });
+      }
+    }
+
+    reviewCards.forEach((item) => {
+      if (!item.cachedAt) return;
+      const date = new Date(item.cachedAt);
+      const key = reviewStatsRange === 'week'
+        ? date.toISOString().slice(0, 10)
+        : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const bucket = bucketMap.get(key);
+      if (!bucket) return;
+      bucket.count += 1;
+      bucket.cardKeys.push(item.cardKey);
+    });
+
+    return Array.from(bucketMap.values());
+  }, [reviewCards, reviewStatsRange]);
+
+  const reviewVisibleCards = useMemo(() => {
+    const next = [...reviewCards];
+    if (reviewSortMode === 'alphabet') {
+      next.sort((a, b) => a.normalizedWord.localeCompare(b.normalizedWord));
+    } else {
+      next.sort((a, b) => b.cachedAt - a.cachedAt || a.normalizedWord.localeCompare(b.normalizedWord));
+    }
+    return next;
+  }, [reviewCards, reviewSortMode]);
+
+  const reviewExpandedCount = useMemo(() => {
+    return reviewVisibleCards.filter((item) => expandedCardKeys.has(item.cardKey)).length;
+  }, [reviewVisibleCards, expandedCardKeys]);
+
+  const reviewColumns = useMemo(() => {
+    const left: ReviewCardItem[] = [];
+    const right: ReviewCardItem[] = [];
+
+    reviewVisibleCards.forEach((item, index) => {
+      if (index % 2 === 0) {
+        left.push(item);
+      } else {
+        right.push(item);
+      }
+    });
+
+    return { left, right };
+  }, [reviewVisibleCards]);
 
   // Auto-annotate when markedWords increases (if autoAnnotate is enabled)
   useEffect(() => {
@@ -577,10 +740,12 @@ function App() {
         // 保存标注
         const canonicalWord = getCanonicalWord(wordItem.word, annotationWithContext);
         const existingAnnotation = annotations.get(canonicalWord);
+        const cachedAt = Date.now();
         const mergedAnnotation = mergeAnnotationMeanings(existingAnnotation as WordAnnotation | undefined, {
           ...annotationWithContext,
           word: canonicalWord,
           encounteredForms: Array.from(new Set([wordItem.word, ...(annotationWithContext.encounteredForms || [])])),
+          cachedAt,
         }).annotation;
         addAnnotation(canonicalWord, mergedAnnotation);
         await cacheAnnotation(canonicalWord, mergedAnnotation);
@@ -617,9 +782,11 @@ function App() {
         console.log('Phrase annotation result:', result);
         
         if (result.success && result.data) {
+          const cachedAt = Date.now();
           const phraseData = {
             ...result.data,
-            documentTitle: currentDocument.title  // 添加文章标题
+            documentTitle: currentDocument.title,  // 添加文章标题
+            cachedAt,
           };
           
           // Save to state
@@ -761,6 +928,7 @@ function App() {
             documentTitle: currentDocument?.title || 'Unknown',
             wordForms: result.data.wordForms ?? existingAnnotation?.wordForms,
             encounteredForms: Array.from(new Set([surfaceWord, canonicalWord, ...(existingAnnotation?.encounteredForms || [])])),
+            cachedAt: Date.now(),
           };
           const mergedAnnotation = mergeAnnotationMeanings(
             existingAnnotation,
@@ -787,9 +955,13 @@ function App() {
         // Phrase
         const result = await annotatePhrase(word, sentence, currentDocument?.title || 'Unknown');
         if (result.success && result.data) {
+          const cachedAt = Date.now();
           setPhraseAnnotations(prev => {
             const next = new Map(prev);
-            next.set(word.toLowerCase(), result.data!);
+            next.set(word.toLowerCase(), {
+              ...result.data!,
+              cachedAt,
+            });
             return next;
           });
           await cachePhraseAnnotation(word, {
@@ -908,7 +1080,8 @@ function App() {
       }
 
       // Close the card and remove from history
-      setExpandedCardKey(null);
+      closeCard(`word-${surfaceWord}`);
+      closeCard(`word-${canonicalWord}`);
       removeFromCardHistory(surfaceWord);
       if (surfaceWord !== canonicalWord) {
         removeFromCardHistory(canonicalWord);
@@ -918,6 +1091,26 @@ function App() {
     } catch (error) {
       console.error('Failed to delete from cards:', error);
     }
+  };
+
+  const handleDeletePhraseFromCards = async (phrase: string) => {
+    const normalized = phrase.toLowerCase();
+    setPhraseAnnotations(prev => {
+      const next = new Map(prev);
+      next.delete(normalized);
+      return next;
+    });
+    closeCard(`phrase-${normalized}`);
+    setAnnotatedPhraseRanges(prev => prev.filter(r => r.phrase !== normalized));
+    await deletePhraseAnnotation(phrase);
+    removeFromCardHistory(phrase);
+  };
+
+  const handleClearReviewCards = () => {
+    if (reviewExpandedCount === 0 && !reviewSelectedBucketKey) return;
+
+    setExpandedCardKeys(new Set());
+    setReviewSelectedBucketKey(null);
   };
 
   // Handle export known words (TXT format)
@@ -1119,10 +1312,11 @@ ${sortedWords.join(' ')}
   };
 
   const reloadDataFromDB = async () => {
-    const [newKnownWords, newLearntWords, newAnnotations] = await Promise.all([
+    const [newKnownWords, newLearntWords, newAnnotations, newPhraseAnnotations] = await Promise.all([
       getAllKnownWords(),
       getAllLearntWords(),
-      getAllCachedAnnotations()
+      getAllCachedAnnotations(),
+      getAllCachedPhraseAnnotations(),
     ]);
 
     loadKnownWords(newKnownWords);
@@ -1133,6 +1327,19 @@ ${sortedWords.join(' ')}
       annotationsMap.set(a.word, a);
     });
     loadAnnotations(annotationsMap);
+
+    const phraseMap = new Map<string, PhraseAnnotation>();
+    newPhraseAnnotations.forEach(item => {
+      phraseMap.set(item.phrase, {
+        phrase: item.phrase,
+        chinese: item.chinese,
+        explanation: item.explanation,
+        sentenceContext: item.sentenceContext,
+        documentTitle: item.documentTitle,
+        cachedAt: item.cachedAt,
+      });
+    });
+    setPhraseAnnotations(phraseMap);
   };
 
   const saveToFixedStorageInternal = async (silent: boolean = false, reason: string = 'manual') => {
@@ -1348,6 +1555,7 @@ ${sortedWords.join(' ')}
             documentTitle: item.documentTitle,
             encounteredMeanings: item.encounteredMeanings,
             activeMeaningId: item.activeMeaningId,
+            cachedAt: item.cachedAt,
           };
           addAnnotation(item.word, annotation);
         });
@@ -1388,6 +1596,7 @@ ${sortedWords.join(' ')}
             explanation: item.explanation,
             sentenceContext: item.sentenceContext,
             documentTitle: item.documentTitle,  // 加载文章标题
+            cachedAt: item.cachedAt,
           });
         });
         setPhraseAnnotations(phraseMap);
@@ -1862,6 +2071,297 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     }
   };
 
+  const handleReviewBucketClick = (bucket: StatsBucket) => {
+    setReviewSelectedBucketKey(bucket.key);
+    setReviewSortMode('stats');
+    if (bucket.cardKeys.length > 0) {
+      expandMultipleCards(bucket.cardKeys);
+    }
+  };
+
+  const renderReviewStatsPanel = () => {
+    const maxCount = Math.max(...reviewStatsBuckets.map(bucket => bucket.count), 1);
+
+    return (
+      <div className="mb-4 border border-border rounded-2xl bg-white p-4">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <div className="text-sm font-semibold text-gray-900">Annotation Stats</div>
+            <div className="text-xs text-muted">Click a bar to expand cards from that day or month.</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setReviewStatsRange('week')}
+              className={`px-3 py-1.5 rounded-lg text-xs border ${
+                reviewStatsRange === 'week'
+                  ? 'bg-indigo-500 text-white border-indigo-500'
+                  : 'border-border hover:bg-hover'
+              }`}
+            >
+              Week
+            </button>
+            <button
+              onClick={() => setReviewStatsRange('month')}
+              className={`px-3 py-1.5 rounded-lg text-xs border ${
+                reviewStatsRange === 'month'
+                  ? 'bg-indigo-500 text-white border-indigo-500'
+                  : 'border-border hover:bg-hover'
+              }`}
+            >
+              Month
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-3 items-end h-56">
+          {reviewStatsBuckets.map((bucket) => {
+            const isSelected = reviewSelectedBucketKey === bucket.key;
+            const barHeight = `${Math.max((bucket.count / maxCount) * 100, bucket.count > 0 ? 10 : 4)}%`;
+
+            return (
+              <button
+                key={bucket.key}
+                onClick={() => handleReviewBucketClick(bucket)}
+                className={`h-full rounded-xl border px-2 py-3 flex flex-col justify-end items-center transition-colors ${
+                  isSelected
+                    ? 'border-indigo-500 bg-indigo-50'
+                    : 'border-border hover:bg-gray-50'
+                }`}
+                title={`${bucket.label} ${bucket.sublabel}: ${bucket.count}`}
+              >
+                <div className="text-xs font-semibold text-gray-700 mb-2">{bucket.count}</div>
+                <div className="w-full rounded-t-lg bg-indigo-400" style={{ height: barHeight }} />
+                <div className="mt-3 text-xs font-semibold text-gray-800">{bucket.label}</div>
+                <div className="text-[11px] text-muted">{bucket.sublabel}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCardItem = (item: ReviewCardItem, mode: 'read' | 'review') => {
+    const annotation = item.annotation;
+    const cardKey = item.cardKey;
+    const isExpanded = expandedCardKeys.has(cardKey);
+
+    return (
+      <div
+        key={cardKey}
+        className={`border-2 rounded-lg relative bg-white ${
+          isExpanded ? 'border-blue-500' : 'border-border'
+        }`}
+      >
+        {!isExpanded && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (mode === 'read') {
+                removeFromCardHistory(item.word);
+              } else if (item.type === 'word') {
+                void handleDeleteFromCards(item.word);
+              } else {
+                void handleDeletePhraseFromCards(item.word);
+              }
+            }}
+            className="absolute top-2 right-2 z-10 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"
+            title={mode === 'read' ? 'Remove from history' : 'Delete card'}
+          >
+            脳
+          </button>
+        )}
+
+        {isExpanded ? (
+          item.type === 'word' ? (
+            <WordCard
+              annotation={annotation as WordAnnotation}
+              displayWord={item.word}
+              isLearnt={learntWords.has(item.word.toLowerCase())}
+              onClose={() => closeCard(cardKey)}
+              onMarkKnown={handleMarkKnown}
+              onDelete={handleDeleteFromCards}
+              onRegenerateAI={(word, sentence) => handleRegenerateAI(word, sentence, 'word')}
+            />
+          ) : (
+            <PhraseCard
+              annotation={annotation as PhraseAnnotation}
+              isInserted={phraseTranslationInserts.get(item.word.toLowerCase()) || false}
+              onClose={() => closeCard(cardKey)}
+              onToggleInsert={handleTogglePhraseInsert}
+              onRegenerateAI={(phrase, sentence) => handleRegenerateAI(phrase, sentence, 'phrase')}
+              onDelete={(phrase) => handleDeletePhraseFromCards(phrase)}
+            />
+          )
+        ) : (
+          <div
+            className="p-2 hover:bg-gray-50 cursor-pointer pr-8"
+            onClick={() => {
+              if (mode === 'read') {
+                expandSingleCard(cardKey);
+              } else {
+                setExpandedCardKeys(prev => {
+                  const next = new Set(prev);
+                  next.add(cardKey);
+                  return next;
+                });
+              }
+            }}
+          >
+            {item.type === 'word' ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <div
+                  className="w-10 h-10 flex-shrink-0 flex items-center justify-center text-2xl bg-gray-100 rounded hover:ring-2 hover:ring-blue-300 transition-all"
+                  onClick={(e) => {
+                    openCollapsedWebMenu(e, item.word);
+                  }}
+                  onContextMenu={(e) => {
+                    void handleCollapsedUnsplashRightClick(e, item.word);
+                  }}
+                  onMouseDown={(e) => {
+                    if (e.button !== 0) return;
+                    const timer = window.setTimeout(async () => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      try {
+                        const sentence = (annotation as WordAnnotation).sentence || '';
+                        const result = await generateEmojiImage(item.word, sentence);
+                        if (result.success && result.data?.imageUrl) {
+                          await addEmojiImagePathToActiveMeaning(item.word, result.data.imageUrl, result.data.model, (updates) => {
+                            updateAnnotation(item.word, updates);
+                          });
+                        } else {
+                          alert('Failed to generate AI image');
+                        }
+                      } catch (error) {
+                        console.error('[AI Image] Error:', error);
+                      }
+                    }, 800);
+
+                    const clearTimer = () => {
+                      clearTimeout(timer);
+                      document.removeEventListener('mouseup', clearTimer);
+                    };
+                    document.addEventListener('mouseup', clearTimer);
+                  }}
+                >
+                  {(annotation as WordAnnotation).emojiImagePath?.[0] ? (
+                    <img
+                      src={resolveAssetUrl((annotation as WordAnnotation).emojiImagePath![0])}
+                      alt="emoji"
+                      className="w-full h-full object-cover rounded"
+                    />
+                  ) : (annotation as WordAnnotation).emoji ? (
+                    <span>{(annotation as WordAnnotation).emoji}</span>
+                  ) : (
+                    <span>{getWordEmoji(annotation as WordAnnotation)}</span>
+                  )}
+                </div>
+
+                <span className="font-bold text-sm flex-shrink-0">{item.word}</span>
+
+                {(annotation as WordAnnotation).ipa && (
+                  <span
+                    className="text-xs text-blue-600 cursor-pointer hover:underline flex-shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const utterance = new SpeechSynthesisUtterance(item.word);
+                      utterance.lang = 'en-US';
+                      utterance.rate = 0.9;
+                      window.speechSynthesis.speak(utterance);
+                    }}
+                  >
+                    /{(annotation as WordAnnotation).ipa}/
+                  </span>
+                )}
+
+                <span
+                  className={`text-sm flex-1 min-w-0 break-words cursor-pointer select-none ${
+                    hiddenTranslations.has(cardKey) ? 'text-muted bg-muted' : 'text-muted'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHiddenTranslations(prev => {
+                      const next = new Set(prev);
+                      if (next.has(cardKey)) {
+                        next.delete(cardKey);
+                      } else {
+                        next.add(cardKey);
+                      }
+                      return next;
+                    });
+                  }}
+                  title={hiddenTranslations.has(cardKey) ? 'Click to show translation' : 'Click to hide translation'}
+                >
+                  {hiddenTranslations.has(cardKey) ? '••••••' : (annotation as WordAnnotation).chinese}
+                </span>
+
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const sentence = (annotation as WordAnnotation).sentence;
+                    await handleRegenerateAI(item.word, sentence || '', 'word');
+                  }}
+                  className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
+                  title="Re-generate with AI"
+                >
+                  馃
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl flex-shrink-0">馃摉</span>
+                  <span className="font-bold text-sm flex-1">{item.word}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-sm flex-1 cursor-pointer select-none ${
+                      hiddenTranslations.has(cardKey) ? 'text-muted bg-muted' : 'text-muted'
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setHiddenTranslations(prev => {
+                        const next = new Set(prev);
+                        if (next.has(cardKey)) {
+                          next.delete(cardKey);
+                        } else {
+                          next.add(cardKey);
+                        }
+                        return next;
+                      });
+                    }}
+                    title={hiddenTranslations.has(cardKey) ? 'Click to show translation' : 'Click to hide translation'}
+                  >
+                    {hiddenTranslations.has(cardKey) ? '••••••' : (annotation as PhraseAnnotation).chinese}
+                  </span>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const sentence = (annotation as PhraseAnnotation).sentenceContext;
+                      await handleRegenerateAI(item.word, sentence || '', 'phrase');
+                    }}
+                    className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
+                    title="Re-generate with AI"
+                  >
+                    馃
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderCardColumn = (items: ReviewCardItem[], mode: 'read' | 'review') => (
+    <div className="space-y-2">
+      {items.map((item) => renderCardItem(item, mode))}
+    </div>
+  );
+
   return (
     <div className="h-screen flex flex-col">
       <input
@@ -1892,120 +2392,155 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           </svg>
         </button>
         
-        <div className="text-sm font-semibold">Lexiland</div>
-
-        <button
-          className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
-          title="Previous sentence"
-          onClick={handlePrevSentence}
-          disabled={!currentDocument || currentSentenceIndex === null || currentSentenceIndex === 0}
-        >
-          &lt;
-        </button>
-        <button
-          className={`px-2 py-1 border rounded-lg text-xs ${
-            isSpeaking
-              ? 'border-active bg-active hover:bg-indigo-100'
-              : 'border-border hover:bg-hover'
-          }`}
-          title="Play"
-          onClick={handlePlayPause}
-          disabled={!currentDocument}
-        >
-          {isSpeaking ? 'Pause' : 'Play'}
-        </button>
-        <button
-          className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
-          title="Next sentence"
-          onClick={handleNextSentence}
-          disabled={!currentDocument || currentSentenceIndex === null}
-        >
-          &gt;
-        </button>
-        <button
-          className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
-          title="Stop"
-          onClick={handleStop}
-          disabled={!isSpeaking}
-        >
-          Stop
-        </button>
-
-        {/* Speed control */}
-        <div className="relative">
-          <button
-            className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
-            title="Speed"
-            onClick={() => setShowSpeedControl(!showSpeedControl)}
-          >
-            {speechRate.toFixed(1)}x
-          </button>
-          {showSpeedControl && (
-            <div className="absolute top-full mt-2 p-3 bg-white border border-border rounded-lg shadow-lg z-10 min-w-[200px]">
-              <label className="block text-sm mb-2">Speed: {speechRate.toFixed(1)}x</label>
-              <input
-                type="range"
-                min="0.5"
-                max="2.0"
-                step="0.1"
-                value={speechRate}
-                onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
-                className="w-full"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Annotate Button with Auto Mode Toggle */}
         <div className="flex items-center gap-2">
-          {/* Auto-annotate toggle (dot indicator) */}
+          <div className="text-sm font-semibold">Lexiland</div>
           <button
-            onClick={() => setAutoAnnotate(!autoAnnotate)}
-            className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-indigo-500 hover:bg-indigo-50 transition-colors"
-            title={autoAnnotate ? "Auto-annotate: ON" : "Auto-annotate: OFF"}
+            onClick={() => setViewMode(prev => prev === 'read' ? 'review' : 'read')}
+            className="px-3 py-1 border border-border rounded-lg hover:bg-hover text-xs font-semibold"
           >
-            <div className={`w-2 h-2 rounded-full transition-all ${autoAnnotate ? 'bg-indigo-500' : 'bg-gray-300'}`} />
+            {viewMode}
           </button>
-          
-          {/* Annotate Button */}
-          <button
-            onClick={() => handleAnnotate(false)}
-            disabled={markedWords.size === 0 && phraseMarkedRanges.length === 0}
-            className="px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-xs font-semibold"
-          >
-            Annotate ({markedWords.size + phraseMarkedRanges.length})
-          </button>
-          
-          {/* Statistics */}
-          <div className="flex items-center gap-3 text-xs text-muted">
-            <button
-              onClick={() => {
-                console.log('[Today] Clicked. Count:', todayAnnotations.count, 'Words:', todayAnnotations.words);
-                if (todayAnnotations.count > 0 && todayAnnotations.words.length > 0) {
-                  // Add today's words to card history
-                  todayAnnotations.words.forEach(item => {
-                    console.log('[Today] Adding to history:', item.type, item.word);
-                    addToCardHistory(item.type, item.word);
-                  });
-                } else if (todayAnnotations.count > 0 && todayAnnotations.words.length === 0) {
-                  alert('Today\'s word list is empty. This might be from an old version. New annotations will be tracked.');
-                } else {
-                  alert('No annotations today yet!');
-                }
-              }}
-              className="hover:bg-indigo-50 px-1 py-0.5 rounded cursor-pointer transition-colors"
-              title="Click to show today's cards"
-            >
-              Today: <span className="font-semibold text-indigo-600">{todayAnnotations.count}</span>
-            </button>
-            <span>Known: <span className="font-semibold text-green-600">{knownWords.size}</span></span>
-          </div>
         </div>
+
+        {viewMode === 'read' ? (
+          <>
+            <button
+              className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
+              title="Previous sentence"
+              onClick={handlePrevSentence}
+              disabled={!currentDocument || currentSentenceIndex === null || currentSentenceIndex === 0}
+            >
+              &lt;
+            </button>
+            <button
+              className={`px-2 py-1 border rounded-lg text-xs ${
+                isSpeaking
+                  ? 'border-active bg-active hover:bg-indigo-100'
+                  : 'border-border hover:bg-hover'
+              }`}
+              title="Play"
+              onClick={handlePlayPause}
+              disabled={!currentDocument}
+            >
+              {isSpeaking ? 'Pause' : 'Play'}
+            </button>
+            <button
+              className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
+              title="Next sentence"
+              onClick={handleNextSentence}
+              disabled={!currentDocument || currentSentenceIndex === null}
+            >
+              &gt;
+            </button>
+            <button
+              className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
+              title="Stop"
+              onClick={handleStop}
+              disabled={!isSpeaking}
+            >
+              Stop
+            </button>
+
+            <div className="relative">
+              <button
+                className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
+                title="Speed"
+                onClick={() => setShowSpeedControl(!showSpeedControl)}
+              >
+                {speechRate.toFixed(1)}x
+              </button>
+              {showSpeedControl && (
+                <div className="absolute top-full mt-2 p-3 bg-white border border-border rounded-lg shadow-lg z-10 min-w-[200px]">
+                  <label className="block text-sm mb-2">Speed: {speechRate.toFixed(1)}x</label>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2.0"
+                    step="0.1"
+                    value={speechRate}
+                    onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setAutoAnnotate(!autoAnnotate)}
+                className="w-6 h-6 flex items-center justify-center rounded-full border-2 border-indigo-500 hover:bg-indigo-50 transition-colors"
+                title={autoAnnotate ? "Auto-annotate: ON" : "Auto-annotate: OFF"}
+              >
+                <div className={`w-2 h-2 rounded-full transition-all ${autoAnnotate ? 'bg-indigo-500' : 'bg-gray-300'}`} />
+              </button>
+
+              <button
+                onClick={() => handleAnnotate(false)}
+                disabled={markedWords.size === 0 && phraseMarkedRanges.length === 0}
+                className="px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-xs font-semibold"
+              >
+                Annotate ({markedWords.size + phraseMarkedRanges.length})
+              </button>
+
+              <div className="flex items-center gap-3 text-xs text-muted">
+                <button
+                  onClick={() => {
+                    if (todayAnnotations.count > 0 && todayAnnotations.words.length > 0) {
+                      todayAnnotations.words.forEach(item => addToCardHistory(item.type, item.word));
+                    } else if (todayAnnotations.count > 0 && todayAnnotations.words.length === 0) {
+                      alert('Today\'s word list is empty. This might be from an old version. New annotations will be tracked.');
+                    } else {
+                      alert('No annotations today yet!');
+                    }
+                  }}
+                  className="hover:bg-indigo-50 px-1 py-0.5 rounded cursor-pointer transition-colors"
+                  title="Click to show today's cards"
+                >
+                  Today: <span className="font-semibold text-indigo-600">{todayAnnotations.count}</span>
+                </button>
+                <span>Known: <span className="font-semibold text-green-600">{knownWords.size}</span></span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setReviewSortMode(prev => prev === 'stats' ? 'date' : 'stats')}
+              className={`px-3 py-1.5 rounded-lg text-xs border font-semibold ${
+                reviewSortMode === 'stats'
+                  ? 'bg-indigo-500 text-white border-indigo-500'
+                  : 'border-border hover:bg-hover'
+              }`}
+            >
+              Statistics
+            </button>
+            <button
+              onClick={() => setReviewSortMode('date')}
+              className={`px-3 py-1.5 rounded-lg text-xs border font-semibold ${
+                reviewSortMode === 'date'
+                  ? 'bg-indigo-500 text-white border-indigo-500'
+                  : 'border-border hover:bg-hover'
+              }`}
+            >
+              By Date
+            </button>
+            <button
+              onClick={() => setReviewSortMode('alphabet')}
+              className={`px-3 py-1.5 rounded-lg text-xs border font-semibold ${
+                reviewSortMode === 'alphabet'
+                  ? 'bg-indigo-500 text-white border-indigo-500'
+                  : 'border-border hover:bg-hover'
+              }`}
+            >
+              A-Z
+            </button>
+          </div>
+        )}
 
         <div className="flex-1"></div>
 
         {/* Bookmark Button */}
-        {currentDocument && (
+        {viewMode === 'read' && currentDocument && (
           <button
             onClick={handleJumpToBookmark}
             className="px-2 py-1 border border-border rounded-lg hover:bg-hover text-xs"
@@ -2136,10 +2671,14 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           </aside>
         )}
 
-        {/* Center Panel: Reader */}
+        {/* Center Panel */}
         <main className="flex-1 border border-border rounded-2xl overflow-hidden bg-white flex flex-col min-h-0">
-          <div id="main-scroll-container" className="flex-1 p-3 overflow-auto" onMouseUp={handleTextSelection}>
-            {currentDocument ? (
+          <div
+            id="main-scroll-container"
+            className="flex-1 p-3 overflow-auto"
+            onMouseUp={viewMode === 'read' ? handleTextSelection : undefined}
+          >
+            {viewMode === 'read' ? (currentDocument ? (
               <>
                 <div className="text-2xl font-extrabold mb-2 flex items-center justify-between">
                   {/* Previous chapter button */}
@@ -2320,11 +2859,67 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   Click "Load sample" or "Import file" to start reading.
                 </div>
               </>
+            )) : (
+              <>
+                <div className="text-2xl font-extrabold mb-2">Review Cards</div>
+                <div className="text-xs text-muted mb-4 leading-relaxed">
+                  Browse every saved word card and phrase card in a two-column review board.
+                </div>
+
+                {reviewSortMode === 'stats' && renderReviewStatsPanel()}
+
+                <div className="flex items-center justify-between gap-3 mb-4 text-xs text-muted">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div>
+                      Total cards: <span className="font-semibold text-gray-700">{reviewVisibleCards.length}</span>
+                    </div>
+                    <div>
+                      Cards (<span className="font-semibold text-gray-700">{reviewExpandedCount}</span>)
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {reviewVisibleCards.length > 0 && (
+                      <button
+                        onClick={() => {
+                          handleClearReviewCards();
+                        }}
+                        className="px-3 py-1 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                        title="Clear all expanded cards"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                    {reviewSortMode === 'stats' && reviewSelectedBucketKey && (
+                      <button
+                        onClick={() => {
+                          setReviewSelectedBucketKey(null);
+                          setExpandedCardKeys(new Set());
+                        }}
+                        className="px-3 py-1 border border-border rounded-lg hover:bg-hover"
+                      >
+                        Clear selection
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {reviewVisibleCards.length === 0 ? (
+                  <div className="text-sm text-muted leading-relaxed">
+                    No cards yet. Annotate words or phrases in `read` mode first.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+                    {renderCardColumn(reviewColumns.left, 'review')}
+                    {renderCardColumn(reviewColumns.right, 'review')}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </main>
 
         {/* Right Panel: Cards */}
+        {viewMode === 'read' && (
         <aside className="w-[360px] flex flex-col min-h-0 overflow-auto" style={{ minWidth: '360px' }}>
           {isLoadingAnnotation && (
             <div className="text-center py-8 text-muted">
@@ -2388,7 +2983,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     if (!annotation) return null;
                     
                     const cardKey = `${item.type}-${item.word}`;
-                    const isExpanded = expandedCardKey === cardKey;
+                    const isExpanded = expandedCardKeys.has(cardKey);
                     
                     return (
                       <div
@@ -2419,7 +3014,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                                 annotation={annotation as WordAnnotation}
                                 displayWord={item.word}
                                 isLearnt={learntWords.has(item.word.toLowerCase())}
-                                onClose={() => setExpandedCardKey(null)}
+                                onClose={() => closeCard(cardKey)}
                                 onMarkKnown={handleMarkKnown}
                                 onDelete={handleDeleteFromCards}
                                 onRegenerateAI={(word, sentence) => handleRegenerateAI(word, sentence, 'word')}
@@ -2428,7 +3023,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                               <PhraseCard
                                 annotation={annotation as PhraseAnnotation}
                                 isInserted={phraseTranslationInserts.get(item.word.toLowerCase()) || false}
-                                onClose={() => setExpandedCardKey(null)}
+                                onClose={() => closeCard(cardKey)}
                                 onToggleInsert={handleTogglePhraseInsert}
                                 onRegenerateAI={(phrase, sentence) => handleRegenerateAI(phrase, sentence, 'phrase')}
                                 onDelete={async (phrase) => {
@@ -2437,7 +3032,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                                     next.delete(phrase.toLowerCase());
                                     return next;
                                   });
-                                  setExpandedCardKey(null);
+                                  closeCard(cardKey);
                                   
                                   setAnnotatedPhraseRanges(prev => 
                                     prev.filter(r => r.phrase !== phrase.toLowerCase())
@@ -2454,7 +3049,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                           <div
                             className="p-2 hover:bg-gray-50 cursor-pointer pr-8"
                             onClick={() => {
-                              setExpandedCardKey(cardKey);
+                              expandSingleCard(cardKey);
                             }}
                           >
                             {item.type === 'word' ? (
@@ -2624,6 +3219,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             </div>
           )}
         </aside>
+        )}
       </div>
 
       {/* New Document Modal */}
