@@ -107,6 +107,7 @@ function App() {
   const [reviewSortMode, setReviewSortMode] = useState<ReviewSortMode>('date');
   const [reviewStatsRange, setReviewStatsRange] = useState<ReviewStatsRange>('week');
   const [reviewSelectedBucketKey, setReviewSelectedBucketKey] = useState<string | null>(null);
+  const [reviewHiddenCardKeys, setReviewHiddenCardKeys] = useState<Set<string>>(new Set());
   
   // Get current document and chapter
   const currentDocument = documents.find((d: Document) => d.id === currentDocumentId);
@@ -206,6 +207,10 @@ function App() {
   useEffect(() => {
     setReviewSelectedBucketKey(null);
   }, [reviewStatsRange]);
+
+  useEffect(() => {
+    setReviewHiddenCardKeys(new Set());
+  }, [reviewSortMode, reviewSelectedBucketKey, reviewStatsRange]);
 
   const reviewCards = useMemo<ReviewCardItem[]>(() => {
     const items: ReviewCardItem[] = [];
@@ -307,8 +312,8 @@ function App() {
     } else {
       next.sort((a, b) => b.cachedAt - a.cachedAt || a.normalizedWord.localeCompare(b.normalizedWord));
     }
-    return next;
-  }, [reviewCards, reviewSortMode, reviewSelectedBucketKey, reviewStatsBuckets]);
+    return next.filter((item) => !reviewHiddenCardKeys.has(item.cardKey));
+  }, [reviewCards, reviewSortMode, reviewSelectedBucketKey, reviewStatsBuckets, reviewHiddenCardKeys]);
 
   const reviewDisplayRows = useMemo<ReviewDisplayRow[]>(() => {
     const rows: ReviewDisplayRow[] = [];
@@ -2196,14 +2201,16 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               e.stopPropagation();
               if (mode === 'read') {
                 removeFromCardHistory(item.word);
-              } else if (item.type === 'word') {
-                void handleDeleteFromCards(item.word);
               } else {
-                void handleDeletePhraseFromCards(item.word);
+                setReviewHiddenCardKeys(prev => {
+                  const next = new Set(prev);
+                  next.add(cardKey);
+                  return next;
+                });
               }
             }}
             className="absolute top-2 right-2 z-10 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"
-            title={mode === 'read' ? 'Remove from history' : 'Delete card'}
+            title={mode === 'read' ? 'Remove from history' : 'Remove from current pool'}
           >
             x
           </button>
