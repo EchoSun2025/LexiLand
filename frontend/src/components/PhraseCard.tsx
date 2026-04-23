@@ -1,10 +1,17 @@
+import CardNotes from './CardNotes';
+
 export interface PhraseAnnotation {
   phrase: string;
+  cardType?: 'phrase' | 'sentence' | 'paragraph' | 'grammar';
   chinese: string;
   explanation?: string;
   usagePattern?: string;
   usagePatternChinese?: string;
   isCommonUsage?: boolean;
+  grammarPoints?: Array<{
+    text: string;
+    explanation: string;
+  }>;
   sentenceContext: string;
   documentTitle?: string;  // 文章标题
   cachedAt?: number;
@@ -23,6 +30,14 @@ export default function PhraseCard({ annotation, isInserted, onClose, onDelete, 
   const handleToggleInsert = () => {
     onToggleInsert(annotation.phrase);
   };
+  const cardType = annotation.cardType || 'phrase';
+  const label = cardType === 'sentence'
+    ? 'Sentence'
+    : cardType === 'paragraph'
+      ? 'Paragraph'
+      : cardType === 'grammar'
+        ? 'Grammar'
+        : 'Phrase / Expression';
 
   return (
     <div className="bg-white border border-purple-300 rounded-2xl p-4 mb-3 shadow-sm">
@@ -32,7 +47,7 @@ export default function PhraseCard({ annotation, isInserted, onClose, onDelete, 
           <h3 className="text-xl font-bold text-purple-900">
             {annotation.phrase}
           </h3>
-          <div className="text-xs text-muted mt-1">Phrase / Expression</div>
+          <div className="text-xs text-muted mt-1">{label}</div>
         </div>
         <div className="flex items-center gap-2">
           {/* Delete button */}
@@ -109,6 +124,20 @@ export default function PhraseCard({ annotation, isInserted, onClose, onDelete, 
         </div>
       )}
 
+      {annotation.grammarPoints && annotation.grammarPoints.length > 0 && (
+        <div className="mb-3 bg-amber-50 border border-amber-100 rounded-lg p-3">
+          <div className="text-xs font-semibold text-amber-800 mb-2">Grammar Points</div>
+          <div className="space-y-2">
+            {annotation.grammarPoints.map((point, index) => (
+              <div key={`${point.text}-${index}`} className="text-sm">
+                <div className="font-semibold text-amber-900">{point.text}</div>
+                <div className="text-xs text-amber-800">{point.explanation}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Context Sentence */}
       <div className="mb-3">
         <div className="text-xs font-semibold text-muted mb-1">Context</div>
@@ -124,6 +153,13 @@ export default function PhraseCard({ annotation, isInserted, onClose, onDelete, 
           <div className="text-xs text-gray-600 italic">{annotation.documentTitle}</div>
         </div>
       )}
+
+      <CardNotes
+        cardType={cardType}
+        cardKey={annotation.phrase.toLowerCase()}
+        cardText={annotation.phrase}
+        context={annotation.sentenceContext}
+      />
     </div>
   );
 }

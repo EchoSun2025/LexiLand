@@ -72,6 +72,7 @@ interface AnnotatePhraseRequest {
   phrase: string;
   sentenceContext: string;
   level?: string;
+  cardType?: 'phrase' | 'sentence' | 'paragraph' | 'grammar';
 }
 
 interface GenerateMeaningFieldRequest {
@@ -80,6 +81,17 @@ interface GenerateMeaningFieldRequest {
   chinese: string;
   partOfSpeech?: string;
   sentenceContext?: string;
+}
+
+interface CardNoteReplyRequest {
+  cardType: 'word' | 'phrase' | 'sentence' | 'paragraph' | 'grammar';
+  cardText: string;
+  note: string;
+  history?: Array<{
+    role: 'user' | 'assistant';
+    content: string;
+  }>;
+  context?: string;
 }
 
 fastify.post<{ Body: AnnotateRequest }>('/api/annotate', async (request, reply) => {
@@ -198,9 +210,9 @@ fastify.post<{ Body: GenerateMeaningFieldRequest }>('/api/generate-meaning-field
 
 // 短语注释 API
 fastify.post<{ Body: AnnotatePhraseRequest }>('/api/annotate-phrase', async (request, reply) => {
-  const { phrase, sentenceContext, level = 'B2' } = request.body;
+  const { phrase, sentenceContext, level = 'B2', cardType = 'phrase' } = request.body;
 
-  fastify.log.info({ phrase, sentenceContext, level }, 'Phrase annotation request');
+  fastify.log.info({ phrase, sentenceContext, level, cardType }, 'Phrase annotation request');
 
   if (!phrase || typeof phrase !== 'string') {
     fastify.log.error({ phrase }, 'Invalid phrase');
@@ -213,7 +225,15 @@ fastify.post<{ Body: AnnotatePhraseRequest }>('/api/annotate-phrase', async (req
   }
 
   try {
-    const prompt = `You are a language learning assistant. Provide annotation for the English phrase or expression "${phrase}" suitable for a ${level} level learner.
+    const cardLabel = cardType === 'sentence'
+      ? 'sentence'
+      : cardType === 'paragraph'
+        ? 'paragraph'
+        : cardType === 'grammar'
+          ? 'grammar point'
+          : 'phrase or expression';
+
+    const prompt = `You are a language learning assistant. Provide annotation for the English ${cardLabel} "${phrase}" suitable for a ${level} level learner.
 
 The phrase appears in this sentence:
 "${sentenceContext}"
@@ -221,17 +241,23 @@ The phrase appears in this sentence:
 Please provide the following information in JSON format:
 {
   "phrase": "${phrase}",
+  "cardType": "${cardType}",
   "chinese": "Concise Chinese translation of this phrase in this context (简体中文)",
   "explanation": "If this is a fixed expression, idiom, or common collocation, explain its meaning and usage. If it's just a regular phrase, leave this field empty or null.",
   "usagePattern": "If this can be generalized into a reusable learner pattern, normalize it like 'help sb. (to) do sth.' Otherwise return empty string.",
   "usagePatternChinese": "Chinese explanation of the reusable learner pattern. Otherwise return empty string.",
   "isCommonUsage": true,
+  "grammarPoints": [
+    { "text": "short grammar chunk from the source", "explanation": "concise Chinese explanation" }
+  ],
   "sentenceContext": "${sentenceContext}"
 }
 
 Important:
 - Focus on translating the phrase accurately based on the sentence context
 - If it's a fixed expression (idiom, phrasal verb, collocation), provide an explanation
+- For sentence or paragraph cards, include 1-4 useful grammarPoints when present
+- For phrase cards, include grammarPoints only when the phrase contains a reusable grammar pattern
 - If it contains a teachable grammar or collocation pattern, fill usagePattern and usagePatternChinese
 - If it's just a regular phrase with no special meaning, you can leave "explanation" empty and usagePattern empty
 - Set isCommonUsage to true only if this phrase or pattern is reusable beyond this exact sentence
@@ -250,7 +276,11 @@ Important:
       throw new Error('No response from OpenAI');
     }
 
-    const annotation = JSON.parse(content);
+    const annotation = {
+      cardType,
+      grammarPoints: [],
+      ...JSON.parse(content),
+    };
 
     fastify.log.info({ annotation }, 'Phrase annotation success');
 
@@ -269,6 +299,63 @@ Important:
 });
 
 // Unsplash 图片搜索 API
+fastify.post<{ Body: CardNoteReplyRequest }>('/api/card-note-reply', async (request, reply) => {
+  const { cardType, cardText, note, history = [], context } = request.body;
+
+  if (!cardText || typeof cardText !== 'string') {
+    return reply.code(400).send({ success: false, error: 'cardText is required' });
+  }
+
+  if (!note || typeof note !== 'string') {
+    return reply.code(400).send({ success: false, error: 'note is required' });
+  }
+
+  try {
+    const recentHistory = history.slice(-8);
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a concise English reading tutor for Chinese-speaking learners. Answer in simplified Chinese unless the user asks otherwise. Focus on meaning, grammar, and usage tied to the card.',
+        },
+        {
+          role: 'user',
+          content: `Card type: ${cardType}
+Card text: ${cardText}
+${context ? `Context: ${context}` : ''}
+
+Previous note conversation:
+${recentHistory.map(item => `${item.role}: ${item.content}`).join('\n') || '(none)'}
+
+User note/question: ${note}`,
+        },
+      ],
+      temperature: 0.3,
+    });
+
+    const answer = completion.choices[0]?.message?.content?.trim();
+    if (!answer) {
+      throw new Error('No response from OpenAI');
+    }
+
+    return {
+      success: true,
+      data: {
+        reply: answer,
+      },
+      usage: completion.usage,
+    };
+  } catch (error: any) {
+    fastify.log.error({ error, stack: error.stack }, 'Card note reply error');
+    return reply.code(500).send({
+      success: false,
+      error: error.message || 'Failed to generate note reply',
+    });
+  }
+});
+
 interface SearchImageRequest {
   word: string;
   definition?: string;

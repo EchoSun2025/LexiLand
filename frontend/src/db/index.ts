@@ -43,21 +43,40 @@ export interface CachedAnnotation {
 export interface SavedDocument {
   id: string;
   title: string;
-  content: string;
+  type?: 'text' | 'epub';
+  content?: string;
+  paragraphs?: any[];
+  chapters?: any[];
+  currentChapterId?: string;
+  author?: string;
   createdAt: number;
   lastOpenedAt: number;
 }
 
 export interface CachedPhraseAnnotation {
   phrase: string;
+  cardType?: 'phrase' | 'sentence' | 'paragraph' | 'grammar';
   chinese: string;
   explanation?: string;
   usagePattern?: string;
   usagePatternChinese?: string;
   isCommonUsage?: boolean;
+  grammarPoints?: Array<{
+    text: string;
+    explanation: string;
+  }>;
   sentenceContext: string;
   documentTitle?: string;
   cachedAt: number;
+}
+
+export interface CardNote {
+  id: string;
+  cardType: 'word' | 'phrase' | 'sentence' | 'paragraph' | 'grammar';
+  cardKey: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: number;
 }
 
 export class LexiLandDB extends Dexie {
@@ -66,6 +85,7 @@ export class LexiLandDB extends Dexie {
   annotations!: Table<CachedAnnotation, string>;
   phraseAnnotations!: Table<CachedPhraseAnnotation, string>;
   documents!: Table<SavedDocument, string>;
+  cardNotes!: Table<CardNote, string>;
 
   constructor() {
     super('LexiLandDB');
@@ -157,6 +177,15 @@ export class LexiLandDB extends Dexie {
         await trans.table('annotations').put(normalized);
       }
       console.log('[DB Migration v9] Initialized encountered meanings for', annotations.length, 'annotations');
+    });
+
+    this.version(10).stores({
+      knownWords: 'word, level, addedAt',
+      learntWords: 'word, learntAt',
+      annotations: 'word, cachedAt',
+      phraseAnnotations: 'phrase, cardType, cachedAt',
+      documents: 'id, createdAt, lastOpenedAt',
+      cardNotes: 'id, [cardType+cardKey], createdAt',
     });
   }
 }
@@ -440,21 +469,28 @@ export async function removeLearntWordFromDB(word: string): Promise<void> {
  * Cache phrase annotation
  */
 export async function cachePhraseAnnotation(phrase: string, annotation: {
+  cardType?: 'phrase' | 'sentence' | 'paragraph' | 'grammar';
   chinese: string;
   explanation?: string;
   usagePattern?: string;
   usagePatternChinese?: string;
   isCommonUsage?: boolean;
+  grammarPoints?: Array<{
+    text: string;
+    explanation: string;
+  }>;
   sentenceContext: string;
   documentTitle?: string;
 }): Promise<void> {
   await db.phraseAnnotations.put({
     phrase: phrase.toLowerCase(),
+    cardType: annotation.cardType || 'phrase',
     chinese: annotation.chinese,
     explanation: annotation.explanation,
     usagePattern: annotation.usagePattern,
     usagePatternChinese: annotation.usagePatternChinese,
     isCommonUsage: annotation.isCommonUsage,
+    grammarPoints: annotation.grammarPoints,
     sentenceContext: annotation.sentenceContext,
     documentTitle: annotation.documentTitle,
     cachedAt: Date.now(),
@@ -473,6 +509,48 @@ export async function getAllCachedPhraseAnnotations(): Promise<CachedPhraseAnnot
  */
 export async function deletePhraseAnnotation(phrase: string): Promise<void> {
   await db.phraseAnnotations.delete(phrase.toLowerCase());
+}
+
+export async function saveDocument(document: Omit<SavedDocument, 'lastOpenedAt'>): Promise<void> {
+  await db.documents.put({
+    ...document,
+    lastOpenedAt: Date.now(),
+  });
+}
+
+export async function getAllSavedDocuments(): Promise<SavedDocument[]> {
+  return await db.documents.orderBy('lastOpenedAt').reverse().toArray();
+}
+
+export async function touchDocument(documentId: string): Promise<void> {
+  const existing = await db.documents.get(documentId);
+  if (existing) {
+    await db.documents.put({
+      ...existing,
+      lastOpenedAt: Date.now(),
+    });
+  }
+}
+
+export async function getCardNotes(
+  cardType: CardNote['cardType'],
+  cardKey: string
+): Promise<CardNote[]> {
+  return await db.cardNotes
+    .where('[cardType+cardKey]')
+    .equals([cardType, cardKey])
+    .sortBy('createdAt');
+}
+
+export async function addCardNote(note: Omit<CardNote, 'id' | 'createdAt'>): Promise<CardNote> {
+  const createdAt = Date.now();
+  const savedNote: CardNote = {
+    ...note,
+    id: `${note.cardType}-${note.cardKey}-${createdAt}-${Math.random().toString(36).slice(2)}`,
+    createdAt,
+  };
+  await db.cardNotes.add(savedNote);
+  return savedNote;
 }
 
 /**
@@ -494,11 +572,12 @@ export async function deleteAnnotation(word: string): Promise<void> {
  * Export all user data as JSON with timestamp
  */
 export async function exportUserData(): Promise<string> {
-  const [knownWords, learntWords, annotations, phraseAnnotations] = await Promise.all([
+  const [knownWords, learntWords, annotations, phraseAnnotations, cardNotes] = await Promise.all([
     db.knownWords.toArray(),
     db.learntWords.toArray(),
     db.annotations.toArray(),
-    db.phraseAnnotations.toArray()
+    db.phraseAnnotations.toArray(),
+    db.cardNotes.toArray()
   ]);
 
   const exportData = {
@@ -517,8 +596,13 @@ export async function exportUserData(): Promise<string> {
       })),
       phraseAnnotations: phraseAnnotations.map(p => ({
         phrase: p.phrase,
+        cardType: p.cardType,
         chinese: p.chinese,
         explanation: p.explanation,
+        usagePattern: p.usagePattern,
+        usagePatternChinese: p.usagePatternChinese,
+        isCommonUsage: p.isCommonUsage,
+        grammarPoints: p.grammarPoints,
         sentenceContext: p.sentenceContext,
         documentTitle: p.documentTitle,
         cachedAt: new Date(p.cachedAt).toISOString()
@@ -541,13 +625,18 @@ export async function exportUserData(): Promise<string> {
         encounteredMeanings: a.encounteredMeanings,
         activeMeaningId: a.activeMeaningId,
         cachedAt: new Date(a.cachedAt).toISOString()
+      })),
+      cardNotes: cardNotes.map(note => ({
+        ...note,
+        createdAt: new Date(note.createdAt).toISOString()
       }))
     },
     statistics: {
       totalKnownWords: knownWords.length,
       totalLearntWords: learntWords.length,
       totalAnnotations: annotations.length,
-      totalPhraseAnnotations: phraseAnnotations.length
+      totalPhraseAnnotations: phraseAnnotations.length,
+      totalCardNotes: cardNotes.length
     }
   };
 
@@ -655,8 +744,13 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
           if (!existing) {
             await db.phraseAnnotations.add({
               phrase: item.phrase,
+              cardType: item.cardType || 'phrase',
               chinese: item.chinese,
               explanation: item.explanation,
+              usagePattern: item.usagePattern,
+              usagePatternChinese: item.usagePatternChinese,
+              isCommonUsage: item.isCommonUsage,
+              grammarPoints: item.grammarPoints,
               sentenceContext: item.sentenceContext,
               documentTitle: item.documentTitle,
               cachedAt: new Date(item.cachedAt).getTime()
@@ -667,6 +761,29 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
           }
         } catch (err: any) {
           result.errors.push(`Phrase annotation "${item.phrase}": ${err.message}`);
+        }
+      }
+    }
+
+    if (data.data.cardNotes && Array.isArray(data.data.cardNotes)) {
+      for (const item of data.data.cardNotes) {
+        try {
+          const existing = await db.cardNotes.get(item.id);
+          if (!existing) {
+            await db.cardNotes.add({
+              id: item.id,
+              cardType: item.cardType,
+              cardKey: item.cardKey,
+              role: item.role,
+              content: item.content,
+              createdAt: new Date(item.createdAt).getTime()
+            });
+            result.imported++;
+          } else {
+            result.skipped++;
+          }
+        } catch (err: any) {
+          result.errors.push(`Card note "${item.id}": ${err.message}`);
         }
       }
     }

@@ -5,6 +5,7 @@ import { updateEmoji, addEmojiImagePathToActiveMeaning, setActiveMeaning, addMan
 import { getWordEmoji, getAllEmojiKeywords, getDetailedPartOfSpeech } from '../utils/emojiHelper';
 import { useAppStore } from '../store/appStore';
 import { applyMeaningToAnnotation, ensureEncounteredMeanings, getActiveMeaning } from '../utils/wordMeanings';
+import CardNotes from './CardNotes';
 
 interface WordCardProps {
   annotation: WordAnnotation;
@@ -1093,6 +1094,13 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
           </button>
         )}
       </div>
+
+      <CardNotes
+        cardType="word"
+        cardKey={annotation.word.toLowerCase()}
+        cardText={shownWord}
+        context={annotation.sentence}
+      />
     </div>
   );
 }

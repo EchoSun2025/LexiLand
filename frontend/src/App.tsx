@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
-import { useAppStore, type Document, type Chapter, getLatestBookmark } from './store/appStore'
+import { useAppStore, type Document, type Chapter, type LearningCardType, getLatestBookmark } from './store/appStore'
 import { tokenizeParagraphs, type Paragraph as ParagraphType, type Sentence, type Token } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
-import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, batchAddKnownWords, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, cachePhraseAnnotation, getAllCachedPhraseAnnotations, deletePhraseAnnotation, exportUserData, importUserData, updateEmoji, addEmojiImagePathToActiveMeaning, setActiveMeaning } from './db'
+import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordToDB, batchAddKnownWords, cacheAnnotation, getAllCachedAnnotations, addLearntWordToDB, removeLearntWordFromDB, getAllLearntWords, deleteAnnotation, cachePhraseAnnotation, getAllCachedPhraseAnnotations, deletePhraseAnnotation, exportUserData, importUserData, updateEmoji, addEmojiImagePathToActiveMeaning, setActiveMeaning, saveDocument, getAllSavedDocuments, touchDocument } from './db'
 import { annotateWord, annotatePhrase, searchImage, generateEmojiImage, savePastedImage, resolveAssetUrl, saveUserBackup, loadUserBackup, getUserBackupStatus, type WordAnnotation, type PhraseAnnotation } from './api'
 import PhraseCard from './components/PhraseCard'
 import { localDictionary } from './services/localDictionary'
@@ -30,7 +30,7 @@ type ReviewCardItem =
       cachedAt: number;
     }
   | {
-      type: 'phrase';
+      type: Exclude<LearningCardType, 'word'>;
       word: string;
       normalizedWord: string;
       cardKey: string;
@@ -79,6 +79,7 @@ function App() {
     annotationMode,
     autoPronounceSetting,
     addDocument,
+    loadDocuments,
     setCurrentDocument,
     setCurrentChapter,
     setSelectedWord,
@@ -135,17 +136,26 @@ function App() {
   const [currentWordIndex, setCurrentWordIndex] = useState<number>(-1);
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const shouldStopRef = useRef(false);
-  const [speechRate, setSpeechRate] = useState(0.9);
+  const resumedDocumentRef = useRef<string | null>(null);
+  const autoStartDateRef = useRef<string | null>(null);
+  const [speechRate, setSpeechRate] = useState(() => Number(localStorage.getItem('speechRate')) || 0.9);
   const [speechPitch, setSpeechPitch] = useState(1.0);
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [showSpeedControl, setShowSpeedControl] = useState(false);
+  const [immersiveMode, setImmersiveMode] = useState(() => localStorage.getItem('immersiveMode') === 'true');
+  const [autoResumeOnOpen, setAutoResumeOnOpen] = useState(() => localStorage.getItem('autoResumeOnOpen') !== 'false');
+  const [autoReadOnOpen, setAutoReadOnOpen] = useState(() => localStorage.getItem('autoReadOnOpen') === 'true');
+  const [autoStartTime, setAutoStartTime] = useState(() => localStorage.getItem('autoStartTime') || '21:00');
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState('Voice off');
+  const voiceRecognitionRef = useRef<any>(null);
   const [autoAnnotate, setAutoAnnotate] = useState(false); // 闂傚倸鍊搁崐鐑芥嚄閸洖鍌ㄧ憸鏃堝Υ閸愨晜鍎熼柕蹇嬪焺濞茬鈹戦悩璇у伐閻庢凹鍙冨畷锝堢疀濞戞瑧鍘撻梺鍛婄箓鐎氼參宕宠ぐ鎺撶厱闁硅埇鍔屾禍楣冩⒒閸屾瑧鍔嶉柟顔肩埣瀹曟洟顢涢悙鑼槷閻庡箍鍎遍ˇ顖毿ч弻銉︾厱妞ゆ劑鍊曢弸宥囩磼鐠囧弶顥為柕鍥у瀵粙濡搁敐鍕崟闂備胶顭堥鍡涘箰閹间焦鍋╅柣鎴ｆ閻愬﹪鏌嶉崫鍕舵敾闁?
   const [isLoadingAnnotation, setIsLoadingAnnotation] = useState(false);
   const [markedWords, setMarkedWords] = useState<Set<string>>(new Set());
   
   // 婵犵數濮烽弫鎼佸磻濞戙埄鏁嬫い鎾跺枑閸欏繘鏌熺紒銏犳灍闁哄懏绻堥弻鏇熷緞閸繂澹斿┑鐐村灟閸ㄥ綊鎮″☉銏＄厱婵炴垵宕獮鏍煕閻愵亜濮傛慨濠冩そ楠炴牠鎮欓幓鎺戭潙闂備礁鎲￠弻銊х矓閻熼偊鍤曢柟鎯版闁卞洭鏌曡箛瀣伄闁挎稒绻冪换娑欐綇閸撗冨煂闂佸湱鈷堥崑濠傤嚕缁嬪簱鏋庨柟鎵虫櫃缁?
-  const [todayAnnotations, setTodayAnnotations] = useState<{ date: string; count: number; words: Array<{type: 'word' | 'phrase', word: string}> }>(() => {
+  const [todayAnnotations, setTodayAnnotations] = useState<{ date: string; count: number; words: Array<{type: LearningCardType, word: string}> }>(() => {
     const stored = localStorage.getItem('todayAnnotations');
     if (stored) {
       const data = JSON.parse(stored);
@@ -216,6 +226,26 @@ function App() {
   }, [todayAnnotations]);
 
   useEffect(() => {
+    localStorage.setItem('immersiveMode', String(immersiveMode));
+  }, [immersiveMode]);
+
+  useEffect(() => {
+    localStorage.setItem('autoResumeOnOpen', String(autoResumeOnOpen));
+  }, [autoResumeOnOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('autoReadOnOpen', String(autoReadOnOpen));
+  }, [autoReadOnOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('autoStartTime', autoStartTime);
+  }, [autoStartTime]);
+
+  useEffect(() => {
+    localStorage.setItem('speechRate', String(speechRate));
+  }, [speechRate]);
+
+  useEffect(() => {
     setReviewSelectedBucketKey(null);
   }, [reviewStatsRange]);
 
@@ -243,11 +273,12 @@ function App() {
     }
 
     for (const [phraseKey, annotation] of phraseAnnotations.entries()) {
+      const cardType = annotation.cardType || 'phrase';
       items.push({
-        type: 'phrase',
+        type: cardType,
         word: annotation.phrase || phraseKey,
         normalizedWord: phraseKey,
-        cardKey: `phrase-${phraseKey}`,
+        cardKey: `${cardType}-${phraseKey}`,
         annotation,
         cachedAt: annotation.cachedAt || 0,
       });
@@ -840,6 +871,7 @@ function App() {
           const cachedAt = Date.now();
           const phraseData = {
             ...result.data,
+            cardType: 'phrase' as const,
             documentTitle: currentDocument.title,  // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓垫繝纰樻閸嬪懘鏁冮姀銈呰摕婵炴垯鍨瑰敮闂侀潧绻嗛崜婵嬫偟閺嶎厽鍋℃繝濠傚缁跺弶绻涚涵椋庣瘈鐎殿喖顭烽崹楣冨箛娴ｅ憡鍊梻浣告啞娓氭宕伴弽顓炲嚑闁绘ê妯婂〒?
             cachedAt,
           };
@@ -953,7 +985,7 @@ function App() {
     const annotation = phraseAnnotations.get(phraseLower);
     if (annotation) {
       // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓电紓鍌欒閸嬫捇鏌涢埄鍐姇闁绘挻绋戦…璺ㄦ崉閻氭潙濮涙繛瀵稿О閸ㄤ粙寮诲☉婊庢Щ闂佹寧娲︽禍顏勵嚕鐠囨祴妲堟俊顖炴敱閻庡姊洪崷顓炲妺闁搞劌銈稿顐﹀垂椤曞懏瀵岄梺闈涚墕濡瑩鎮￠妷锔剧婵炴潙顑嗗▍濠傗攽閿涘嫭鏆鐐叉喘瀵爼宕归鑲┿偖濠碉紕鍋戦崐鏇犳崲閹邦儵娑樷槈閳跺搫娲、娆撴偩瀹€鈧鏇㈡煛婢跺﹦澧曞褌绮欏畷姘舵偋閸粎绠氬銈嗗姧缁查箖鍩涢幒鏃傜＜妞ゆ洖鎳庨獮妤冣偓鍨緲鐎氫即鐛崶顒夋晣闁绘劕顕弶鐟扳攽閿涘嫬浜奸柛濠冩礈閹广垽骞囬鐟颁壕婵鍘ф晶鍙夈亜閵堝懎顏慨濠呮閹风娀鎳犻鍌ゅ敽闂備胶顭堥鍥磻濞戞艾寮查梻浣告惈缁嬩線宕戦崨杈剧稏?
-      addToCardHistory('phrase', phrase);
+      addToCardHistory(annotation.cardType || 'phrase', phrase);
     }
   };
   
@@ -962,9 +994,241 @@ function App() {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, pIndex, sIndex });
   };
+
+  const getAllSentenceLocations = () => {
+    const allSentences: { paragraphIndex: number; sentenceIndex: number; text: string; sentence: Sentence }[] = [];
+    displayParagraphs.forEach((para: ParagraphType, pIdx: number) => {
+      para.sentences.forEach((sent: Sentence, sIdx: number) => {
+        allSentences.push({
+          paragraphIndex: pIdx,
+          sentenceIndex: sIdx,
+          text: sent.text,
+          sentence: sent,
+        });
+      });
+    });
+    return allSentences;
+  };
+
+  const getGlobalSentenceIndex = (paragraphIndex: number, sentenceIndex: number) => {
+    let index = 0;
+    for (let i = 0; i < paragraphIndex; i++) {
+      index += displayParagraphs[i]?.sentences.length || 0;
+    }
+    return index + sentenceIndex;
+  };
+
+  const getCurrentSentenceLocation = () => {
+    const allSentences = getAllSentenceLocations();
+    if (currentSentenceIndex === null) return allSentences[0] || null;
+    return allSentences[currentSentenceIndex] || null;
+  };
+
+  const createTextCard = async (
+    cardType: Exclude<LearningCardType, 'word'>,
+    text: string,
+    context: string
+  ) => {
+    if (!currentDocument || !text.trim()) return;
+
+    setIsLoadingAnnotation(true);
+    try {
+      const result = await annotatePhrase(text.trim(), context.trim() || text.trim(), level, cardType);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Failed to create card');
+      }
+
+      const cardData: PhraseAnnotation = {
+        ...result.data,
+        phrase: result.data.phrase || text.trim(),
+        cardType,
+        sentenceContext: result.data.sentenceContext || context || text,
+        documentTitle: currentDocument.title,
+        cachedAt: Date.now(),
+      };
+      const cardKey = cardData.phrase.toLowerCase();
+      setPhraseAnnotations(prev => new Map(prev).set(cardKey, cardData));
+      await cachePhraseAnnotation(cardData.phrase, cardData);
+      addToCardHistory(cardType, cardData.phrase);
+
+      if (cardData.grammarPoints && cardData.grammarPoints.length > 0) {
+        for (const point of cardData.grammarPoints) {
+          if (!point.text.trim()) continue;
+          const grammarData: PhraseAnnotation = {
+            phrase: point.text.trim(),
+            cardType: 'grammar',
+            chinese: point.explanation,
+            explanation: point.explanation,
+            sentenceContext: cardData.sentenceContext,
+            documentTitle: currentDocument.title,
+            cachedAt: Date.now(),
+          };
+          setPhraseAnnotations(prev => new Map(prev).set(grammarData.phrase.toLowerCase(), grammarData));
+          await cachePhraseAnnotation(grammarData.phrase, grammarData);
+          addToCardHistory('grammar', grammarData.phrase);
+        }
+      }
+
+      setVoiceStatus(`${cardType} card created`);
+    } catch (error: any) {
+      console.error('[Card Create] Failed:', error);
+      setVoiceStatus(error?.message || 'Card creation failed');
+    } finally {
+      setIsLoadingAnnotation(false);
+    }
+  };
+
+  const markCurrentWordFromVoice = () => {
+    const location = getCurrentSentenceLocation();
+    if (!location) {
+      setVoiceStatus('No current sentence');
+      return;
+    }
+
+    const wordTokens = location.sentence.tokens.filter((token: Token) => token.type === 'word');
+    const token = wordTokens[Math.max(0, currentWordIndex)] || wordTokens[0];
+    if (!token) {
+      setVoiceStatus('No current word');
+      return;
+    }
+
+    setMarkedWords(prev => new Set(prev).add(token.text.toLowerCase()));
+    setVoiceStatus(`Marked word: ${token.text}`);
+    window.setTimeout(() => {
+      void handleAnnotate(true);
+    }, 0);
+  };
+
+  const createCurrentSentenceCard = () => {
+    const location = getCurrentSentenceLocation();
+    if (!location) {
+      setVoiceStatus('No current sentence');
+      return;
+    }
+    void createTextCard('sentence', location.text, location.text);
+  };
+
+  const handleVoiceCommand = (rawCommand: string) => {
+    const command = rawCommand.replace(/\s+/g, '').toLowerCase();
+    setVoiceStatus(rawCommand);
+
+    if (command.includes('不懂') || command.includes("idon'tunderstand") || command.includes('unknown')) {
+      markCurrentWordFromVoice();
+      return;
+    }
+
+    if (command.includes('这句什么意思') || command.includes('這句什麼意思') || command.includes('sentence')) {
+      createCurrentSentenceCard();
+      return;
+    }
+
+    if (command.includes('暂停') || command.includes('停')) {
+      handleStopReading();
+      return;
+    }
+
+    if (command.includes('继续') || command.includes('开始') || command.includes('朗读')) {
+      handlePlayPause();
+      return;
+    }
+
+    if (command.includes('下一句')) {
+      handleNextSentence();
+      return;
+    }
+
+    if (command.includes('上一句')) {
+      handlePrevSentence();
+      return;
+    }
+
+    setVoiceStatus(`Unrecognized: ${rawCommand}`);
+  };
+
+  const toggleVoiceCommands = () => {
+    const SpeechRecognitionCtor =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognitionCtor) {
+      alert('Speech recognition is not supported in this browser.');
+      return;
+    }
+
+    if (isVoiceListening) {
+      voiceRecognitionRef.current?.stop();
+      setIsVoiceListening(false);
+      setVoiceStatus('Voice off');
+      return;
+    }
+
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = 'zh-CN';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.onresult = (event: any) => {
+      const lastResult = event.results[event.results.length - 1];
+      const transcript = lastResult?.[0]?.transcript?.trim();
+      if (transcript) handleVoiceCommand(transcript);
+    };
+    recognition.onend = () => {
+      setIsVoiceListening(false);
+      setVoiceStatus('Voice off');
+    };
+    recognition.onerror = () => setVoiceStatus('Voice recognition error');
+    voiceRecognitionRef.current = recognition;
+    setIsVoiceListening(true);
+    setVoiceStatus('Listening');
+    recognition.start();
+  };
+
+  useEffect(() => {
+    if (!currentDocument || resumedDocumentRef.current === currentDocument.id) return;
+    resumedDocumentRef.current = currentDocument.id;
+    if (!autoResumeOnOpen) return;
+
+    const bookmark = getLatestBookmark(currentDocument.id);
+    if (!bookmark) return;
+
+    if (currentDocument.type === 'epub' && bookmark.chapterId && bookmark.chapterId !== currentDocument.currentChapterId) {
+      setCurrentChapter(bookmark.chapterId);
+    }
+
+    const sentenceIndex = getGlobalSentenceIndex(bookmark.paragraphIndex, bookmark.sentenceIndex);
+    setCurrentSentenceIndex(sentenceIndex);
+
+    window.setTimeout(() => {
+      const element = document.querySelector(`[data-paragraph-index="${bookmark.paragraphIndex}"]`);
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (autoReadOnOpen) {
+        speakFromSentence(sentenceIndex);
+      }
+    }, 250);
+  }, [currentDocument, autoResumeOnOpen, autoReadOnOpen]);
+
+  useEffect(() => {
+    if (!currentDocument || !autoStartTime) return;
+
+    const timer = window.setInterval(() => {
+      const now = new Date();
+      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const currentDate = now.toDateString();
+      if (currentTime !== autoStartTime || autoStartDateRef.current === currentDate) return;
+
+      autoStartDateRef.current = currentDate;
+      setViewMode('read');
+      const bookmark = getLatestBookmark(currentDocument.id);
+      const startIndex = bookmark
+        ? getGlobalSentenceIndex(bookmark.paragraphIndex, bookmark.sentenceIndex)
+        : currentSentenceIndex ?? 0;
+      setCurrentSentenceIndex(startIndex);
+      speakFromSentence(startIndex);
+    }, 30000);
+
+    return () => window.clearInterval(timer);
+  }, [currentDocument, autoStartTime, currentSentenceIndex]);
   
   // AI 闂傚倸鍊搁崐鎼佸磹閻戣姤鍊块柨鏇氶檷娴滃綊鏌涢幇鍏哥敖闁活厽鎹囬弻锝夊閵忊晝鍔搁梺钘夊暟閸犲酣鍩為幋锔藉亹闁告瑥顦ˇ鈺呮⒑缁嬫鍎嶉柛鏃€鍨垮濠氭晲婢跺﹦鐫勯梺绋胯閸婃宕濋幖浣光拺閻犲洩灏欑粻鐗堢箾瀹割喖寮鐐插暙閻ｏ繝骞嶉搹顐も偓璇测攽閻愬弶顥為柛銊ь攰閳敻姊?
-  const handleRegenerateAI = async (word: string, sentence: string, type: 'word' | 'phrase') => {
+  const handleRegenerateAI = async (word: string, sentence: string, type: LearningCardType) => {
     try {
       console.log('[AI Regenerate]', type, ':', word, 'Sentence:', sentence);
       
@@ -1007,26 +1271,31 @@ function App() {
           alert('? Failed to regenerate: ' + result.error);
         }
       } else {
-        // Phrase
-        const result = await annotatePhrase(word, sentence, currentDocument?.title || 'Unknown');
+        const result = await annotatePhrase(word, sentence, level, type);
         if (result.success && result.data) {
           const cachedAt = Date.now();
+          const cardData = {
+            ...result.data,
+            phrase: result.data.phrase || word,
+            cardType: type,
+            documentTitle: result.data.documentTitle || currentDocument?.title || 'Unknown',
+            cachedAt,
+          };
           setPhraseAnnotations(prev => {
             const next = new Map(prev);
-            next.set(word.toLowerCase(), {
-              ...result.data!,
-              cachedAt,
-            });
+            next.set(word.toLowerCase(), cardData);
             return next;
           });
           await cachePhraseAnnotation(word, {
+            cardType: type,
             chinese: result.data.chinese,
             explanation: result.data.explanation,
             usagePattern: result.data.usagePattern,
             usagePatternChinese: result.data.usagePatternChinese,
             isCommonUsage: result.data.isCommonUsage,
+            grammarPoints: result.data.grammarPoints,
             sentenceContext: result.data.sentenceContext,
-            documentTitle: result.data.documentTitle,
+            documentTitle: cardData.documentTitle,
           });
           console.log('[AI Regenerate] Success:', result.data);
           alert('? AI re-generated successfully!');
@@ -1700,11 +1969,13 @@ ${sortedWords.join(' ')}
         cached.forEach(item => {
           phraseMap.set(item.phrase, {
             phrase: item.phrase,
+            cardType: item.cardType || 'phrase',
             chinese: item.chinese,
             explanation: item.explanation,
             usagePattern: item.usagePattern,
             usagePatternChinese: item.usagePatternChinese,
             isCommonUsage: item.isCommonUsage,
+            grammarPoints: item.grammarPoints,
             sentenceContext: item.sentenceContext,
             documentTitle: item.documentTitle,  // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鍨鹃幇浣圭稁缂傚倷鐒﹁摫闁告瑥绻橀弻鐔碱敍閿濆洣姹楅悷婊呭鐢帡鎮欐繝鍐︿簻闁瑰搫妫楁禍鎯р攽閳藉棗浜濋柨鏇樺灲瀵鈽夐姀鐘栥劑鏌曡箛濠傚⒉闁绘繃鐗犻幃宄邦煥閸曨剛鍑″┑鐐点€嬬换婵嗩嚕婵犳艾鐏抽柟棰佺閹垿姊洪崨濠佺繁闁哥姵鐗犲鎼佹偐瀹割喗瀵?
             cachedAt: item.cachedAt,
@@ -1721,6 +1992,46 @@ ${sortedWords.join(' ')}
     
     loadCachedPhraseAnnotations();
   }, [loadKnownWords]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getAllSavedDocuments().then((savedDocs) => {
+      if (cancelled || savedDocs.length === 0 || documents.length > 0) return;
+      const restoredDocs = savedDocs
+        .filter((doc) => doc.type === 'text' || doc.type === 'epub')
+        .map((doc) => ({
+          id: doc.id,
+          type: doc.type || 'text',
+          title: doc.title,
+          content: doc.content,
+          paragraphs: doc.paragraphs,
+          chapters: doc.chapters,
+          currentChapterId: doc.currentChapterId,
+          author: doc.author,
+          createdAt: doc.createdAt,
+        })) as Document[];
+      if (restoredDocs.length > 0) {
+        const storedCurrentId = localStorage.getItem('currentDocumentId');
+        const currentId = storedCurrentId && restoredDocs.some((doc) => doc.id === storedCurrentId)
+          ? storedCurrentId
+          : restoredDocs[0].id;
+        loadDocuments(restoredDocs, currentId);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [documents.length, loadDocuments]);
+
+  useEffect(() => {
+    if (documents.length === 0) return;
+    void Promise.all(documents.map((doc) => saveDocument(doc)));
+  }, [documents]);
+
+  useEffect(() => {
+    if (!currentDocumentId) return;
+    void touchDocument(currentDocumentId);
+  }, [currentDocumentId]);
 
   const handleLoadSample = () => {
     const sampleText = `Three serving girls huddled together in the cold, whispering about the mysterious stranger who had arrived at dawn.
@@ -1828,9 +2139,10 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
     }
   };
 
-  const handleParagraphAction = () => {
-    console.log('Paragraph action clicked');
-    // TODO: Show paragraph card
+  const handleParagraphAction = (paragraphIndex: number) => {
+    const paragraph = displayParagraphs[paragraphIndex];
+    if (!paragraph) return;
+    void createTextCard('paragraph', paragraph.text, paragraph.text);
   };
 
   // Speech synthesis handlers
@@ -1932,6 +2244,12 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
       setIsSpeaking(true);
       setCurrentSentenceIndex(startIndex);
       setCurrentWordIndex(0);
+      addBookmark(
+        currentDocument.id,
+        currentDocument.type === 'epub' ? currentDocument.currentChapterId : undefined,
+        sentence.paragraphIndex,
+        sentence.sentenceIndex
+      );
       
       // Note: Auto-show cards logic moved to onboundary to show cards as each word is read
     };
@@ -2300,7 +2618,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               isInserted={phraseTranslationInserts.get(item.word.toLowerCase()) || false}
               onClose={() => closeCard(cardKey)}
               onToggleInsert={handleTogglePhraseInsert}
-              onRegenerateAI={(phrase, sentence) => handleRegenerateAI(phrase, sentence, 'phrase')}
+              onRegenerateAI={(phrase, sentence) => handleRegenerateAI(phrase, sentence, item.type)}
               onDelete={(phrase) => handleDeletePhraseFromCards(phrase)}
             />
           )
@@ -2422,7 +2740,9 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             ) : (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 rounded px-1.5 py-0.5 flex-shrink-0">PH</span>
+                  <span className="text-xs font-semibold text-purple-600 bg-purple-50 border border-purple-200 rounded px-1.5 py-0.5 flex-shrink-0">
+                    {item.type === 'sentence' ? 'SEN' : item.type === 'paragraph' ? 'PAR' : item.type === 'grammar' ? 'GR' : 'PH'}
+                  </span>
                   <span className="font-bold text-sm flex-1">{item.word}</span>
                 </div>
 
@@ -2451,7 +2771,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     onClick={async (e) => {
                       e.stopPropagation();
                       const sentence = (annotation as PhraseAnnotation).sentenceContext;
-                      await handleRegenerateAI(item.word, sentence || '', 'phrase');
+                      await handleRegenerateAI(item.word, sentence || '', item.type);
                     }}
                     className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
                     title="Re-generate with AI"
@@ -2589,6 +2909,26 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               )}
             </div>
 
+            <button
+              onClick={() => setImmersiveMode(prev => !prev)}
+              className={`px-2 py-1 border rounded-lg text-xs ${
+                immersiveMode ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-border hover:bg-hover'
+              }`}
+              title="Focus current sentence or paragraph"
+            >
+              Focus
+            </button>
+
+            <button
+              onClick={toggleVoiceCommands}
+              className={`px-2 py-1 border rounded-lg text-xs ${
+                isVoiceListening ? 'border-red-500 bg-red-50 text-red-700' : 'border-border hover:bg-hover'
+              }`}
+              title={voiceStatus}
+            >
+              Voice
+            </button>
+
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setAutoAnnotate(!autoAnnotate)}
@@ -2605,6 +2945,12 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               >
                 Annotate ({markedWords.size + phraseMarkedRanges.length})
               </button>
+
+              {isVoiceListening && (
+                <span className="text-xs text-red-600 max-w-[180px] truncate" title={voiceStatus}>
+                  {voiceStatus}
+                </span>
+              )}
 
               <div className="flex items-center gap-3 text-xs text-muted">
                 <button
@@ -2896,6 +3242,10 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 </div>
 
                 {displayParagraphs.map((paragraph: ParagraphType, pIdx: number) => {
+                  const currentLocationForFocus = currentSentenceIndex !== null
+                    ? getAllSentenceLocations()[currentSentenceIndex]
+                    : null;
+                  const hideForFocus = immersiveMode && currentLocationForFocus && currentLocationForFocus.paragraphIndex !== pIdx;
                   // Calculate global sentence indices for this paragraph
                   let sentencesBeforeThisPara = 0;
                   for (let i = 0; i < pIdx; i++) {
@@ -2914,7 +3264,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       key={paragraph.id}
                       data-paragraph-index={pIdx}
                       onContextMenu={(e) => handleContextMenu(e, pIdx, 0)}
-                      className="relative group transition-all hover:bg-gray-100"
+                      className={`relative group transition-all hover:bg-gray-100 ${hideForFocus ? 'hidden' : ''}`}
                     >
                       {/* Bookmark indicator */}
                       {hasBookmark && (
@@ -3096,7 +3446,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
-                  {cardHistory.map((item: { type: 'word' | 'phrase'; word: string; timestamp: number }) => {
+                  {cardHistory.map((item: { type: LearningCardType; word: string; timestamp: number }) => {
                     const annotation = item.type === 'word' 
                       ? findAnnotationEntry(annotations, item.word)?.annotation
                       : phraseAnnotations.get(item.word.toLowerCase());
@@ -3113,10 +3463,10 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                           cachedAt: (annotation as WordAnnotation).cachedAt || 0,
                         }
                       : {
-                          type: 'phrase',
+                          type: (annotation as PhraseAnnotation).cardType || item.type,
                           word: item.word,
                           normalizedWord: item.word.toLowerCase(),
-                          cardKey: `phrase-${item.word.toLowerCase()}`,
+                          cardKey: `${(annotation as PhraseAnnotation).cardType || item.type}-${item.word.toLowerCase()}`,
                           annotation: annotation as PhraseAnnotation,
                           cachedAt: (annotation as PhraseAnnotation).cachedAt || 0,
                         };
@@ -3182,6 +3532,49 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-[600px] max-h-[80vh] overflow-auto shadow-2xl">
             <h2 className="text-xl font-bold mb-4">Settings</h2>
+
+            {/* Reading Startup */}
+            <div className="mb-6 p-4 border border-border rounded-lg">
+              <h3 className="text-sm font-bold mb-3">Reading Startup</h3>
+              <div className="space-y-3">
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={autoResumeOnOpen}
+                    onChange={(e) => setAutoResumeOnOpen(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Resume last reading position</span>
+                </label>
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={autoReadOnOpen}
+                    onChange={(e) => setAutoReadOnOpen(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Start reading aloud after resume</span>
+                </label>
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={immersiveMode}
+                    onChange={(e) => setImmersiveMode(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Focus only on current paragraph</span>
+                </label>
+                <div>
+                  <label className="block text-sm mb-1 text-muted">Preferred auto-start time</label>
+                  <input
+                    type="time"
+                    value={autoStartTime}
+                    onChange={(e) => setAutoStartTime(e.target.value)}
+                    className="px-3 py-2 border border-border rounded-lg bg-white text-sm"
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* Speech Settings */}
             <div className="mb-6 p-4 border border-border rounded-lg">

@@ -19,7 +19,7 @@ interface ParagraphProps {
   onWordClick?: (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => void;
   onPhraseClick?: (phrase: string) => void;
   onMarkKnown?: (word: string) => void;
-  onParagraphAction?: () => void;
+  onParagraphAction?: (paragraphIndex: number) => void;
   paragraphIndex?: number;
   currentSentenceIndex?: number | null;
   currentWordIndex?: number;
@@ -55,7 +55,7 @@ export default function Paragraph({
       <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           className="px-2 py-1 border border-border bg-white rounded-lg hover:bg-hover text-xs"
-          onClick={onParagraphAction}
+          onClick={() => onParagraphAction?.(paragraphIndex)}
         >
           &gt;
         </button>

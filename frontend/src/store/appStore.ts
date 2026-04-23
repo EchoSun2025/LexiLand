@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { Paragraph } from '../utils/tokenize';
 import type { WordAnnotation } from '../api';
 
+export type LearningCardType = 'word' | 'phrase' | 'sentence' | 'paragraph' | 'grammar';
+
 export interface Chapter {
   id: string;
   title: string;
@@ -39,7 +41,7 @@ interface AppState {
   selectedWord: string | null;
   
   // Card history (最近查看的单词/短语，最多15个)
-  cardHistory: Array<{ type: 'word' | 'phrase'; word: string; timestamp: number }>;
+  cardHistory: Array<{ type: LearningCardType; word: string; timestamp: number }>;
   
   // Bookmarks (书签：文档 -> 位置信息)
   bookmarks: Map<string, { 
@@ -66,6 +68,7 @@ interface AppState {
 
   // Actions
   addDocument: (doc: Document) => void;
+  loadDocuments: (docs: Document[], currentDocumentId?: string | null) => void;
   setCurrentDocument: (id: string) => void;
   setCurrentChapter: (chapterId: string) => void;  // 新增：切换章节
   loadKnownWords: (words: string[]) => void;
@@ -78,7 +81,7 @@ interface AppState {
   loadLearntWords: (words: string[]) => void;
   loadAnnotations: (annotations: Map<string, WordAnnotation>) => void;
   setSelectedWord: (word: string | null) => void;
-  addToCardHistory: (type: 'word' | 'phrase', word: string) => void;
+  addToCardHistory: (type: LearningCardType, word: string) => void;
   removeFromCardHistory: (word: string) => void;
   addBookmark: (documentId: string, chapterId: string | undefined, paragraphIndex: number, sentenceIndex: number) => void;
   setShowIPA: (show: boolean) => void;
@@ -97,7 +100,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   documents: [],
-  currentDocumentId: null,
+  currentDocumentId: localStorage.getItem('currentDocumentId') || null,
   knownWords: new Set(),
   learntWords: new Set(),
   annotations: new Map(),
@@ -129,12 +132,28 @@ export const useAppStore = create<AppState>((set) => ({
   autoPronounceSetting: true,  // 默认开启自动发音
   autoShowCardOnPlay: false,  // 默认关闭朗读时自动显示卡片
   
-  addDocument: (doc) => set((state) => ({
-    documents: [...state.documents, doc],
-    currentDocumentId: doc.id,
-  })),
+  addDocument: (doc) => set((state) => {
+    localStorage.setItem('currentDocumentId', doc.id);
+    const filtered = state.documents.filter(existing => existing.id !== doc.id);
+    return {
+      documents: [...filtered, doc],
+      currentDocumentId: doc.id,
+    };
+  }),
+
+  loadDocuments: (docs, currentId) => set({
+    documents: docs,
+    currentDocumentId: currentId || docs[0]?.id || null,
+  }),
   
-  setCurrentDocument: (id) => set({ currentDocumentId: id }),
+  setCurrentDocument: (id) => {
+    if (id) {
+      localStorage.setItem('currentDocumentId', id);
+    } else {
+      localStorage.removeItem('currentDocumentId');
+    }
+    set({ currentDocumentId: id });
+  },
   
   setCurrentChapter: (chapterId) => set((state) => {
     const currentDoc = state.documents.find(d => d.id === state.currentDocumentId);

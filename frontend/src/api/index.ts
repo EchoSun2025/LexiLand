@@ -36,11 +36,16 @@ export interface WordAnnotation {
 
 export interface PhraseAnnotation {
   phrase: string;
+  cardType?: 'phrase' | 'sentence' | 'paragraph' | 'grammar';
   chinese: string;
   explanation?: string;
   usagePattern?: string;
   usagePatternChinese?: string;
   isCommonUsage?: boolean;
+  grammarPoints?: Array<{
+    text: string;
+    explanation: string;
+  }>;
   sentenceContext: string;
   documentTitle?: string;  // 文章标题
   cachedAt?: number;
@@ -87,6 +92,23 @@ export interface PhraseAnnotateResponse {
     completion_tokens: number;
     total_tokens: number;
   };
+}
+
+export interface CardNote {
+  id: string;
+  cardType: 'word' | 'phrase' | 'sentence' | 'paragraph' | 'grammar';
+  cardKey: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: number;
+}
+
+export interface CardNoteReplyResponse {
+  success: boolean;
+  data?: {
+    reply: string;
+  };
+  error?: string;
 }
 
 export async function annotateWord(
@@ -151,7 +173,8 @@ export async function generateMeaningField(
 export async function annotatePhrase(
   phrase: string,
   sentenceContext: string,
-  level: string = 'B2'
+  level: string = 'B2',
+  cardType: 'phrase' | 'sentence' | 'paragraph' | 'grammar' = 'phrase'
 ): Promise<PhraseAnnotateResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/annotate-phrase`, {
@@ -159,7 +182,7 @@ export async function annotatePhrase(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ phrase, sentenceContext, level }),
+      body: JSON.stringify({ phrase, sentenceContext, level, cardType }),
     });
 
     if (!response.ok) {
@@ -318,6 +341,36 @@ export async function saveUserBackup(jsonData: string): Promise<UserBackupRespon
     return await response.json();
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to save backup' };
+  }
+}
+
+export async function requestCardNoteReply(
+  cardType: CardNote['cardType'],
+  cardText: string,
+  note: string,
+  history: Array<Pick<CardNote, 'role' | 'content'>>,
+  context?: string
+): Promise<CardNoteReplyResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/card-note-reply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ cardType, cardText, note, history, context }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error('API Error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to get note reply',
+    };
   }
 }
 
