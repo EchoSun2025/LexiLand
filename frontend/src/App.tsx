@@ -8,6 +8,7 @@ import { loadKnownWordsFromFile, getAllKnownWords, addKnownWord as addKnownWordT
 import { annotateWord, annotatePhrase, searchImage, generateEmojiImage, savePastedImage, resolveAssetUrl, saveUserBackup, loadUserBackup, getUserBackupStatus, type WordAnnotation, type PhraseAnnotation } from './api'
 import PhraseCard from './components/PhraseCard'
 import { localDictionary } from './services/localDictionary'
+import { exportAnnotatedBook } from './services/bookExport'
 import { exportLLIFString } from './services/llifConverter'
 import { getWordEmoji, getAllEmojiKeywords } from './utils/emojiHelper'
 import { applyMeaningToAnnotation, findAnnotationEntry, findBestMeaningIdForSentence, getCanonicalWord, mergeAnnotationMeanings } from './utils/wordMeanings'
@@ -68,6 +69,11 @@ function App() {
     cardHistory,
     showIPA,
     showChinese,
+    exportFormat,
+    exportIncludeIPA,
+    exportIncludeChinese,
+    exportIncludePhraseList,
+    exportIncludePhraseTranslations,
     level,
     autoMark,
     annotationMode,
@@ -87,6 +93,11 @@ function App() {
     addBookmark,
     setShowIPA,
     setShowChinese,
+    setExportFormat,
+    setExportIncludeIPA,
+    setExportIncludeChinese,
+    setExportIncludePhraseList,
+    setExportIncludePhraseTranslations,
     setLevel,
     setAnnotationMode,
     setAutoPronounceSetting,
@@ -1011,6 +1022,9 @@ function App() {
           await cachePhraseAnnotation(word, {
             chinese: result.data.chinese,
             explanation: result.data.explanation,
+            usagePattern: result.data.usagePattern,
+            usagePatternChinese: result.data.usagePatternChinese,
+            isCommonUsage: result.data.isCommonUsage,
             sentenceContext: result.data.sentenceContext,
             documentTitle: result.data.documentTitle,
           });
@@ -1189,6 +1203,53 @@ ${sortedWords.join(' ')}
     } catch (error) {
       console.error('Export known words failed:', error);
       alert('Export failed, please try again');
+    }
+  };
+
+  const handleExportBook = async (formatOverride?: 'epub' | 'pdf') => {
+    if (!currentDocument) {
+      alert('Please open a document before exporting.');
+      return;
+    }
+
+    const targetFormat = formatOverride || exportFormat;
+    const pdfWindow = targetFormat === 'pdf'
+      ? window.open('', '_blank', 'noopener,noreferrer')
+      : null;
+
+    if (targetFormat === 'pdf' && !pdfWindow) {
+      alert('PDF export was blocked by the browser. Please allow popups and try again.');
+      return;
+    }
+
+    if (pdfWindow) {
+      pdfWindow.document.write('<!DOCTYPE html><title>Preparing PDF...</title><body style="font-family: sans-serif; padding: 24px;">Preparing PDF export...</body>');
+      pdfWindow.document.close();
+    }
+
+    try {
+      await exportAnnotatedBook(
+        currentDocument,
+        annotations,
+        phraseAnnotations,
+        phraseTranslationInserts,
+        {
+          format: targetFormat,
+          includeIPA: exportIncludeIPA,
+          includeChinese: exportIncludeChinese,
+          includePhraseList: exportIncludePhraseList,
+          includePhraseTranslations: exportIncludePhraseTranslations,
+        },
+        pdfWindow,
+      );
+
+      if (targetFormat === 'pdf') {
+        alert('Print dialog opened. Choose "Save as PDF" to finish exporting.');
+      }
+    } catch (error) {
+      pdfWindow?.close();
+      console.error('Export book failed:', error);
+      alert(`Book export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -1378,6 +1439,9 @@ ${sortedWords.join(' ')}
         phrase: item.phrase,
         chinese: item.chinese,
         explanation: item.explanation,
+        usagePattern: item.usagePattern,
+        usagePatternChinese: item.usagePatternChinese,
+        isCommonUsage: item.isCommonUsage,
         sentenceContext: item.sentenceContext,
         documentTitle: item.documentTitle,
         cachedAt: item.cachedAt,
@@ -1638,6 +1702,9 @@ ${sortedWords.join(' ')}
             phrase: item.phrase,
             chinese: item.chinese,
             explanation: item.explanation,
+            usagePattern: item.usagePattern,
+            usagePatternChinese: item.usagePatternChinese,
+            isCommonUsage: item.isCommonUsage,
             sentenceContext: item.sentenceContext,
             documentTitle: item.documentTitle,  // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鍨鹃幇浣圭稁缂傚倷鐒﹁摫闁告瑥绻橀弻鐔碱敍閿濆洣姹楅悷婊呭鐢帡鎮欐繝鍐︿簻闁瑰搫妫楁禍鎯р攽閳藉棗浜濋柨鏇樺灲瀵鈽夐姀鐘栥劑鏌曡箛濠傚⒉闁绘繃鐗犻幃宄邦煥閸曨剛鍑″┑鐐点€嬬换婵嗩嚕婵犳艾鐏抽柟棰佺閹垿姊洪崨濠佺繁闁哥姵鐗犲鎼佹偐瀹割喗瀵?
             cachedAt: item.cachedAt,
@@ -3212,6 +3279,74 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               </div>
             </div>
 
+            <div className="mb-6 p-4 border border-border rounded-lg">
+              <h3 className="text-sm font-bold mb-3">Book Export Settings</h3>
+
+              <label className="block text-sm mb-2 text-muted">Export format</label>
+              <select
+                className="w-full px-3 py-2 mb-4 border border-border rounded-lg bg-white text-sm"
+                value={exportFormat}
+                onChange={(e) => setExportFormat(e.target.value as 'epub' | 'pdf')}
+              >
+                <option value="epub">EPUB</option>
+                <option value="pdf">PDF</option>
+              </select>
+
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={exportIncludeIPA}
+                    onChange={(e) => setExportIncludeIPA(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm">Include IPA</div>
+                    <div className="text-xs text-muted">Export phonetic transcription above annotated words</div>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={exportIncludeChinese}
+                    onChange={(e) => setExportIncludeChinese(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm">Include Chinese</div>
+                    <div className="text-xs text-muted">Embed Chinese annotations directly in the exported text</div>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={exportIncludePhraseTranslations}
+                    onChange={(e) => setExportIncludePhraseTranslations(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm">Include Phrase Translations</div>
+                    <div className="text-xs text-muted">Keep inserted phrase Chinese inline and show translations in phrase summaries</div>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={exportIncludePhraseList}
+                    onChange={(e) => setExportIncludePhraseList(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm">Include Phrase List</div>
+                    <div className="text-xs text-muted">List marked phrases at the end of each chapter, preferring reusable patterns</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* Reading Level */}
             <div className="mb-6 p-4 border border-border rounded-lg">
               <h3 className="text-sm font-bold mb-3">Reading Level</h3>
@@ -3309,9 +3444,7 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (!showExportMenu) {
-                        handleExportData();
-                      }
+                      setShowExportMenu(!showExportMenu);
                     }}
                     onContextMenu={(e) => {
                       e.preventDefault();
@@ -3319,9 +3452,9 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       setShowExportMenu(!showExportMenu);
                     }}
                     className="w-full px-4 py-2 border border-green-500 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-semibold"
-                    title="Export user data (right-click for options)"
+                    title="Export book or data"
                   >
-                    Export Data
+                    Export
                   </button>
                   
                   {/* Export Context Menu */}
@@ -3332,10 +3465,37 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                     >
                       <button
                         onClick={() => {
-                          handleExportData();
+                          handleExportBook();
                           setShowExportMenu(false);
                         }}
                         className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 rounded-t-lg"
+                      >
+                        Export Book ({exportFormat.toUpperCase()})
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleExportBook('epub');
+                          setShowExportMenu(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+                      >
+                        Export Book as EPUB
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleExportBook('pdf');
+                          setShowExportMenu(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+                      >
+                        Export Book as PDF
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleExportData();
+                          setShowExportMenu(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
                       >
                         Export All Data (JSON)
                       </button>

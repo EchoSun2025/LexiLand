@@ -53,6 +53,11 @@ interface AppState {
   // UI settings
   showIPA: boolean;
   showChinese: boolean;
+  exportFormat: 'epub' | 'pdf';
+  exportIncludeIPA: boolean;
+  exportIncludeChinese: boolean;
+  exportIncludePhraseList: boolean;
+  exportIncludePhraseTranslations: boolean;
   level: string;
   autoMark: boolean;
   annotationMode: 'ai' | 'local' | 'local-first';  // 新增：标注模式
@@ -78,6 +83,11 @@ interface AppState {
   addBookmark: (documentId: string, chapterId: string | undefined, paragraphIndex: number, sentenceIndex: number) => void;
   setShowIPA: (show: boolean) => void;
   setShowChinese: (show: boolean) => void;
+  setExportFormat: (format: 'epub' | 'pdf') => void;
+  setExportIncludeIPA: (show: boolean) => void;
+  setExportIncludeChinese: (show: boolean) => void;
+  setExportIncludePhraseList: (show: boolean) => void;
+  setExportIncludePhraseTranslations: (show: boolean) => void;
   setLevel: (level: string) => void;
   setAutoMark: (autoMark: boolean) => void;
   setAnnotationMode: (mode: 'ai' | 'local' | 'local-first') => void;
@@ -108,6 +118,11 @@ export const useAppStore = create<AppState>((set) => ({
   })(),
   showIPA: true,
   showChinese: true,
+  exportFormat: (localStorage.getItem('exportFormat') as 'epub' | 'pdf') || 'epub',
+  exportIncludeIPA: localStorage.getItem('exportIncludeIPA') === null ? true : localStorage.getItem('exportIncludeIPA') === 'true',
+  exportIncludeChinese: localStorage.getItem('exportIncludeChinese') === null ? true : localStorage.getItem('exportIncludeChinese') === 'true',
+  exportIncludePhraseList: localStorage.getItem('exportIncludePhraseList') === null ? true : localStorage.getItem('exportIncludePhraseList') === 'true',
+  exportIncludePhraseTranslations: localStorage.getItem('exportIncludePhraseTranslations') === null ? true : localStorage.getItem('exportIncludePhraseTranslations') === 'true',
   level: 'B2',
   autoMark: true,
   annotationMode: 'local-first',  // 默认本地优先
@@ -216,6 +231,26 @@ export const useAppStore = create<AppState>((set) => ({
 
   setShowIPA: (show) => set({ showIPA: show }),
   setShowChinese: (show) => set({ showChinese: show }),
+  setExportFormat: (format) => {
+    localStorage.setItem('exportFormat', format);
+    set({ exportFormat: format });
+  },
+  setExportIncludeIPA: (show) => {
+    localStorage.setItem('exportIncludeIPA', String(show));
+    set({ exportIncludeIPA: show });
+  },
+  setExportIncludeChinese: (show) => {
+    localStorage.setItem('exportIncludeChinese', String(show));
+    set({ exportIncludeChinese: show });
+  },
+  setExportIncludePhraseList: (show) => {
+    localStorage.setItem('exportIncludePhraseList', String(show));
+    set({ exportIncludePhraseList: show });
+  },
+  setExportIncludePhraseTranslations: (show) => {
+    localStorage.setItem('exportIncludePhraseTranslations', String(show));
+    set({ exportIncludePhraseTranslations: show });
+  },
   setLevel: (level) => set({ level }),
   setAutoMark: (autoMark) => set({ autoMark }),
   setAnnotationMode: (mode) => set({ annotationMode: mode }),

@@ -38,6 +38,9 @@ export interface PhraseAnnotation {
   phrase: string;
   chinese: string;
   explanation?: string;
+  usagePattern?: string;
+  usagePatternChinese?: string;
+  isCommonUsage?: boolean;
   sentenceContext: string;
   documentTitle?: string;  // 文章标题
   cachedAt?: number;

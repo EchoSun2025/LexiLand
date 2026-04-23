@@ -2,6 +2,9 @@ export interface PhraseAnnotation {
   phrase: string;
   chinese: string;
   explanation?: string;
+  usagePattern?: string;
+  usagePatternChinese?: string;
+  isCommonUsage?: boolean;
   sentenceContext: string;
   documentTitle?: string;  // 文章标题
   cachedAt?: number;
@@ -93,6 +96,16 @@ export default function PhraseCard({ annotation, isInserted, onClose, onDelete, 
       {annotation.explanation && (
         <div className="mb-3">
           <div className="text-sm text-gray-700">{annotation.explanation}</div>
+        </div>
+      )}
+
+      {annotation.usagePattern && (
+        <div className="mb-3 bg-purple-50 border border-purple-100 rounded-lg p-3">
+          <div className="text-xs font-semibold text-purple-700 mb-1">Common Pattern</div>
+          <div className="text-sm font-semibold text-purple-900">{annotation.usagePattern}</div>
+          {annotation.usagePatternChinese && (
+            <div className="text-xs text-purple-700 mt-1">{annotation.usagePatternChinese}</div>
+          )}
         </div>
       )}
 

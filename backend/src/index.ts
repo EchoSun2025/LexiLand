@@ -223,13 +223,18 @@ Please provide the following information in JSON format:
   "phrase": "${phrase}",
   "chinese": "Concise Chinese translation of this phrase in this context (简体中文)",
   "explanation": "If this is a fixed expression, idiom, or common collocation, explain its meaning and usage. If it's just a regular phrase, leave this field empty or null.",
+  "usagePattern": "If this can be generalized into a reusable learner pattern, normalize it like 'help sb. (to) do sth.' Otherwise return empty string.",
+  "usagePatternChinese": "Chinese explanation of the reusable learner pattern. Otherwise return empty string.",
+  "isCommonUsage": true,
   "sentenceContext": "${sentenceContext}"
 }
 
 Important:
 - Focus on translating the phrase accurately based on the sentence context
 - If it's a fixed expression (idiom, phrasal verb, collocation), provide an explanation
-- If it's just a regular phrase with no special meaning, you can leave "explanation" empty
+- If it contains a teachable grammar or collocation pattern, fill usagePattern and usagePatternChinese
+- If it's just a regular phrase with no special meaning, you can leave "explanation" empty and usagePattern empty
+- Set isCommonUsage to true only if this phrase or pattern is reusable beyond this exact sentence
 - Do NOT include IPA pronunciation
 - Return ONLY the JSON object, no additional text.`;
 

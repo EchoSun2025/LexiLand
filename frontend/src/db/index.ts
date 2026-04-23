@@ -52,6 +52,9 @@ export interface CachedPhraseAnnotation {
   phrase: string;
   chinese: string;
   explanation?: string;
+  usagePattern?: string;
+  usagePatternChinese?: string;
+  isCommonUsage?: boolean;
   sentenceContext: string;
   documentTitle?: string;
   cachedAt: number;
@@ -436,11 +439,22 @@ export async function removeLearntWordFromDB(word: string): Promise<void> {
 /**
  * Cache phrase annotation
  */
-export async function cachePhraseAnnotation(phrase: string, annotation: { chinese: string; explanation?: string; sentenceContext: string; documentTitle?: string }): Promise<void> {
+export async function cachePhraseAnnotation(phrase: string, annotation: {
+  chinese: string;
+  explanation?: string;
+  usagePattern?: string;
+  usagePatternChinese?: string;
+  isCommonUsage?: boolean;
+  sentenceContext: string;
+  documentTitle?: string;
+}): Promise<void> {
   await db.phraseAnnotations.put({
     phrase: phrase.toLowerCase(),
     chinese: annotation.chinese,
     explanation: annotation.explanation,
+    usagePattern: annotation.usagePattern,
+    usagePatternChinese: annotation.usagePatternChinese,
+    isCommonUsage: annotation.isCommonUsage,
     sentenceContext: annotation.sentenceContext,
     documentTitle: annotation.documentTitle,
     cachedAt: Date.now(),
