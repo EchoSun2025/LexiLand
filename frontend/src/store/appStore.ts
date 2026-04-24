@@ -4,6 +4,43 @@ import type { WordAnnotation } from '../api';
 
 export type LearningCardType = 'word' | 'phrase' | 'sentence' | 'paragraph' | 'grammar';
 
+export const APP_DEFAULT_SETTINGS_KEY = 'appDefaultSettings';
+
+export type AppDefaultSettings = {
+  showIPA?: boolean;
+  showChinese?: boolean;
+  exportFormat?: 'epub' | 'pdf';
+  exportIncludeIPA?: boolean;
+  exportIncludeChinese?: boolean;
+  exportIncludePhraseList?: boolean;
+  exportIncludePhraseTranslations?: boolean;
+  level?: string;
+  autoMark?: boolean;
+  annotationMode?: 'ai' | 'local' | 'local-first';
+  autoPronounceSetting?: boolean;
+  autoShowCardOnPlay?: boolean;
+  speechRate?: number;
+  speechPitch?: number;
+  selectedVoice?: string;
+  immersiveMode?: boolean;
+  autoResumeOnOpen?: boolean;
+  autoReadOnOpen?: boolean;
+  autoStartTime?: string;
+  autoFixedBackupEnabled?: boolean;
+};
+
+export function readAppDefaultSettings(): AppDefaultSettings {
+  const stored = localStorage.getItem(APP_DEFAULT_SETTINGS_KEY);
+  if (!stored) return {};
+
+  try {
+    return JSON.parse(stored) as AppDefaultSettings;
+  } catch (error) {
+    console.error('Failed to parse app default settings:', error);
+    return {};
+  }
+}
+
 export interface Chapter {
   id: string;
   title: string;
@@ -14,37 +51,24 @@ export interface Chapter {
 export interface Document {
   id: string;
   title: string;
-  type: 'text' | 'epub';  // 文档类型
-  content?: string;       // 纯文本内容（text 类型）
-  paragraphs?: Paragraph[]; // 纯文本段落（text 类型）
-  chapters?: Chapter[];   // EPUB 章节（epub 类型）
-  currentChapterId?: string; // 当前显示的章节
-  author?: string;        // 作者（epub）
+  type: 'text' | 'epub';
+  content?: string;
+  paragraphs?: Paragraph[];
+  chapters?: Chapter[];
+  currentChapterId?: string;
+  author?: string;
   createdAt: number;
 }
 
 interface AppState {
-  // Documents
   documents: Document[];
   currentDocumentId: string | null;
-  
-  // Known words
   knownWords: Set<string>;
-
-  // Learnt words (marked as learnt but keep annotations)
   learntWords: Set<string>;
-
-  // Annotations (word -> full annotation)
   annotations: Map<string, WordAnnotation>;
-
-  // Selected word
   selectedWord: string | null;
-  
-  // Card history (最近查看的单词/短语，最多15个)
   cardHistory: Array<{ type: LearningCardType; word: string; timestamp: number }>;
-  
-  // Bookmarks (书签：文档 -> 位置信息)
-  bookmarks: Map<string, { 
+  bookmarks: Map<string, {
     documentId: string;
     chapterId?: string;
     paragraphIndex: number;
@@ -52,7 +76,6 @@ interface AppState {
     timestamp: number;
   }>;
 
-  // UI settings
   showIPA: boolean;
   showChinese: boolean;
   exportFormat: 'epub' | 'pdf';
@@ -62,22 +85,21 @@ interface AppState {
   exportIncludePhraseTranslations: boolean;
   level: string;
   autoMark: boolean;
-  annotationMode: 'ai' | 'local' | 'local-first';  // 新增：标注模式
-  autoPronounceSetting: boolean;  // 自动发音开关
-  autoShowCardOnPlay: boolean;  // 朗读时自动显示卡片
+  annotationMode: 'ai' | 'local' | 'local-first';
+  autoPronounceSetting: boolean;
+  autoShowCardOnPlay: boolean;
 
-  // Actions
   addDocument: (doc: Document) => void;
   loadDocuments: (docs: Document[], currentDocumentId?: string | null) => void;
   setCurrentDocument: (id: string) => void;
-  setCurrentChapter: (chapterId: string) => void;  // 新增：切换章节
+  setCurrentChapter: (chapterId: string) => void;
   loadKnownWords: (words: string[]) => void;
   addKnownWord: (word: string) => void;
   addLearntWord: (word: string) => void;
   removeLearntWord: (word: string) => void;
   removeAnnotation: (word: string) => void;
   addAnnotation: (word: string, annotation: WordAnnotation) => void;
-  updateAnnotation: (word: string, updates: Partial<WordAnnotation>) => void;  // 新增：部分更新
+  updateAnnotation: (word: string, updates: Partial<WordAnnotation>) => void;
   loadLearntWords: (words: string[]) => void;
   loadAnnotations: (annotations: Map<string, WordAnnotation>) => void;
   setSelectedWord: (word: string | null) => void;
@@ -98,186 +120,185 @@ interface AppState {
   setAutoShowCardOnPlay: (enabled: boolean) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  documents: [],
-  currentDocumentId: localStorage.getItem('currentDocumentId') || null,
-  knownWords: new Set(),
-  learntWords: new Set(),
-  annotations: new Map(),
-  selectedWord: null,
-  cardHistory: [],
-  bookmarks: (() => {
-    // Load bookmarks from localStorage on init
-    const stored = localStorage.getItem('bookmarks');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        return new Map(Object.entries(parsed));
-      } catch (e) {
-        console.error('Failed to load bookmarks:', e);
+export const useAppStore = create<AppState>((set) => {
+  const defaults = readAppDefaultSettings();
+
+  return {
+    documents: [],
+    currentDocumentId: localStorage.getItem('currentDocumentId') || null,
+    knownWords: new Set(),
+    learntWords: new Set(),
+    annotations: new Map(),
+    selectedWord: null,
+    cardHistory: [],
+    bookmarks: (() => {
+      const stored = localStorage.getItem('bookmarks');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          return new Map(Object.entries(parsed));
+        } catch (e) {
+          console.error('Failed to load bookmarks:', e);
+        }
       }
-    }
-    return new Map();
-  })(),
-  showIPA: true,
-  showChinese: true,
-  exportFormat: (localStorage.getItem('exportFormat') as 'epub' | 'pdf') || 'epub',
-  exportIncludeIPA: localStorage.getItem('exportIncludeIPA') === null ? true : localStorage.getItem('exportIncludeIPA') === 'true',
-  exportIncludeChinese: localStorage.getItem('exportIncludeChinese') === null ? true : localStorage.getItem('exportIncludeChinese') === 'true',
-  exportIncludePhraseList: localStorage.getItem('exportIncludePhraseList') === null ? true : localStorage.getItem('exportIncludePhraseList') === 'true',
-  exportIncludePhraseTranslations: localStorage.getItem('exportIncludePhraseTranslations') === null ? true : localStorage.getItem('exportIncludePhraseTranslations') === 'true',
-  level: 'B2',
-  autoMark: true,
-  annotationMode: 'local-first',  // 默认本地优先
-  autoPronounceSetting: true,  // 默认开启自动发音
-  autoShowCardOnPlay: false,  // 默认关闭朗读时自动显示卡片
-  
-  addDocument: (doc) => set((state) => {
-    localStorage.setItem('currentDocumentId', doc.id);
-    const filtered = state.documents.filter(existing => existing.id !== doc.id);
-    return {
-      documents: [...filtered, doc],
-      currentDocumentId: doc.id,
-    };
-  }),
+      return new Map();
+    })(),
+    showIPA: defaults.showIPA ?? true,
+    showChinese: defaults.showChinese ?? true,
+    exportFormat: (localStorage.getItem('exportFormat') as 'epub' | 'pdf') || defaults.exportFormat || 'epub',
+    exportIncludeIPA: localStorage.getItem('exportIncludeIPA') === null ? (defaults.exportIncludeIPA ?? true) : localStorage.getItem('exportIncludeIPA') === 'true',
+    exportIncludeChinese: localStorage.getItem('exportIncludeChinese') === null ? (defaults.exportIncludeChinese ?? true) : localStorage.getItem('exportIncludeChinese') === 'true',
+    exportIncludePhraseList: localStorage.getItem('exportIncludePhraseList') === null ? (defaults.exportIncludePhraseList ?? true) : localStorage.getItem('exportIncludePhraseList') === 'true',
+    exportIncludePhraseTranslations: localStorage.getItem('exportIncludePhraseTranslations') === null ? (defaults.exportIncludePhraseTranslations ?? true) : localStorage.getItem('exportIncludePhraseTranslations') === 'true',
+    level: defaults.level || 'B2',
+    autoMark: defaults.autoMark ?? true,
+    annotationMode: defaults.annotationMode || 'local-first',
+    autoPronounceSetting: defaults.autoPronounceSetting ?? true,
+    autoShowCardOnPlay: defaults.autoShowCardOnPlay ?? false,
 
-  loadDocuments: (docs, currentId) => set({
-    documents: docs,
-    currentDocumentId: currentId || docs[0]?.id || null,
-  }),
-  
-  setCurrentDocument: (id) => {
-    if (id) {
-      localStorage.setItem('currentDocumentId', id);
-    } else {
-      localStorage.removeItem('currentDocumentId');
-    }
-    set({ currentDocumentId: id });
-  },
-  
-  setCurrentChapter: (chapterId) => set((state) => {
-    const currentDoc = state.documents.find(d => d.id === state.currentDocumentId);
-    if (currentDoc && currentDoc.type === 'epub') {
-      const updatedDocs = state.documents.map(doc => 
-        doc.id === state.currentDocumentId 
-          ? { ...doc, currentChapterId: chapterId }
-          : doc
-      );
-      return { documents: updatedDocs };
-    }
-    return {};
-  }),
-  
-  loadKnownWords: (words) => set({ knownWords: new Set(words.map(w => w.toLowerCase())) }),
+    addDocument: (doc) => set((state) => {
+      localStorage.setItem('currentDocumentId', doc.id);
+      const filtered = state.documents.filter(existing => existing.id !== doc.id);
+      return {
+        documents: [...filtered, doc],
+        currentDocumentId: doc.id,
+      };
+    }),
 
-  addKnownWord: (word) => set((state) => {
-    const newKnownWords = new Set(state.knownWords);
-    newKnownWords.add(word.toLowerCase());
-    return { knownWords: newKnownWords };
-  }),
+    loadDocuments: (docs, currentId) => set({
+      documents: docs,
+      currentDocumentId: currentId || docs[0]?.id || null,
+    }),
 
-  addLearntWord: (word) => set((state) => {
-    const newLearntWords = new Set(state.learntWords);
-    newLearntWords.add(word.toLowerCase());
-    return { learntWords: newLearntWords };
-  }),
+    setCurrentDocument: (id) => {
+      if (id) {
+        localStorage.setItem('currentDocumentId', id);
+      } else {
+        localStorage.removeItem('currentDocumentId');
+      }
+      set({ currentDocumentId: id });
+    },
 
-  removeLearntWord: (word) => set((state) => {
-    const newLearntWords = new Set(state.learntWords);
-    newLearntWords.delete(word.toLowerCase());
-    return { learntWords: newLearntWords };
-  }),
+    setCurrentChapter: (chapterId) => set((state) => {
+      const currentDoc = state.documents.find(d => d.id === state.currentDocumentId);
+      if (currentDoc && currentDoc.type === 'epub') {
+        const updatedDocs = state.documents.map(doc =>
+          doc.id === state.currentDocumentId
+            ? { ...doc, currentChapterId: chapterId }
+            : doc
+        );
+        return { documents: updatedDocs };
+      }
+      return {};
+    }),
 
-  removeAnnotation: (word) => set((state) => {
-    const newAnnotations = new Map(state.annotations);
-    newAnnotations.delete(word.toLowerCase());
-    return { annotations: newAnnotations };
-  }),
+    loadKnownWords: (words) => set({ knownWords: new Set(words.map(w => w.toLowerCase())) }),
 
-  addAnnotation: (word, annotation) => set((state) => {
-    const newAnnotations = new Map(state.annotations);
-    newAnnotations.set(word.toLowerCase(), annotation);
-    return { annotations: newAnnotations };
-  }),
+    addKnownWord: (word) => set((state) => {
+      const newKnownWords = new Set(state.knownWords);
+      newKnownWords.add(word.toLowerCase());
+      return { knownWords: newKnownWords };
+    }),
 
-  updateAnnotation: (word, updates) => set((state) => {
-    const newAnnotations = new Map(state.annotations);
-    const existing = newAnnotations.get(word.toLowerCase());
-    if (existing) {
-      newAnnotations.set(word.toLowerCase(), { ...existing, ...updates });
-    }
-    return { annotations: newAnnotations };
-  }),
+    addLearntWord: (word) => set((state) => {
+      const newLearntWords = new Set(state.learntWords);
+      newLearntWords.add(word.toLowerCase());
+      return { learntWords: newLearntWords };
+    }),
 
-  loadLearntWords: (words) => set({ learntWords: new Set(words.map(w => w.toLowerCase())) }),
+    removeLearntWord: (word) => set((state) => {
+      const newLearntWords = new Set(state.learntWords);
+      newLearntWords.delete(word.toLowerCase());
+      return { learntWords: newLearntWords };
+    }),
 
-  loadAnnotations: (annotations) => set({ annotations }),
+    removeAnnotation: (word) => set((state) => {
+      const newAnnotations = new Map(state.annotations);
+      newAnnotations.delete(word.toLowerCase());
+      return { annotations: newAnnotations };
+    }),
 
-  setSelectedWord: (word) => set({ selectedWord: word }),
-  
-  addToCardHistory: (type, word) => set((state) => {
-    // 去重：如果已存在，先移除
-    const filtered = state.cardHistory.filter(item => item.word !== word);
-    // 添加到开头，限制最多50个
-    const newHistory = [
-      { type, word, timestamp: Date.now() },
-      ...filtered
-    ];
-    return { cardHistory: newHistory };
-  }),
-  
-  removeFromCardHistory: (word) => set((state) => ({
-    cardHistory: state.cardHistory.filter(item => item.word !== word)
-  })),
-  
-  addBookmark: (documentId, chapterId, paragraphIndex, sentenceIndex) => set((state) => {
-    const newBookmarks = new Map(state.bookmarks);
-    newBookmarks.set(documentId, {
-      documentId,
-      chapterId,
-      paragraphIndex,
-      sentenceIndex,
-      timestamp: Date.now()
-    });
-    console.log('[Bookmark] Added:', { documentId, chapterId, paragraphIndex, sentenceIndex });
-    
-    // Save to localStorage
-    const bookmarksObj = Object.fromEntries(newBookmarks);
-    localStorage.setItem('bookmarks', JSON.stringify(bookmarksObj));
-    
-    return { bookmarks: newBookmarks };
-  }),
+    addAnnotation: (word, annotation) => set((state) => {
+      const newAnnotations = new Map(state.annotations);
+      newAnnotations.set(word.toLowerCase(), annotation);
+      return { annotations: newAnnotations };
+    }),
 
-  setShowIPA: (show) => set({ showIPA: show }),
-  setShowChinese: (show) => set({ showChinese: show }),
-  setExportFormat: (format) => {
-    localStorage.setItem('exportFormat', format);
-    set({ exportFormat: format });
-  },
-  setExportIncludeIPA: (show) => {
-    localStorage.setItem('exportIncludeIPA', String(show));
-    set({ exportIncludeIPA: show });
-  },
-  setExportIncludeChinese: (show) => {
-    localStorage.setItem('exportIncludeChinese', String(show));
-    set({ exportIncludeChinese: show });
-  },
-  setExportIncludePhraseList: (show) => {
-    localStorage.setItem('exportIncludePhraseList', String(show));
-    set({ exportIncludePhraseList: show });
-  },
-  setExportIncludePhraseTranslations: (show) => {
-    localStorage.setItem('exportIncludePhraseTranslations', String(show));
-    set({ exportIncludePhraseTranslations: show });
-  },
-  setLevel: (level) => set({ level }),
-  setAutoMark: (autoMark) => set({ autoMark }),
-  setAnnotationMode: (mode) => set({ annotationMode: mode }),
-  setAutoPronounceSetting: (enabled) => set({ autoPronounceSetting: enabled }),
-  setAutoShowCardOnPlay: (enabled) => set({ autoShowCardOnPlay: enabled }),
-}));
+    updateAnnotation: (word, updates) => set((state) => {
+      const newAnnotations = new Map(state.annotations);
+      const existing = newAnnotations.get(word.toLowerCase());
+      if (existing) {
+        newAnnotations.set(word.toLowerCase(), { ...existing, ...updates });
+      }
+      return { annotations: newAnnotations };
+    }),
 
-// Helper function to get latest bookmark
+    loadLearntWords: (words) => set({ learntWords: new Set(words.map(w => w.toLowerCase())) }),
+
+    loadAnnotations: (annotations) => set({ annotations }),
+
+    setSelectedWord: (word) => set({ selectedWord: word }),
+
+    addToCardHistory: (type, word) => set((state) => {
+      const filtered = state.cardHistory.filter(item => item.word !== word);
+      const newHistory = [
+        { type, word, timestamp: Date.now() },
+        ...filtered,
+      ];
+      return { cardHistory: newHistory };
+    }),
+
+    removeFromCardHistory: (word) => set((state) => ({
+      cardHistory: state.cardHistory.filter(item => item.word !== word),
+    })),
+
+    addBookmark: (documentId, chapterId, paragraphIndex, sentenceIndex) => set((state) => {
+      const newBookmarks = new Map(state.bookmarks);
+      newBookmarks.set(documentId, {
+        documentId,
+        chapterId,
+        paragraphIndex,
+        sentenceIndex,
+        timestamp: Date.now(),
+      });
+      console.log('[Bookmark] Added:', { documentId, chapterId, paragraphIndex, sentenceIndex });
+
+      const bookmarksObj = Object.fromEntries(newBookmarks);
+      localStorage.setItem('bookmarks', JSON.stringify(bookmarksObj));
+
+      return { bookmarks: newBookmarks };
+    }),
+
+    setShowIPA: (show) => set({ showIPA: show }),
+    setShowChinese: (show) => set({ showChinese: show }),
+    setExportFormat: (format) => {
+      localStorage.setItem('exportFormat', format);
+      set({ exportFormat: format });
+    },
+    setExportIncludeIPA: (show) => {
+      localStorage.setItem('exportIncludeIPA', String(show));
+      set({ exportIncludeIPA: show });
+    },
+    setExportIncludeChinese: (show) => {
+      localStorage.setItem('exportIncludeChinese', String(show));
+      set({ exportIncludeChinese: show });
+    },
+    setExportIncludePhraseList: (show) => {
+      localStorage.setItem('exportIncludePhraseList', String(show));
+      set({ exportIncludePhraseList: show });
+    },
+    setExportIncludePhraseTranslations: (show) => {
+      localStorage.setItem('exportIncludePhraseTranslations', String(show));
+      set({ exportIncludePhraseTranslations: show });
+    },
+    setLevel: (level) => set({ level }),
+    setAutoMark: (autoMark) => set({ autoMark }),
+    setAnnotationMode: (mode) => set({ annotationMode: mode }),
+    setAutoPronounceSetting: (enabled) => set({ autoPronounceSetting: enabled }),
+    setAutoShowCardOnPlay: (enabled) => set({ autoShowCardOnPlay: enabled }),
+  };
+});
+
 export const getLatestBookmark = (documentId: string) => {
   const bookmarks = useAppStore.getState().bookmarks;
   return bookmarks.get(documentId) || null;

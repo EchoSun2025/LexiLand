@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
-import { useAppStore, type Document, type Chapter, type LearningCardType, getLatestBookmark } from './store/appStore'
+import { useAppStore, type Document, type Chapter, type LearningCardType, type AppDefaultSettings, APP_DEFAULT_SETTINGS_KEY, getLatestBookmark, readAppDefaultSettings } from './store/appStore'
 import { tokenizeParagraphs, type Paragraph as ParagraphType, type Sentence, type Token } from './utils'
 import Paragraph from './components/Paragraph'
 import WordCard from './components/WordCard'
@@ -58,7 +58,25 @@ type ReviewDisplayRow =
       item: ReviewCardItem;
     };
 
+function getStoredBoolean(key: string, fallback: boolean): boolean {
+  const stored = localStorage.getItem(key);
+  return stored === null ? fallback : stored === 'true';
+}
+
+function getStoredString(key: string, fallback: string): string {
+  return localStorage.getItem(key) ?? fallback;
+}
+
+function getStoredNumber(key: string, fallback: number): number {
+  const stored = localStorage.getItem(key);
+  if (stored === null) return fallback;
+
+  const parsed = Number(stored);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 function App() {
+  const appDefaults = readAppDefaultSettings();
   const {
     documents,
     currentDocumentId,
@@ -138,15 +156,15 @@ function App() {
   const shouldStopRef = useRef(false);
   const resumedDocumentRef = useRef<string | null>(null);
   const autoStartDateRef = useRef<string | null>(null);
-  const [speechRate, setSpeechRate] = useState(() => Number(localStorage.getItem('speechRate')) || 0.9);
-  const [speechPitch, setSpeechPitch] = useState(1.0);
-  const [selectedVoice, setSelectedVoice] = useState<string>('');
+  const [speechRate, setSpeechRate] = useState(() => getStoredNumber('speechRate', appDefaults.speechRate ?? 0.9));
+  const [speechPitch, setSpeechPitch] = useState(() => appDefaults.speechPitch ?? 1.0);
+  const [selectedVoice, setSelectedVoice] = useState<string>(() => appDefaults.selectedVoice || '');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [showSpeedControl, setShowSpeedControl] = useState(false);
-  const [immersiveMode, setImmersiveMode] = useState(() => localStorage.getItem('immersiveMode') === 'true');
-  const [autoResumeOnOpen, setAutoResumeOnOpen] = useState(() => localStorage.getItem('autoResumeOnOpen') !== 'false');
-  const [autoReadOnOpen, setAutoReadOnOpen] = useState(() => localStorage.getItem('autoReadOnOpen') === 'true');
-  const [autoStartTime, setAutoStartTime] = useState(() => localStorage.getItem('autoStartTime') || '21:00');
+  const [immersiveMode, setImmersiveMode] = useState(() => getStoredBoolean('immersiveMode', appDefaults.immersiveMode ?? false));
+  const [autoResumeOnOpen, setAutoResumeOnOpen] = useState(() => getStoredBoolean('autoResumeOnOpen', appDefaults.autoResumeOnOpen ?? true));
+  const [autoReadOnOpen, setAutoReadOnOpen] = useState(() => getStoredBoolean('autoReadOnOpen', appDefaults.autoReadOnOpen ?? false));
+  const [autoStartTime, setAutoStartTime] = useState(() => getStoredString('autoStartTime', appDefaults.autoStartTime || '21:00'));
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('Voice off');
   const voiceRecognitionRef = useRef<any>(null);
@@ -193,10 +211,9 @@ function App() {
   const [collapsedClipboardSaving, setCollapsedClipboardSaving] = useState(false);
   const [collapsedUnsplashLockedWords, setCollapsedUnsplashLockedWords] = useState<Set<string>>(new Set());
   const [fixedStorageStatus, setFixedStorageStatus] = useState<string>('Not checked');
-  const [autoFixedBackupEnabled, setAutoFixedBackupEnabled] = useState<boolean>(() => {
-    const stored = localStorage.getItem('autoFixedBackupEnabled');
-    return stored === null ? true : stored === 'true';
-  });
+  const [autoFixedBackupEnabled, setAutoFixedBackupEnabled] = useState<boolean>(() =>
+    getStoredBoolean('autoFixedBackupEnabled', appDefaults.autoFixedBackupEnabled ?? true)
+  );
   const prevMarkedWordsSize = useRef<number>(0); // 闂傚倸鍊风粈渚€骞栭位鍥敃閿曗偓閻ょ偓绻涢幋娆忕仼闁绘帒鐏氶妵鍕箳閹存績鍋撻幖浣稿嚑婵炴垯鍨洪悡鏇㈡煏閸繃濯奸柛搴＄箻閺屽秹鎸婃径妯烩枅濡ょ姷鍋為…鍥╁垝閻㈠灚鍠嗛柛鏇ㄥ墯濮ｅ骸鈹戦敍鍕杭闁稿﹥鐗犲畷婵嬪即閵忕姈褔鏌熼梻瀵割槮缂?markedWords 婵犵數濮烽弫鍛婃叏娴兼潙鍨傜憸鐗堝笚閸嬪鏌曡箛瀣偓鏇犵矆閸愨斂浜滈煫鍥ㄦ尰閸ｈ姤淇?
 
   const closeCard = (cardKey: string) => {
@@ -484,7 +501,7 @@ function App() {
       const voices = window.speechSynthesis.getVoices();
       const enVoices = voices.filter(v => v.lang.startsWith('en'));
       setAvailableVoices(enVoices);
-      if (enVoices.length > 0 && !selectedVoice) {
+      if (enVoices.length > 0 && (!selectedVoice || !enVoices.some(v => v.name === selectedVoice))) {
         // Try to find Microsoft Ava Online Natural voice
         const avaVoice = enVoices.find(v => 
           v.name.toLowerCase().includes('ava') && 
@@ -1780,6 +1797,41 @@ ${sortedWords.join(' ')}
     } else {
       setFixedStorageStatus(`Status check failed: ${status.error}`);
     }
+  };
+
+  const handleSetCurrentAsDefault = () => {
+    const defaults: AppDefaultSettings = {
+      showIPA,
+      showChinese,
+      exportFormat,
+      exportIncludeIPA,
+      exportIncludeChinese,
+      exportIncludePhraseList,
+      exportIncludePhraseTranslations,
+      level,
+      autoMark,
+      annotationMode,
+      autoPronounceSetting,
+      autoShowCardOnPlay,
+      speechRate,
+      speechPitch,
+      selectedVoice,
+      immersiveMode,
+      autoResumeOnOpen,
+      autoReadOnOpen,
+      autoStartTime,
+      autoFixedBackupEnabled,
+    };
+
+    localStorage.setItem(APP_DEFAULT_SETTINGS_KEY, JSON.stringify(defaults));
+    localStorage.setItem('speechRate', String(speechRate));
+    localStorage.setItem('immersiveMode', String(immersiveMode));
+    localStorage.setItem('autoResumeOnOpen', String(autoResumeOnOpen));
+    localStorage.setItem('autoReadOnOpen', String(autoReadOnOpen));
+    localStorage.setItem('autoStartTime', autoStartTime);
+    localStorage.setItem('autoFixedBackupEnabled', autoFixedBackupEnabled ? 'true' : 'false');
+
+    alert('Current settings saved as default for next startup.');
   };
 
   // One-time migration + periodic auto backup
@@ -3963,6 +4015,13 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             </div>
 
             <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleSetCurrentAsDefault}
+                className="px-4 py-2 rounded-lg border border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold"
+                title="Save the current settings as the startup default"
+              >
+                Set Current as Default
+              </button>
               <button
                 onClick={() => setShowSettings(false)}
                 className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold"
