@@ -7,6 +7,7 @@ import {
   ensureEncounteredMeanings,
   type EncounteredMeaning,
 } from '../utils/wordMeanings';
+import { logWordDebug, shouldDebugWord } from '../utils/wordDebug';
 
 export interface KnownWord {
   word: string;
@@ -64,6 +65,10 @@ export interface CachedPhraseAnnotation {
   grammarPoints?: Array<{
     text: string;
     explanation: string;
+  }>;
+  focusWordNotes?: Array<{
+    word: string;
+    note: string;
   }>;
   sentenceContext: string;
   documentTitle?: string;
@@ -269,12 +274,21 @@ export async function batchAddKnownWords(words: string[], level?: string): Promi
  * Cache an annotation in IndexedDB
  */
 export async function cacheAnnotation(word: string, annotation: Omit<CachedAnnotation, 'word' | 'cachedAt'>): Promise<void> {
-  await db.annotations.put(ensureEncounteredMeanings({
+  const cachedAnnotation = ensureEncounteredMeanings({
     word: word.toLowerCase(),
     ...annotation,
     emojiImagePath: normalizeEmojiImagePaths(annotation.emojiImagePath),
     cachedAt: Date.now(),
-  }));
+  });
+
+  if (shouldDebugWord(word, cachedAnnotation.baseForm, cachedAnnotation.word)) {
+    logWordDebug('DB.cacheAnnotation', {
+      key: word.toLowerCase(),
+      annotation: cachedAnnotation,
+    });
+  }
+
+  await db.annotations.put(cachedAnnotation);
 }
 
 /**
@@ -479,6 +493,10 @@ export async function cachePhraseAnnotation(phrase: string, annotation: {
     text: string;
     explanation: string;
   }>;
+  focusWordNotes?: Array<{
+    word: string;
+    note: string;
+  }>;
   sentenceContext: string;
   documentTitle?: string;
 }): Promise<void> {
@@ -491,6 +509,7 @@ export async function cachePhraseAnnotation(phrase: string, annotation: {
     usagePatternChinese: annotation.usagePatternChinese,
     isCommonUsage: annotation.isCommonUsage,
     grammarPoints: annotation.grammarPoints,
+    focusWordNotes: annotation.focusWordNotes,
     sentenceContext: annotation.sentenceContext,
     documentTitle: annotation.documentTitle,
     cachedAt: Date.now(),
@@ -707,7 +726,7 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
         try {
           const existing = await db.annotations.get(item.word);
           if (!existing) {
-            await db.annotations.add({
+            const importedAnnotation = {
               word: item.word,
               baseForm: item.baseForm,
               ipa: item.ipa,
@@ -725,9 +744,21 @@ export async function importUserData(jsonData: string): Promise<{ imported: numb
               encounteredMeanings: item.encounteredMeanings,
               activeMeaningId: item.activeMeaningId,
               cachedAt: new Date(item.cachedAt).getTime()
-            });
+            };
+            if (shouldDebugWord(importedAnnotation.word, importedAnnotation.baseForm)) {
+              logWordDebug('DB.importUserData:annotation-import', {
+                importedAnnotation,
+              });
+            }
+            await db.annotations.add(importedAnnotation);
             result.imported++;
           } else {
+            if (shouldDebugWord(item.word, item.baseForm)) {
+              logWordDebug('DB.importUserData:annotation-skipped-existing', {
+                existing,
+                incoming: item,
+              });
+            }
             result.skipped++;
           }
         } catch (err: any) {

@@ -55,6 +55,27 @@ export function getCanonicalWord(
   return surface;
 }
 
+function normalizeWordForm(value?: string): string {
+  return (value || '').trim().toLowerCase();
+}
+
+export function getEncounteredSurfaceForms(
+  annotation: Pick<WordAnnotation, 'word' | 'baseForm' | 'encounteredForms'>,
+  preferredSurface?: string,
+): string[] {
+  const canonicalForms = new Set(
+    [annotation.word, annotation.baseForm]
+      .map(normalizeWordForm)
+      .filter(Boolean),
+  );
+
+  const orderedForms = [preferredSurface, ...(annotation.encounteredForms || [])]
+    .map(normalizeWordForm)
+    .filter(Boolean);
+
+  return Array.from(new Set(orderedForms)).filter(form => !canonicalForms.has(form));
+}
+
 function normalizeText(value?: string): string {
   return (value || '')
     .toLowerCase()
@@ -82,7 +103,25 @@ function overlapScore(a: string[], b: string[]): number {
 }
 
 function normalizePos(partOfSpeech?: string): string {
-  return normalizeText(partOfSpeech).split(' ')[0] || '';
+  const raw = normalizeText(partOfSpeech).split(' ')[0] || '';
+  const posAliases: Record<string, string> = {
+    v: 'verb',
+    vi: 'verb',
+    vt: 'verb',
+    verb: 'verb',
+    verbs: 'verb',
+    n: 'noun',
+    noun: 'noun',
+    nouns: 'noun',
+    adj: 'adjective',
+    adjective: 'adjective',
+    adjectives: 'adjective',
+    adv: 'adverb',
+    adverb: 'adverb',
+    adverbs: 'adverb',
+  };
+
+  return posAliases[raw] || raw;
 }
 
 function buildShortLabel(annotation: Pick<WordAnnotation, 'chinese' | 'definition'>): string {

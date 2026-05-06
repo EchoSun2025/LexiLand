@@ -1,15 +1,27 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import staticPlugin from '@fastify/static';
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { ensureSpeechDirectories, registerSpeechRoutes } from './speech.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const localEnvPath = path.resolve(__dirname, '..', '.env');
+const workspaceEnvPath = path.resolve(__dirname, '..', '..', '.env');
+
+if (fs.existsSync(localEnvPath)) {
+  dotenv.config({ path: localEnvPath });
+}
+
+if (fs.existsSync(workspaceEnvPath)) {
+  dotenv.config({ path: workspaceEnvPath, override: false });
+}
+
 const DEFAULT_DATA_DIR = 'D:\\0_EnglishLearning';
 const LEARNING_DATA_DIR = path.resolve(process.env.LEARNING_DATA_DIR || DEFAULT_DATA_DIR);
 const LEARNING_IMAGES_DIR = path.join(LEARNING_DATA_DIR, 'images');
@@ -28,15 +40,120 @@ const fastify = Fastify({
 });
 
 // 初始化 OpenAI 客户端
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+type AITextProvider = 'openai' | 'local';
+type ChatMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+};
+
+const TEXT_AI_PROVIDER: AITextProvider = process.env.AI_TEXT_PROVIDER === 'local' ? 'local' : 'openai';
+const OPENAI_TEXT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const LOCAL_LLM_BASE_URL = (process.env.LOCAL_LLM_BASE_URL || 'http://127.0.0.1:11434/v1').replace(/\/+$/, '');
+const LOCAL_LLM_MODEL = process.env.LOCAL_LLM_MODEL || 'qwen2.5:7b';
+
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  : null;
+
+const localTextClient = new OpenAI({
+  apiKey: process.env.LOCAL_LLM_API_KEY || 'ollama',
+  baseURL: LOCAL_LLM_BASE_URL,
 });
 
+function resolveTextProvider(provider?: string): AITextProvider {
+  return provider === 'local' || provider === 'openai' ? provider : TEXT_AI_PROVIDER;
+}
+
+function getTextClient(provider?: AITextProvider): OpenAI {
+  if (provider === 'local') {
+    return localTextClient;
+  }
+
+  if (!openai) {
+    throw new Error('OPENAI_API_KEY is required when AI_TEXT_PROVIDER=openai');
+  }
+
+  return openai;
+}
+
+function getTextModel(provider?: AITextProvider): string {
+  return provider === 'local' ? LOCAL_LLM_MODEL : OPENAI_TEXT_MODEL;
+}
+
+function getTextProviderLabel(provider?: AITextProvider): string {
+  return provider === 'local'
+    ? `local model "${LOCAL_LLM_MODEL}" via ${LOCAL_LLM_BASE_URL}`
+    : `OpenAI model "${OPENAI_TEXT_MODEL}"`;
+}
+
+function getImageClient(): OpenAI {
+  if (!openai) {
+    throw new Error('OPENAI_API_KEY is required for image generation');
+  }
+
+  return openai;
+}
+
+async function createTextCompletion(options: {
+  messages: ChatMessage[];
+  temperature?: number;
+  jsonMode?: boolean;
+  maxTokens?: number;
+  provider?: AITextProvider;
+}) {
+  const provider = options.provider || TEXT_AI_PROVIDER;
+  const client = getTextClient(provider);
+  return client.chat.completions.create({
+    model: getTextModel(provider),
+    messages: options.messages,
+    temperature: options.temperature ?? 0.3,
+    max_tokens: options.maxTokens,
+    ...(options.jsonMode && provider === 'openai'
+      ? { response_format: { type: 'json_object' as const } }
+      : {}),
+  });
+}
+
+function extractTextContent(content: string): string {
+  const trimmed = content.trim();
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  return fencedMatch?.[1]?.trim() || trimmed;
+}
+
+function parseJsonResponse<T>(content: string, provider?: AITextProvider): T {
+  const normalized = extractTextContent(content);
+
+  try {
+    return JSON.parse(normalized) as T;
+  } catch {
+    const objectMatch = normalized.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      return JSON.parse(objectMatch[0]) as T;
+    }
+    throw new Error(`Failed to parse JSON returned by ${getTextProviderLabel(provider)}`);
+  }
+}
+
 // 注册 CORS
+const devOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+
 await fastify.register(cors, {
-  origin: process.env.NODE_ENV === 'production'
-    ? 'https://lexiland.app'
-    : 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (process.env.NODE_ENV === 'production') {
+      callback(null, origin === 'https://lexiland.app');
+      return;
+    }
+
+    // Allow local dev servers such as Vite on 5173/5174/5175 and non-browser clients.
+    if (!origin || devOriginPattern.test(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(null, false);
+  },
   credentials: true,
 });
 
@@ -46,12 +163,25 @@ await fastify.register(staticPlugin, {
   prefix: '/learning-images/',
 });
 
+const speechPaths = await ensureSpeechDirectories(LEARNING_DATA_DIR);
+await fastify.register(staticPlugin, {
+  root: speechPaths.audioDir,
+  prefix: '/speech-audio/',
+  decorateReply: false,
+});
+
 // 健康检查路由
 fastify.get('/health', async (request, reply) => {
   return {
     status: 'ok',
     timestamp: Date.now(),
     dataDir: LEARNING_DATA_DIR,
+    ai: {
+      textProvider: TEXT_AI_PROVIDER,
+      textModel: getTextModel(),
+      localBaseUrl: TEXT_AI_PROVIDER === 'local' ? LOCAL_LLM_BASE_URL : undefined,
+      imageProvider: 'openai',
+    },
   };
 });
 
@@ -73,6 +203,8 @@ interface AnnotatePhraseRequest {
   sentenceContext: string;
   level?: string;
   cardType?: 'phrase' | 'sentence' | 'paragraph' | 'grammar';
+  provider?: AITextProvider;
+  focusWords?: string[];
 }
 
 interface GenerateMeaningFieldRequest {
@@ -125,19 +257,21 @@ Important:
 - The "example" field MUST contain a complete, natural sentence demonstrating the word's usage. NEVER leave it empty.
 - Return ONLY the JSON object, no additional text.`;
 
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    const completion = await createTextCompletion({
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
-      response_format: { type: 'json_object' },
+      jsonMode: true,
     });
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
-      throw new Error('No response from OpenAI');
+      throw new Error(`No response from ${getTextProviderLabel()}`);
     }
 
-    const annotation = JSON.parse(content);
+    const annotation = parseJsonResponse<{
+      example?: string;
+      [key: string]: unknown;
+    }>(content);
 
     // Validate required fields
     if (!annotation.example || annotation.example.trim() === '') {
@@ -180,15 +314,14 @@ fastify.post<{ Body: GenerateMeaningFieldRequest }>('/api/generate-meaning-field
           ? `Write ONE natural English example sentence using the word "${word}" to mean "${chinese}"${partOfSpeech ? ` as a ${partOfSpeech}` : ''}${sentenceContext ? ` and stay close to this situation: "${sentenceContext}"` : ''}. Return ONLY the example sentence.`
           : `List the common inflected forms for the English word "${word}"${partOfSpeech ? ` as a ${partOfSpeech}` : ''}. Return ONLY a short comma-separated list such as "stride, strides, striding, strode, stridden".`;
 
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    const completion = await createTextCompletion({
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.4,
     });
 
     const text = completion.choices[0]?.message?.content?.trim();
     if (!text) {
-      throw new Error('No response from OpenAI');
+      throw new Error(`No response from ${getTextProviderLabel()}`);
     }
 
     return {
@@ -210,9 +343,20 @@ fastify.post<{ Body: GenerateMeaningFieldRequest }>('/api/generate-meaning-field
 
 // 短语注释 API
 fastify.post<{ Body: AnnotatePhraseRequest }>('/api/annotate-phrase', async (request, reply) => {
-  const { phrase, sentenceContext, level = 'B2', cardType = 'phrase' } = request.body;
+  const { phrase, sentenceContext, level = 'B2', cardType = 'phrase', provider, focusWords = [] } = request.body;
+  const selectedProvider = resolveTextProvider(provider);
+  const normalizedFocusWords = Array.isArray(focusWords)
+    ? Array.from(
+        new Set(
+          focusWords
+            .filter((item): item is string => typeof item === 'string')
+            .map(item => item.trim())
+            .filter(Boolean),
+        ),
+      )
+    : [];
 
-  fastify.log.info({ phrase, sentenceContext, level, cardType }, 'Phrase annotation request');
+  fastify.log.info({ phrase, sentenceContext, level, cardType, provider: selectedProvider, focusWords: normalizedFocusWords }, 'Phrase annotation request');
 
   if (!phrase || typeof phrase !== 'string') {
     fastify.log.error({ phrase }, 'Invalid phrase');
@@ -225,15 +369,112 @@ fastify.post<{ Body: AnnotatePhraseRequest }>('/api/annotate-phrase', async (req
   }
 
   try {
-    const cardLabel = cardType === 'sentence'
-      ? 'sentence'
-      : cardType === 'paragraph'
+    let prompt: string;
+
+    if (cardType === 'sentence') {
+      prompt = `You are a language-learning assistant creating a sentence card for a ${level} learner.
+
+Sentence:
+"${sentenceContext}"
+
+Focus words already marked by the learner in this sentence:
+${normalizedFocusWords.length > 0 ? normalizedFocusWords.map(word => `- ${word}`).join('\n') : '(none)'}
+
+Return ONE JSON object in this shape:
+{
+  "phrase": "${phrase}",
+  "cardType": "sentence",
+  "chinese": "Natural simplified Chinese translation of the full sentence",
+  "explanation": "用简体中文写句子解析。说明整句是怎么组织起来的，重点解释这里真正值得学习的 B2 级语法或结构。",
+  "usagePattern": "Optional reusable English pattern from the sentence, otherwise empty string",
+  "usagePatternChinese": "Optional short Chinese gloss for the reusable pattern, otherwise empty string",
+  "isCommonUsage": true,
+  "grammarPoints": [
+    { "text": "short quoted grammar chunk from the sentence", "explanation": "用简体中文写给 B2 学习者的解释" }
+  ],
+  "focusWordNotes": [
+    { "word": "focus word", "note": "用简体中文说明这个词在本句中的搭配、补语结构、介词选择、时态、语态，或其他特别值得注意的语法点" }
+  ],
+  "sentenceContext": "${sentenceContext}"
+}
+
+Important:
+- The translation in "chinese" must be simplified Chinese.
+- The analysis in "explanation" must be in simplified Chinese.
+- Every "grammarPoints[*].explanation" must be in simplified Chinese.
+- If focus words are provided, inspect each one carefully in THIS sentence and explain any special collocation or grammar attached to it.
+- If a focus word is used in a normal way with nothing special, say that briefly in simplified Chinese instead of inventing a problem.
+- Include 2 to 5 grammarPoints only when they are actually helpful for a B2 learner.
+- Prefer grammar that is visible in this exact sentence: clause structure, reduced clauses, tense/aspect, voice, complementation, prepositions, discourse markers, and fixed combinations.
+- Do not include IPA.
+- Return ONLY the JSON object, no markdown or extra commentary.`;
+      prompt = `You are a language-learning assistant creating a sentence card for a ${level} learner.
+
+Sentence:
+"${sentenceContext}"
+
+Return ONE JSON object in this shape:
+{
+  "phrase": "${phrase}",
+  "cardType": "sentence",
+  "chinese": "Natural simplified Chinese translation of the full sentence",
+  "explanation": "用简体中文写句子解析，说明整句如何组织起来，并解释其中值得学习的 B2 语法或结构",
+  "usagePattern": "Optional reusable English pattern from the sentence, otherwise empty string",
+  "usagePatternChinese": "Optional short Chinese gloss for the reusable pattern, otherwise empty string",
+  "isCommonUsage": true,
+  "grammarPoints": [
+    { "text": "short quoted grammar chunk from the sentence", "explanation": "用简体中文写给 B2 学习者的简洁解释" }
+  ],
+  "sentenceContext": "${sentenceContext}"
+}
+
+Important:
+- The translation in "chinese" must be simplified Chinese.
+- The analysis in "explanation" must be simplified Chinese.
+- Every "grammarPoints[*].explanation" must be simplified Chinese.
+- Include 2 to 4 grammarPoints only when they are actually helpful for a B2 learner.
+- Prefer grammar that is visible in this exact sentence: clause structure, reduced clauses, tense/aspect, voice, complementation, prepositions, discourse markers, and fixed combinations.
+- Do not include IPA.
+- Do not include focusWordNotes.
+- Return ONLY the JSON object, no markdown or extra commentary.`;
+      prompt = `You are a language-learning assistant creating a compact sentence card for a ${level} learner.
+
+Sentence:
+"${sentenceContext}"
+
+Return ONE JSON object in this shape:
+{
+  "phrase": "${phrase}",
+  "cardType": "sentence",
+  "chinese": "Natural simplified Chinese translation of the full sentence",
+  "explanation": "用简体中文写一小段简短语法分析，控制在 1 到 2 句",
+  "usagePattern": "Optional reusable English structure from the sentence, otherwise empty string",
+  "usagePatternChinese": "Optional short Chinese gloss for the reusable structure, otherwise empty string",
+  "grammarPoints": [
+    { "text": "short quoted grammar chunk from the sentence", "explanation": "用简体中文写给 B2 学习者的简洁解释" }
+  ],
+  "sentenceContext": "${sentenceContext}"
+}
+
+Important:
+- Keep the output compact.
+- The translation in "chinese" must be simplified Chinese.
+- The analysis in "explanation" must be simplified Chinese.
+- Every "grammarPoints[*].explanation" must be simplified Chinese.
+- usagePattern and usagePatternChinese should be present only when there is a genuinely reusable structure.
+- Include 1 to 3 grammarPoints only when they are actually helpful for a B2 learner.
+- Prefer grammar that is visible in this exact sentence: clause structure, tense/aspect, voice, complementation, prepositions, discourse markers, and fixed combinations.
+- Do not include IPA.
+- Do not include focusWordNotes.
+- Return ONLY the JSON object, no markdown or extra commentary.`;
+    } else {
+      const cardLabel = cardType === 'paragraph'
         ? 'paragraph'
         : cardType === 'grammar'
           ? 'grammar point'
           : 'phrase or expression';
 
-    const prompt = `You are a language learning assistant. Provide annotation for the English ${cardLabel} "${phrase}" suitable for a ${level} level learner.
+      prompt = `You are a language learning assistant. Provide annotation for the English ${cardLabel} "${phrase}" suitable for a ${level} level learner.
 
 The phrase appears in this sentence:
 "${sentenceContext}"
@@ -263,23 +504,27 @@ Important:
 - Set isCommonUsage to true only if this phrase or pattern is reusable beyond this exact sentence
 - Do NOT include IPA pronunciation
 - Return ONLY the JSON object, no additional text.`;
+    }
 
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    const completion = await createTextCompletion({
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
-      response_format: { type: 'json_object' },
+      jsonMode: true,
+      provider: selectedProvider,
     });
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
-      throw new Error('No response from OpenAI');
+      throw new Error(`No response from ${getTextProviderLabel(selectedProvider)}`);
     }
+
+    const parsedAnnotation = parseJsonResponse<Record<string, unknown>>(content, selectedProvider);
+    delete (parsedAnnotation as Record<string, unknown>).focusWordNotes;
 
     const annotation = {
       cardType,
       grammarPoints: [],
-      ...JSON.parse(content),
+      ...parsedAnnotation,
     };
 
     fastify.log.info({ annotation }, 'Phrase annotation success');
@@ -312,8 +557,7 @@ fastify.post<{ Body: CardNoteReplyRequest }>('/api/card-note-reply', async (requ
 
   try {
     const recentHistory = history.slice(-8);
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    const completion = await createTextCompletion({
       messages: [
         {
           role: 'system',
@@ -337,7 +581,7 @@ User note/question: ${note}`,
 
     const answer = completion.choices[0]?.message?.content?.trim();
     if (!answer) {
-      throw new Error('No response from OpenAI');
+      throw new Error(`No response from ${getTextProviderLabel()}`);
     }
 
     return {
@@ -653,6 +897,7 @@ fastify.post<{ Body: GenerateEmojiRequest }>('/api/generate-emoji', async (reque
 
   try {
     // Step 1: 生成 visual hint
+    const imageClient = getImageClient();
     const hintPrompt = `For the English word "${word}" (definition: ${definition})${sentenceContext ? ` used in context: "${sentenceContext}"` : ''}, generate a SHORT visual description (max 10 words) that could be used to create a simple emoji/icon representing this word's meaning. Focus on ONE clear, recognizable visual element.
 
 Examples:
@@ -662,8 +907,8 @@ Examples:
 
 Return ONLY the visual description, no explanation.`;
 
-    const hintCompletion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    const hintCompletion = await imageClient.chat.completions.create({
+      model: OPENAI_TEXT_MODEL,
       messages: [{ role: 'user', content: hintPrompt }],
       temperature: 0.5,
       max_tokens: 30,
@@ -706,7 +951,7 @@ Return ONLY the visual description, no explanation.`;
           params.quality = config.quality;
         }
         
-        imageResponse = await openai.images.generate(params);
+        imageResponse = await imageClient.images.generate(params);
 
         if (imageResponse.data && imageResponse.data.length > 0) {
           imageUrl = imageResponse.data[0]?.url;
@@ -772,6 +1017,15 @@ Return ONLY the visual description, no explanation.`;
 });
 
 // 启动服务器
+await registerSpeechRoutes(fastify, {
+  dataDir: LEARNING_DATA_DIR,
+  speechAudioUrlPrefix: '/speech-audio',
+  openai,
+  createTextCompletion,
+  resolveTextProvider,
+  getTextProviderLabel,
+});
+
 const start = async () => {
   try {
     const port = Number(process.env.PORT) || 3000;

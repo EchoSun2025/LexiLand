@@ -11,7 +11,8 @@ import { localDictionary } from './services/localDictionary'
 import { exportAnnotatedBook } from './services/bookExport'
 import { exportLLIFString } from './services/llifConverter'
 import { getWordEmoji, getAllEmojiKeywords } from './utils/emojiHelper'
-import { applyMeaningToAnnotation, findAnnotationEntry, findBestMeaningIdForSentence, getCanonicalWord, mergeAnnotationMeanings } from './utils/wordMeanings'
+import { applyMeaningToAnnotation, findAnnotationEntry, findBestMeaningIdForSentence, getCanonicalWord, getEncounteredSurfaceForms, mergeAnnotationMeanings } from './utils/wordMeanings'
+import { logWordDebug, shouldDebugWord } from './utils/wordDebug'
 
 const keywordToEmoji = getAllEmojiKeywords();
 const collapsedCommonEmojis = Array.from(new Set(Array.from(keywordToEmoji.values()))).slice(0, 120);
@@ -95,6 +96,8 @@ function App() {
     level,
     autoMark,
     annotationMode,
+    phraseCardProvider,
+    sentenceCardProvider,
     autoPronounceSetting,
     addDocument,
     loadDocuments,
@@ -119,6 +122,8 @@ function App() {
     setExportIncludePhraseTranslations,
     setLevel,
     setAnnotationMode,
+    setPhraseCardProvider,
+    setSentenceCardProvider,
     setAutoPronounceSetting,
     setAutoShowCardOnPlay,
     loadKnownWords,
@@ -203,7 +208,7 @@ function App() {
   const [phraseTranslationInserts, setPhraseTranslationInserts] = useState<Map<string, boolean>>(new Map()); // 闂傚倸鍊搁崐鐑芥倿閿曗偓椤啴宕稿Δ鈧惌妤呭箹濞ｎ剙濡奸柣顓燁殜閺屽秷顧侀柛鎾村哺婵＄敻宕熼姘祮濠碘槅鍨靛▍锝嗗閸曨厾纾藉ù锝勭矙閸濇椽鏌ｉ悢鍙夋珔妞ゆ洩缍侀獮蹇撶暆閳ь剟鎮块埀顒勬⒑閸濆嫭宸濋柛鐔该埞鎴犫偓锝庡亐閹锋椽姊洪棃鈺佺槣闁告ê澧介弫顔尖槈閵忊€充缓濡炪倖鐗楃粙鎴澝归閿亾鐟欏嫭绌跨紓宥勭閻ｇ兘宕￠悙鈺傤潔濠电偛妫楃换瀣уΔ鍛拻濞达絽鎼敮鍫曟煙閼恒儳鐭掗柕鍡楀€圭粋鎺斺偓锝庝簽閿?
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // 闂傚倸鍊峰ù鍥х暦閸偅鍙忕€规洖娲ㄩ惌鍡椕归敐鍫綈婵炲懐濮撮湁闁绘ê妯婇崕鎰版煕鐎ｅ吀閭柡灞剧洴閸╁嫰宕橀浣割潓婵＄偑鍊戦崕閬嶆偋閹捐钃熼柡鍥风磿閻も偓婵犵數濮撮崐鎼佸煕婢跺瞼纾?
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; pIndex: number; sIndex: number } | null>(null); // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画闂佹寧姊婚弲顐ょ不閹€鏀介柣妯哄级閹兼劙鏌＄€ｂ晝鍔嶉柕鍥у楠炴﹢宕￠悙鍏哥棯闂備焦鎮堕崐鏍哄Ο鍏煎床婵犻潧娲ㄧ弧鈧梺绋挎湰绾板秴鈻撻鐘电＝濞达絾褰冩禍?
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; pIndex: number; sIndex: number; sentenceText?: string; focusWords?: string[] } | null>(null); // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画闂佹寧姊婚弲顐ょ不閹€鏀介柣妯哄级閹兼劙鏌＄€ｂ晝鍔嶉柕鍥ゅ楠炴﹢宕￠悙鍏哥棯闂備焦鎮堕崐鏍哄Ο鍏煎床婵犻潧娲ㄧ弧鈧梺绋挎湰绾板秴鈻撻鐘电＝濞达絾褰冩禍?
   const [expandedCardKeys, setExpandedCardKeys] = useState<Set<string>>(new Set());
   const [collapsedImageMenu, setCollapsedImageMenu] = useState<{ panel: 'emoji' | 'web'; word: string; top: number; left: number } | null>(null);
   const [collapsedEmojiSearchQuery, setCollapsedEmojiSearchQuery] = useState('');
@@ -303,6 +308,16 @@ function App() {
 
     return items;
   }, [annotations, phraseAnnotations]);
+
+  const sentenceCardKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const [phraseKey, annotation] of phraseAnnotations.entries()) {
+      if ((annotation.cardType || 'phrase') === 'sentence') {
+        keys.add(phraseKey);
+      }
+    }
+    return keys;
+  }, [phraseAnnotations]);
 
   const reviewStatsBuckets = useMemo<StatsBucket[]>(() => {
     const now = new Date();
@@ -462,8 +477,8 @@ function App() {
               .trim()
               .toLowerCase();
 
-            // Check if this phrase exists in phraseAnnotations
-            if (phraseAnnotations.has(phraseText)) {
+            const annotation = phraseAnnotations.get(phraseText);
+            if (annotation && (annotation.cardType || 'phrase') === 'phrase') {
               ranges.push({
                 pIndex,
                 sIndex,
@@ -527,22 +542,91 @@ function App() {
       const annotation = selectedEntry.annotation;
       if (annotation && (annotation as any).definition) {
         // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓电紓鍌欒閸嬫捇鏌涢埄鍐姇闁绘挻绋戦…璺ㄦ崉閻氭潙濮涙繛瀵稿О閸ㄤ粙寮诲☉婊庢Щ闂佹寧娲︽禍顏勵嚕鐠囨祴妲堟俊顖炴敱閻庡姊洪崷顓炲妺闁搞劌銈稿顐﹀垂椤曞懏瀵岄梺闈涚墕濡瑩鎮￠妷锔剧婵炴潙顑嗗▍濠傗攽閿涘嫭鏆鐐叉喘瀵爼宕归鑲┿偖濠碉紕鍋戦崐鏇犳崲閹邦儵娑樷槈閳跺搫娲、娆撴偩瀹€鈧鏇㈡煛婢跺﹦澧曞褌绮欏畷姘舵偋閸粎绠氬銈嗗姧缁查箖鍩涢幒鏃傜＜妞ゆ洖鎳庨獮妤冣偓鍨緲鐎氫即鐛崶顒夋晣闁绘劕顕弶鐟扳攽閿涘嫬浜奸柛濠冩礈閹广垽骞囬鐟颁壕婵鍘ф晶鍙夈亜閵堝懎顏慨濠呮閹风娀鎳犻鍌ゅ敽闂備胶顭堥鍥磻濞戞艾寮查梻浣告惈缁嬩線宕戦崨杈剧稏?
-        addToCardHistory('word', selectedWord);
+        const canonicalHistoryWord =
+          (annotation as WordAnnotation).word?.toLowerCase() ||
+          getCanonicalWord(selectedEntry.key, annotation as WordAnnotation);
+        if (selectedEntry.key !== canonicalHistoryWord) {
+          removeFromCardHistory(selectedEntry.key);
+        }
+        addToCardHistory('word', canonicalHistoryWord);
       }
     }
-  }, [selectedWord, annotations, addToCardHistory]);
+  }, [selectedWord, annotations, addToCardHistory, removeFromCardHistory]);
 
   // Handle word click
   // Handle word click: toggle marked state
   const handleWordClick = (word: string, pIndex?: number, sIndex?: number, tokenIndex?: number) => {
     const normalized = word.toLowerCase();
     const wordEntry = findAnnotationEntry(annotations, normalized);
+    if (shouldDebugWord(normalized, wordEntry?.annotation?.baseForm, wordEntry?.annotation?.word)) {
+      logWordDebug('App.handleWordClick:start', {
+        clickedWord: word,
+        normalized,
+        foundEntryKey: wordEntry?.key || null,
+        annotationWord: wordEntry?.annotation?.word || null,
+        annotationBaseForm: wordEntry?.annotation?.baseForm || null,
+        annotationPartOfSpeech: wordEntry?.annotation?.partOfSpeech || null,
+      });
+    }
     // If word has a card, just select it to show the card (for double-click on orange words)
     const hasCard = wordEntry && (wordEntry.annotation as any)?.definition;
     if (hasCard) {
+      const annotation = wordEntry?.annotation as WordAnnotation | undefined;
+      const looksLikeUnrepairedLemma =
+        annotation &&
+        annotation.word === normalized &&
+        annotation.baseForm === normalized &&
+        (!annotation.partOfSpeech || annotation.partOfSpeech === 'unknown');
+
+      if (looksLikeUnrepairedLemma) {
+        void (async () => {
+          const repaired = await localDictionary.lookup(normalized);
+          if (!repaired) {
+            return;
+          }
+
+          const repairedCanonicalWord = getCanonicalWord(normalized, repaired);
+          if (
+            repaired.baseForm === annotation.baseForm &&
+            repairedCanonicalWord === normalized &&
+            repaired.partOfSpeech === annotation.partOfSpeech
+          ) {
+            return;
+          }
+
+          const repairedAnnotation: WordAnnotation = {
+            ...annotation,
+            ...repaired,
+            word: repairedCanonicalWord,
+            sentence: annotation.sentence,
+            documentTitle: annotation.documentTitle,
+            encounteredForms: Array.from(
+              new Set([normalized, repairedCanonicalWord, ...(annotation.encounteredForms || [])]),
+            ),
+            cachedAt: Date.now(),
+          };
+
+          if (shouldDebugWord(normalized, repaired.baseForm, repairedCanonicalWord)) {
+            logWordDebug('App.handleWordClick:repair-existing-card', {
+              normalized,
+              previousAnnotation: annotation,
+              repaired,
+              repairedAnnotation,
+            });
+          }
+
+          addAnnotation(repairedCanonicalWord, repairedAnnotation);
+          await cacheAnnotation(repairedCanonicalWord, repairedAnnotation);
+
+          if (repairedCanonicalWord !== normalized) {
+            addAnnotation(normalized, repairedAnnotation);
+            await cacheAnnotation(normalized, repairedAnnotation);
+          }
+        })();
+      }
+
       if (pIndex !== undefined && sIndex !== undefined) {
         const sentenceText = displayParagraphs[pIndex]?.sentences[sIndex]?.text;
-        const annotation = wordEntry?.annotation as WordAnnotation | undefined;
         if (annotation && sentenceText) {
           const meaningId = findBestMeaningIdForSentence(annotation, sentenceText);
           if (meaningId && meaningId !== annotation.activeMeaningId) {
@@ -553,6 +637,13 @@ function App() {
             });
           }
         }
+      }
+      if (shouldDebugWord(normalized, wordEntry?.annotation?.baseForm, wordEntry?.annotation?.word)) {
+        logWordDebug('App.handleWordClick:select-existing-card', {
+          selectedWord: normalized,
+          entryKey: wordEntry?.key || null,
+          annotation: wordEntry?.annotation || null,
+        });
       }
       setSelectedWord(normalized);
       return;
@@ -805,6 +896,13 @@ function App() {
               documentTitle: currentDocument.title
             };
             console.log('[Local Dict] Annotation data:', annotationWithContext);
+            if (shouldDebugWord(wordItem.word, annotationWithContext.baseForm, annotationWithContext.word)) {
+              logWordDebug('App.annotateWords:local-result', {
+                surfaceWord: wordItem.word,
+                annotationMode,
+                annotationWithContext,
+              });
+            }
           } else if (annotationMode === 'local-first') {
             // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炴牠顢曢敂钘変罕濠电姴锕ら悧鍡欑矆閸喓绠鹃柛鈩冾殜閻涙粓鏌ら弶鎸庡仴闁哄备鍓濆鍕偓锝庝簽娴滃爼姊洪崫鍕効缂佺姵鎹囧璇差吋婢跺﹦鍘告繛杈剧到閹测€斥枔椤撶儐娓婚柕鍫濆暙閸旀粎绱掔拠鑼ⅵ鐎殿喛顕ч埥澶愬閻樻鍞洪梻浣烘嚀閻°劎鎹㈤崟顖涘剮閹艰揪绲跨壕钘壝归敐鍕煓闁告繆娅ｇ槐鎺旀嫚閹绘帗娈诲Δ鐘靛仜缁绘ê鐣烽妸鈺婃晬婵炴垶顭囬敍蹇涙⒒娓氣偓濞佳団€﹂銏♀挃闁告洦鍋€閺?AI
             console.log(`[Local Dict] Not found "${wordItem.word}", falling back to AI`);
@@ -819,6 +917,13 @@ function App() {
               sentence: wordItem.sentence,
               documentTitle: currentDocument.title
             };
+            if (shouldDebugWord(wordItem.word, annotationWithContext.baseForm, annotationWithContext.word)) {
+              logWordDebug('App.annotateWords:ai-fallback-result', {
+                surfaceWord: wordItem.word,
+                annotationMode,
+                annotationWithContext,
+              });
+            }
           } else {
             // annotationMode === 'local' 婵犵數濮烽弫鎼佸磻閻愬搫鍨傞柛顐ｆ礀缁犱即鎮归崶褎鈻曟繛鍏肩墵閺岋綁鎮㈠畡鎵泿闂佸吋婢橀悘婵嬫箒闂佺绻愰崥瀣礊閹达附鐓欓柣鐔稿閸╋綁鏌″畝瀣埌閾绘牠鏌嶈閸撶喖骞冭缁犳盯骞欓崘鈺冪▉濠德板€х徊浠嬪疮椤栫偞鍋傛繛鍡樻尰閻撴洘銇勯鐔风仴濞存粍绮撻弻娑㈠棘鐠囨祴鍋撳┑瀣摕婵炴垯鍨归悡娑樏归敐鍫燁仩闁告棏鍨跺鐑樻姜閹殿噮妲紓浣割槹閹告娊骞冮幆褉鏀介悗锝庝簽椤︺劌顪冮妶鍛閻庢凹鍓氶幈銊╁即閵忊檧鎷?
             failed++;
@@ -838,6 +943,13 @@ function App() {
             sentence: wordItem.sentence,
             documentTitle: currentDocument.title
           };
+          if (shouldDebugWord(wordItem.word, annotationWithContext.baseForm, annotationWithContext.word)) {
+            logWordDebug('App.annotateWords:ai-result', {
+              surfaceWord: wordItem.word,
+              annotationMode,
+              annotationWithContext,
+            });
+          }
         }
         
         // 婵犵數濮烽弫鎼佸磿閹寸姴绶ら柦妯侯棦濞差亝鏅滈柣鎰靛墮鎼村﹪姊虹粙璺ㄧ伇闁稿鍋ゅ畷鎴﹀Χ婢跺鍘繝鐢靛仧閸嬫挸鈻嶉崨瀛樼厱闁硅埇鍔屾禍楣冩⒒閸屾瑧鍔嶉柟顔肩埣瀹曟洟顢涢悙鑼槷閻庡箍鍎遍ˇ顖毿?
@@ -850,6 +962,14 @@ function App() {
           encounteredForms: Array.from(new Set([wordItem.word, ...(annotationWithContext.encounteredForms || [])])),
           cachedAt,
         }).annotation;
+        if (shouldDebugWord(wordItem.word, canonicalWord, mergedAnnotation.baseForm, mergedAnnotation.word)) {
+          logWordDebug('App.annotateWords:canonicalized', {
+            surfaceWord: wordItem.word,
+            canonicalWord,
+            existingAnnotation: existingAnnotation || null,
+            mergedAnnotation,
+          });
+        }
         addAnnotation(canonicalWord, mergedAnnotation);
         await cacheAnnotation(canonicalWord, mergedAnnotation);
         
@@ -861,7 +981,7 @@ function App() {
         console.log(`[App] Saved default emoji for "${wordItem.word}": ${defaultEmoji}`);
         
         // 濠电姷鏁告慨鐑藉极閹间礁纾块柟瀵稿Х缁€濠囨煃瑜滈崜姘跺Φ閸曨垰鍗抽柛鈩冾殔椤忣亪鏌涘▎蹇曠闁哄矉缍侀獮鍥敆娴ｇ懓鍓电紓鍌欒閸嬫捇鏌涢埄鍐姇闁绘挻绋戦…璺ㄦ崉閻氭潙濮涙繛瀵稿О閸ㄤ粙寮诲☉婊庢Щ闂佹寧娲︽禍顏勵嚕鐠囨祴妲堟俊顖炴敱閻庡姊洪崷顓炲妺闁搞劌銈稿顐﹀垂椤曞懏瀵岄梺闈涚墕濡瑩鎮￠妷锔剧婵炴潙顑嗗▍濠傗攽閿涘嫭鏆鐐叉喘瀵爼宕归鑲┿偖濠碉紕鍋戦崐鏇犳崲閹邦儵娑樷槈閳跺搫娲崺锟犲川椤旇瀚肩紓浣鸿檸閸樺ジ骞婃惔銊﹀亗闁规壆澧楅悡銉︽叏濡潡鍝洪柛鐘冲姍閺岋絽螖閳ь剟鎮ф繝鍥佸宕奸妷锔惧幍濡炪倖妫侀～澶娾枍婵犲洦鐓欓柧蹇ｅ亞閻矂鏌涢悩璇у伐閾伙綁寮堕悙瀛樼凡妞ゃ儲鑹鹃埞鎴︽倷鐎涙ê闉嶉梺鐓庣秺缁犳牠寮崘顔芥櫆闁告挆鍛姸?
-        addToCardHistory('word', wordItem.word);
+        addToCardHistory('word', canonicalWord);
         
         newAnnotations.push(mergedAnnotation);
         successfullyAnnotated.push({ type: 'word', word: wordItem.word });
@@ -881,7 +1001,7 @@ function App() {
         const sentenceText = displayParagraphs[phrase.pIndex].sentences[phrase.sIndex].text;
         
         console.log(`Annotating phrase: "${phrase.text}" in sentence: "${sentenceText}"`);
-        const result = await annotatePhrase(phrase.text, sentenceText, level);
+        const result = await annotatePhrase(phrase.text, sentenceText, level, 'phrase', phraseCardProvider);
         console.log('Phrase annotation result:', result);
         
         if (result.success && result.data) {
@@ -1005,11 +1125,28 @@ function App() {
       addToCardHistory(annotation.cardType || 'phrase', phrase);
     }
   };
+
+  const handleSentenceCardClick = (sentenceText: string) => {
+    const sentenceKey = sentenceText.toLowerCase();
+    const annotation = phraseAnnotations.get(sentenceKey);
+    if (!annotation || (annotation.cardType || 'phrase') !== 'sentence') {
+      return;
+    }
+
+    addToCardHistory('sentence', annotation.phrase || sentenceText);
+    closeCard(`sentence-${sentenceKey}`);
+  };
   
   // Handle context menu (right-click to add bookmark)
-  const handleContextMenu = (e: React.MouseEvent, pIndex: number, sIndex: number) => {
+  const handleContextMenu = (
+    e: React.MouseEvent,
+    pIndex: number,
+    sIndex: number,
+    sentenceText?: string,
+    focusWords?: string[],
+  ) => {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, pIndex, sIndex });
+    setContextMenu({ x: e.clientX, y: e.clientY, pIndex, sIndex, sentenceText, focusWords });
   };
 
   const getAllSentenceLocations = () => {
@@ -1044,13 +1181,27 @@ function App() {
   const createTextCard = async (
     cardType: Exclude<LearningCardType, 'word'>,
     text: string,
-    context: string
+    context: string,
+    options?: {
+      provider?: 'openai' | 'local';
+      focusWords?: string[];
+    }
   ) => {
     if (!currentDocument || !text.trim()) return;
 
+    const resolvedProvider = options?.provider
+      || (cardType === 'sentence' ? sentenceCardProvider : phraseCardProvider);
+
     setIsLoadingAnnotation(true);
     try {
-      const result = await annotatePhrase(text.trim(), context.trim() || text.trim(), level, cardType);
+      const result = await annotatePhrase(
+        text.trim(),
+        context.trim() || text.trim(),
+        level,
+        cardType,
+        resolvedProvider,
+        options?.focusWords,
+      );
       if (!result.success || !result.data) {
         throw new Error(result.error || 'Failed to create card');
       }
@@ -1068,7 +1219,7 @@ function App() {
       await cachePhraseAnnotation(cardData.phrase, cardData);
       addToCardHistory(cardType, cardData.phrase);
 
-      if (cardData.grammarPoints && cardData.grammarPoints.length > 0) {
+      if (cardType !== 'sentence' && cardData.grammarPoints && cardData.grammarPoints.length > 0) {
         for (const point of cardData.grammarPoints) {
           if (!point.text.trim()) continue;
           const grammarData: PhraseAnnotation = {
@@ -1122,7 +1273,18 @@ function App() {
       setVoiceStatus('No current sentence');
       return;
     }
-    void createTextCard('sentence', location.text, location.text);
+    const focusWords = Array.from(
+      new Set(
+        location.sentence.tokens
+          .filter((token: Token) => token.type === 'word')
+          .map((token: Token) => token.text.toLowerCase())
+          .filter((word: string) => markedWords.has(word)),
+      ),
+    );
+    void createTextCard('sentence', location.text, location.text, {
+      provider: sentenceCardProvider,
+      focusWords,
+    });
   };
 
   const handleVoiceCommand = (rawCommand: string) => {
@@ -1276,6 +1438,15 @@ function App() {
               new Set([surfaceWord, canonicalWord, ...(mergedAnnotation.encounteredForms || [])]),
             ),
           };
+          if (shouldDebugWord(surfaceWord, canonicalWord, result.data.baseForm, normalizedMergedAnnotation.baseForm)) {
+            logWordDebug('App.handleRegenerateAI:word-result', {
+              surfaceWord,
+              apiResult: result.data,
+              canonicalWord,
+              existingAnnotation: existingAnnotation || null,
+              normalizedMergedAnnotation,
+            });
+          }
           addAnnotation(canonicalWord, normalizedMergedAnnotation);
           await cacheAnnotation(canonicalWord, normalizedMergedAnnotation);
           if (surfaceWord !== canonicalWord) {
@@ -1288,7 +1459,13 @@ function App() {
           alert('? Failed to regenerate: ' + result.error);
         }
       } else {
-        const result = await annotatePhrase(word, sentence, level, type);
+        const result = await annotatePhrase(
+          word,
+          sentence,
+          level,
+          type,
+          type === 'sentence' ? sentenceCardProvider : phraseCardProvider,
+        );
         if (result.success && result.data) {
           const cachedAt = Date.now();
           const cardData = {
@@ -1311,6 +1488,7 @@ function App() {
             usagePatternChinese: result.data.usagePatternChinese,
             isCommonUsage: result.data.isCommonUsage,
             grammarPoints: result.data.grammarPoints,
+            focusWordNotes: result.data.focusWordNotes,
             sentenceContext: result.data.sentenceContext,
             documentTitle: cardData.documentTitle,
           });
@@ -1340,6 +1518,17 @@ function App() {
     
     setContextMenu(null);
     alert('Bookmark added!');
+  };
+
+  const handleSentenceTranslateAnalyze = async () => {
+    if (!contextMenu?.sentenceText) return;
+    const sentenceText = contextMenu.sentenceText;
+    const focusWords = contextMenu.focusWords || [];
+    setContextMenu(null);
+    await createTextCard('sentence', sentenceText, sentenceText, {
+      provider: sentenceCardProvider,
+      focusWords,
+    });
   };
   
   // Jump to latest bookmark
@@ -1400,38 +1589,66 @@ function App() {
   const handleDeleteFromCards = async (word: string) => {
     try {
       const entry = findAnnotationEntry(annotations, word.toLowerCase());
-      const canonicalWord = entry?.key || word.toLowerCase();
+      const annotation = entry?.annotation as WordAnnotation | undefined;
       const surfaceWord = word.toLowerCase();
+      const canonicalWord =
+        annotation?.word?.toLowerCase() ||
+        entry?.key ||
+        getCanonicalWord(surfaceWord, annotation);
+      const aliasWords = new Set(
+        [
+          surfaceWord,
+          canonicalWord,
+          annotation?.word,
+          annotation?.baseForm,
+          ...(annotation?.encounteredForms || []),
+        ]
+          .map(item => item?.toLowerCase().trim())
+          .filter(Boolean) as string[],
+      );
 
-      // Remove annotation from store
-      removeAnnotation(canonicalWord);
-      if (surfaceWord !== canonicalWord) {
-        removeAnnotation(surfaceWord);
+      for (const [key, candidate] of annotations.entries()) {
+        const candidateAliases = new Set(
+          [
+            key,
+            candidate.word,
+            candidate.baseForm,
+            ...(candidate.encounteredForms || []),
+          ]
+            .map(item => item?.toLowerCase().trim())
+            .filter(Boolean) as string[],
+        );
+
+        const overlaps = Array.from(candidateAliases).some(alias => aliasWords.has(alias));
+        if (overlaps) {
+          aliasWords.add(key.toLowerCase());
+          candidateAliases.forEach(alias => aliasWords.add(alias));
+        }
       }
 
-      // Remove from IndexedDB
-      await deleteAnnotation(canonicalWord);
-      if (surfaceWord !== canonicalWord) {
-        await deleteAnnotation(surfaceWord);
+      for (const alias of aliasWords) {
+        removeAnnotation(alias);
       }
 
-      // Add to known words
-      addKnownWord(surfaceWord);
-      await addKnownWordToDB(surfaceWord);
-      if (surfaceWord !== canonicalWord) {
-        addKnownWord(canonicalWord);
-        await addKnownWordToDB(canonicalWord);
+      for (const alias of aliasWords) {
+        await deleteAnnotation(alias);
       }
 
-      // Close the card and remove from history
-      closeCard(`word-${surfaceWord}`);
-      closeCard(`word-${canonicalWord}`);
-      removeFromCardHistory(surfaceWord);
-      if (surfaceWord !== canonicalWord) {
-        removeFromCardHistory(canonicalWord);
+      for (const alias of aliasWords) {
+        addKnownWord(alias);
+        await addKnownWordToDB(alias);
       }
 
-      console.log(`Deleted "${surfaceWord}" (canonical: "${canonicalWord}") from cards and added to known words`);
+      for (const alias of aliasWords) {
+        closeCard(`word-${alias}`);
+        removeFromCardHistory(alias);
+      }
+
+      if (selectedWord && aliasWords.has(selectedWord.toLowerCase())) {
+        setSelectedWord(null);
+      }
+
+      console.log(`Deleted word card aliases: ${Array.from(aliasWords).join(', ')}`);
     } catch (error) {
       console.error('Failed to delete from cards:', error);
     }
@@ -1439,12 +1656,13 @@ function App() {
 
   const handleDeletePhraseFromCards = async (phrase: string) => {
     const normalized = phrase.toLowerCase();
+    const cardType = phraseAnnotations.get(normalized)?.cardType || 'phrase';
     setPhraseAnnotations(prev => {
       const next = new Map(prev);
       next.delete(normalized);
       return next;
     });
-    closeCard(`phrase-${normalized}`);
+    closeCard(`${cardType}-${normalized}`);
     setAnnotatedPhraseRanges(prev => prev.filter(r => r.phrase !== normalized));
     await deletePhraseAnnotation(phrase);
     removeFromCardHistory(phrase);
@@ -1723,11 +1941,14 @@ ${sortedWords.join(' ')}
     newPhraseAnnotations.forEach(item => {
       phraseMap.set(item.phrase, {
         phrase: item.phrase,
+        cardType: item.cardType || 'phrase',
         chinese: item.chinese,
         explanation: item.explanation,
         usagePattern: item.usagePattern,
         usagePatternChinese: item.usagePatternChinese,
         isCommonUsage: item.isCommonUsage,
+        grammarPoints: item.grammarPoints,
+        focusWordNotes: item.focusWordNotes,
         sentenceContext: item.sentenceContext,
         documentTitle: item.documentTitle,
         cachedAt: item.cachedAt,
@@ -1811,6 +2032,8 @@ ${sortedWords.join(' ')}
       level,
       autoMark,
       annotationMode,
+      phraseCardProvider,
+      sentenceCardProvider,
       autoPronounceSetting,
       autoShowCardOnPlay,
       speechRate,
@@ -1986,6 +2209,12 @@ ${sortedWords.join(' ')}
             activeMeaningId: item.activeMeaningId,
             cachedAt: item.cachedAt,
           };
+          if (shouldDebugWord(item.word, item.baseForm, annotation.word, annotation.baseForm)) {
+            logWordDebug('App.loadCachedAnnotations:item', {
+              cachedItem: item,
+              hydratedAnnotation: annotation,
+            });
+          }
           addAnnotation(item.word, annotation);
         });
         if (cached.length > 0) {
@@ -2028,6 +2257,7 @@ ${sortedWords.join(' ')}
             usagePatternChinese: item.usagePatternChinese,
             isCommonUsage: item.isCommonUsage,
             grammarPoints: item.grammarPoints,
+            focusWordNotes: item.focusWordNotes,
             sentenceContext: item.sentenceContext,
             documentTitle: item.documentTitle,  // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鍨鹃幇浣圭稁缂傚倷鐒﹁摫闁告瑥绻橀弻鐔碱敍閿濆洣姹楅悷婊呭鐢帡鎮欐繝鍐︿簻闁瑰搫妫楁禍鎯р攽閳藉棗浜濋柨鏇樺灲瀵鈽夐姀鐘栥劑鏌曡箛濠傚⒉闁绘繃鐗犻幃宄邦煥閸曨剛鍑″┑鐐点€嬬换婵嗩嚕婵犳艾鐏抽柟棰佺閹垿姊洪崨濠佺繁闁哥姵鐗犲鎼佹偐瀹割喗瀵?
             cachedAt: item.cachedAt,
@@ -2338,7 +2568,11 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                 if (findAnnotationEntry(annotations, word)) {
                   // Only show if not marked as known/learnt
                   if (!learntWords.has(word)) {
-                    addToCardHistory('word', word);
+                    const entry = findAnnotationEntry(annotations, word);
+                    const canonicalHistoryWord =
+                      (entry?.annotation as WordAnnotation | undefined)?.word?.toLowerCase() ||
+                      getCanonicalWord(entry?.key || word, entry?.annotation as WordAnnotation | undefined);
+                    addToCardHistory('word', canonicalHistoryWord);
                   }
                 }
                 
@@ -2691,8 +2925,17 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
           >
             {item.type === 'word' ? (
               <div className="flex items-center gap-2 flex-wrap">
+                {(() => {
+                  const wordAnnotation = annotation as WordAnnotation;
+                  const collapsedLemmaWord =
+                    wordAnnotation.baseForm?.trim().toLowerCase() ||
+                    getCanonicalWord(wordAnnotation.word, wordAnnotation);
+                  const encounteredSurfaceForms = getEncounteredSurfaceForms(wordAnnotation, item.word);
+
+                  return (
+                    <>
                 <div
-                  className="w-10 h-10 flex-shrink-0 flex items-center justify-center text-2xl bg-gray-100 rounded hover:ring-2 hover:ring-blue-300 transition-all"
+                  className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-xl bg-gray-100 rounded hover:ring-2 hover:ring-blue-300 transition-all"
                   onClick={(e) => {
                     openCollapsedWebMenu(e, item.word);
                   }}
@@ -2739,20 +2982,24 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   )}
                 </div>
 
-                <span className="font-bold text-sm flex-shrink-0">{item.word}</span>
+                <div className="min-w-0 flex-shrink">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-sm flex-shrink-0">{collapsedLemmaWord}</span>
+                  </div>
+                </div>
 
-                {(annotation as WordAnnotation).ipa && (
+                {wordAnnotation.ipa && (
                   <span
                     className="text-xs text-blue-600 cursor-pointer hover:underline flex-shrink-0"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const utterance = new SpeechSynthesisUtterance(item.word);
+                      const utterance = new SpeechSynthesisUtterance(collapsedLemmaWord);
                       utterance.lang = 'en-US';
                       utterance.rate = 0.9;
                       window.speechSynthesis.speak(utterance);
                     }}
                   >
-                    /{(annotation as WordAnnotation).ipa}/
+                    /{wordAnnotation.ipa}/
                   </span>
                 )}
 
@@ -2774,20 +3021,24 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                   }}
                   title={hiddenTranslations.has(cardKey) ? 'Click to show translation' : 'Click to hide translation'}
                 >
-                  {hiddenTranslations.has(cardKey) ? '......' : (annotation as WordAnnotation).chinese}
+                  {hiddenTranslations.has(cardKey) ? '......' : wordAnnotation.chinese}
                 </span>
 
                 <button
                   onClick={async (e) => {
                     e.stopPropagation();
-                    const sentence = (annotation as WordAnnotation).sentence;
-                    await handleRegenerateAI(item.word, sentence || '', 'word');
+                    const sentence = wordAnnotation.sentence;
+                    const regenerateWord = encounteredSurfaceForms[0] || wordAnnotation.word;
+                    await handleRegenerateAI(regenerateWord, sentence || '', 'word');
                   }}
                   className="text-xs px-1.5 py-0.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
                   title="Re-generate with AI"
                 >
                   AI
                 </button>
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <div className="flex flex-col gap-1">
@@ -3336,13 +3587,16 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
                       annotations={annotations}
                       phraseAnnotations={phraseAnnotations}
                       phraseTranslationInserts={phraseTranslationInserts}
+                      sentenceCardKeys={sentenceCardKeys}
                       showIPA={showIPA}
                       showChinese={showChinese}
                       autoMark={autoMark}
                       autoPronounceSetting={autoPronounceSetting}
                       onWordClick={handleWordClick}
                       onPhraseClick={handlePhraseClick}
+                      onSentenceCardClick={handleSentenceCardClick}
                       onMarkKnown={handleMarkKnown}
+                      onSentenceContextMenu={(e, payload) => handleContextMenu(e, payload.pIndex, payload.sIndex, payload.text, payload.focusWords)}
                       onParagraphAction={handleParagraphAction}
                       currentSentenceIndex={currentSentenceIndex}
                       currentWordIndex={currentWordIndex}
@@ -3863,6 +4117,84 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
               </div>
             </div>
 
+            <div className="mb-6 p-4 border border-border rounded-lg">
+              <h3 className="text-sm font-bold mb-3">Sentence Card AI Provider</h3>
+              <div className="text-xs text-muted mb-3">
+                Right-click a sentence and choose `Translate & Analyze`. The analysis is written in English, while the sentence translation stays in Chinese.
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-start gap-3 p-3 border border-border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="sentenceCardProvider"
+                    value="local"
+                    checked={sentenceCardProvider === 'local'}
+                    onChange={(e) => setSentenceCardProvider(e.target.value as 'openai' | 'local')}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm">Local Qwen 2.5 7B</div>
+                    <div className="text-xs text-muted">Use the local Ollama model for sentence translation and grammar analysis.</div>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 border border-border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="sentenceCardProvider"
+                    value="openai"
+                    checked={sentenceCardProvider === 'openai'}
+                    onChange={(e) => setSentenceCardProvider(e.target.value as 'openai' | 'local')}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm">OpenAI API</div>
+                    <div className="text-xs text-muted">Use the cloud API for sentence cards when you want stronger analysis quality.</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="mb-6 p-4 border border-border rounded-lg">
+              <h3 className="text-sm font-bold mb-3">Phrase Card AI Provider</h3>
+              <div className="text-xs text-muted mb-3">
+                Controls phrase, grammar, and paragraph card generation. Switch this to OpenAI if the local model is too slow.
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-start gap-3 p-3 border border-border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="phraseCardProvider"
+                    value="openai"
+                    checked={phraseCardProvider === 'openai'}
+                    onChange={(e) => setPhraseCardProvider(e.target.value as 'openai' | 'local')}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm">OpenAI API</div>
+                    <div className="text-xs text-muted">Faster and generally better for phrase cards if you have API access.</div>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 border border-border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="phraseCardProvider"
+                    value="local"
+                    checked={phraseCardProvider === 'local'}
+                    onChange={(e) => setPhraseCardProvider(e.target.value as 'openai' | 'local')}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <div className="font-semibold text-sm">Local Qwen 2.5 7B</div>
+                    <div className="text-xs text-muted">Uses the local Ollama model. No API cost, but slower on longer phrase analysis.</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* Dictionary Info */}
             <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="text-sm font-semibold text-blue-900 mb-1">Local Dictionary Status</div>
@@ -4151,6 +4483,16 @@ The old manor house stood silent on the hill, its windows dark and unwelcoming. 
             className="fixed z-50 bg-white border-2 border-gray-300 rounded-lg shadow-2xl py-1 min-w-[160px]"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
+            {contextMenu.sentenceText && (
+              <button
+                onClick={() => {
+                  void handleSentenceTranslateAnalyze();
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                Translate & Analyze
+              </button>
+            )}
             <button
               onClick={handleAddBookmark}
               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"

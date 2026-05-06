@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { updateEmoji, addEmojiImagePathToActiveMeaning, setActiveMeaning, addManualMeaning, updateActiveMeaningDetails } from '../db';
 import { getWordEmoji, getAllEmojiKeywords, getDetailedPartOfSpeech } from '../utils/emojiHelper';
 import { useAppStore } from '../store/appStore';
-import { applyMeaningToAnnotation, ensureEncounteredMeanings, getActiveMeaning } from '../utils/wordMeanings';
+import { applyMeaningToAnnotation, ensureEncounteredMeanings, getActiveMeaning, getCanonicalWord, getEncounteredSurfaceForms } from '../utils/wordMeanings';
+import { logWordDebug, shouldDebugWord } from '../utils/wordDebug';
 import CardNotes from './CardNotes';
 
 interface WordCardProps {
@@ -49,7 +50,39 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
   const [manualFieldLoading, setManualFieldLoading] = useState<'definition' | 'example' | 'wordForms' | null>(null);
   const annotationWithMeanings = ensureEncounteredMeanings(annotation);
   const activeMeaning = getActiveMeaning(annotationWithMeanings);
-  const shownWord = displayWord || annotation.word;
+  const fallbackLemmaWord = getCanonicalWord(annotation.word, annotation);
+  const lemmaWord = annotation.baseForm?.trim().toLowerCase() || fallbackLemmaWord;
+  const preferredSurfaceForm = displayWord || annotation.word;
+  const encounteredSurfaceForms = getEncounteredSurfaceForms(annotationWithMeanings, preferredSurfaceForm);
+  const primarySurfaceForm = encounteredSurfaceForms[0] || '';
+  const normalizedIpa = annotation.ipa.replace(/^\/+|\/+$/g, '');
+  const regenerateWord = primarySurfaceForm || lemmaWord;
+
+  useEffect(() => {
+    if (!shouldDebugWord(displayWord, annotation.word, annotation.baseForm, lemmaWord, primarySurfaceForm)) {
+      return;
+    }
+
+    logWordDebug('WordCard.render-state', {
+      displayWord: displayWord || null,
+      annotationWord: annotation.word,
+      annotationBaseForm: annotation.baseForm || null,
+      lemmaWord,
+      primarySurfaceForm: primarySurfaceForm || null,
+      encounteredSurfaceForms,
+      partOfSpeech: annotation.partOfSpeech,
+      activeMeaning,
+    });
+  }, [
+    displayWord,
+    annotation.word,
+    annotation.baseForm,
+    annotation.partOfSpeech,
+    lemmaWord,
+    primarySurfaceForm,
+    encounteredSurfaceForms,
+    activeMeaning,
+  ]);
 
   // 组件加载时，确定显示哪个 emoji
   useEffect(() => {
@@ -100,7 +133,7 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
   };
 
   const handlePronounce = () => {
-    const utterance = new SpeechSynthesisUtterance(shownWord);
+    const utterance = new SpeechSynthesisUtterance(lemmaWord);
     utterance.lang = 'en-US';
     utterance.rate = 0.9;
     window.speechSynthesis.speak(utterance);
@@ -736,11 +769,12 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
                 </div>
               )}
             </div>
-            <span>
-              {shownWord}
-              {annotation.baseForm && (
-                <span className="text-sm text-gray-500 font-normal ml-2">
-                  (from: {annotation.baseForm})
+            <span className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1">
+              <span>{lemmaWord}</span>
+              {primarySurfaceForm && (
+                <span className="text-sm text-gray-500 font-normal">
+                  {primarySurfaceForm}
+                  {normalizedIpa && <span className="ml-1">/{normalizedIpa}/</span>}
                 </span>
               )}
             </span>
@@ -765,18 +799,25 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
           )}
           <div className="flex items-center justify-center gap-3 mt-1">
             {/* Clickable IPA for pronunciation */}
-            <button
-              onClick={handlePronounce}
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors"
-              title="Click to pronounce"
-            >
-              /{annotation.ipa.replace(/^\/+|\/+$/g, '')}/
-            </button>
+            {!primarySurfaceForm && normalizedIpa && (
+              <button
+                onClick={handlePronounce}
+                className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors"
+                title="Click to pronounce"
+              >
+                /{normalizedIpa}/
+              </button>
+            )}
             <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-semibold">
               {annotation.level}
             </span>
             <span className="text-xs text-gray-600 font-medium">{getDetailedPartOfSpeech(annotation)}</span>
           </div>
+          {encounteredSurfaceForms.length > 0 && (
+            <div className="mt-2 text-xs text-gray-500">
+              Seen as: {encounteredSurfaceForms.join(', ')}
+            </div>
+          )}
           <div className="mt-2 flex items-center justify-center gap-2">
             <button
               onClick={() => {
@@ -797,8 +838,8 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (confirm(`Delete "${annotation.word}" from cards and add to known words?`)) {
-                  onDelete(shownWord);
+                if (confirm(`Delete "${lemmaWord}" from cards and add to known words?`)) {
+                  onDelete(lemmaWord);
                 }
               }}
               className="text-gray-400 hover:text-red-600 text-lg leading-none px-2"
@@ -1022,7 +1063,7 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
         <div className="text-lg text-gray-900 flex-1">{annotation.chinese}</div>
         {onRegenerateAI && (
           <button
-            onClick={() => onRegenerateAI(shownWord, annotation.sentence || '')}
+            onClick={() => onRegenerateAI(regenerateWord, annotation.sentence || '')}
             className="text-xs px-2 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded border border-purple-200 flex-shrink-0"
             title="Re-generate with AI"
           >
@@ -1098,7 +1139,7 @@ export default function WordCard({ annotation, displayWord, isLearnt, onClose, o
       <CardNotes
         cardType="word"
         cardKey={annotation.word.toLowerCase()}
-        cardText={shownWord}
+        cardText={lemmaWord}
         context={annotation.sentence}
       />
     </div>
