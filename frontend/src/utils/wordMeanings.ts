@@ -39,6 +39,11 @@ export function getCanonicalWord(
     return surface;
   }
 
+  // Fall back to the lemma for common inflected/participle surfaces even when POS is noisy.
+  if (/(ed|en|ing)$/.test(surface)) {
+    return baseForm;
+  }
+
   // Only reuse the lemma when the inflection pattern is high-confidence.
   if (pos === 'verb') {
     return baseForm;

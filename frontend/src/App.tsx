@@ -572,13 +572,7 @@ function App() {
     const hasCard = wordEntry && (wordEntry.annotation as any)?.definition;
     if (hasCard) {
       const annotation = wordEntry?.annotation as WordAnnotation | undefined;
-      const looksLikeUnrepairedLemma =
-        annotation &&
-        annotation.word === normalized &&
-        annotation.baseForm === normalized &&
-        (!annotation.partOfSpeech || annotation.partOfSpeech === 'unknown');
-
-      if (looksLikeUnrepairedLemma) {
+      if (annotation) {
         void (async () => {
           const repaired = await localDictionary.lookup(normalized);
           if (!repaired) {
@@ -588,7 +582,7 @@ function App() {
           const repairedCanonicalWord = getCanonicalWord(normalized, repaired);
           if (
             repaired.baseForm === annotation.baseForm &&
-            repairedCanonicalWord === normalized &&
+            repairedCanonicalWord === annotation.word.toLowerCase() &&
             repaired.partOfSpeech === annotation.partOfSpeech
           ) {
             return;
@@ -613,6 +607,11 @@ function App() {
               repaired,
               repairedAnnotation,
             });
+          }
+
+          if (wordEntry?.key && wordEntry.key !== repairedCanonicalWord && wordEntry.key !== normalized) {
+            removeAnnotation(wordEntry.key);
+            await deleteAnnotation(wordEntry.key);
           }
 
           addAnnotation(repairedCanonicalWord, repairedAnnotation);
