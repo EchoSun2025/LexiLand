@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react';
 import './SpeechApp.css';
 import {
   createSpeechSession,
@@ -17,6 +17,23 @@ import { SpeechRealtimeTranscriber } from './speechRealtime';
 
 const DEFAULT_SPEAKER_TAGS = ['Teacher', 'Student A', 'Student B', 'Me'];
 const MAX_SPEECH_CARDS = 3;
+const SPEAKER_TONES = [
+  { color: '#8a5b35', backgroundColor: 'rgba(232, 210, 190, 0.42)' },
+  { color: '#21646e', backgroundColor: 'rgba(191, 229, 235, 0.42)' },
+  { color: '#556a1c', backgroundColor: 'rgba(218, 234, 184, 0.45)' },
+  { color: '#7c3362', backgroundColor: 'rgba(235, 199, 223, 0.42)' },
+  { color: '#934b1a', backgroundColor: 'rgba(248, 211, 180, 0.44)' },
+] as const;
+
+type TranscriptScope = 'draft' | 'session';
+
+type TranscriptContextMenuState = {
+  scope: TranscriptScope;
+  lineId: string;
+  x: number;
+  y: number;
+  cursorPos: number;
+};
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
@@ -40,6 +57,14 @@ function formatTimestamp(ms: number | null) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function getSpeakerTone(index: number): CSSProperties {
+  const tone = SPEAKER_TONES[index % SPEAKER_TONES.length];
+  return {
+    color: tone.color,
+    backgroundColor: tone.backgroundColor,
+  };
 }
 
 function groupSessionsByDate(sessions: SpeechSession[]) {
@@ -80,9 +105,7 @@ function createLine(input: Partial<TranscriptLine> = {}): TranscriptLine {
 }
 
 function normalizeSpeakerTags(tags: string[]) {
-  const cleaned = tags
-    .map(tag => tag.trim())
-    .filter(Boolean);
+  const cleaned = tags.map(tag => tag.trim()).filter(Boolean);
   const unique = Array.from(new Set(cleaned)).slice(0, 8);
   return unique.length > 0 ? unique : [...DEFAULT_SPEAKER_TAGS];
 }
@@ -92,9 +115,7 @@ function normalizeLines(lines: TranscriptLine[], speakerTags: string[]) {
   return lines
     .map((line, index) => {
       const text = line.text.trim();
-      if (!text) {
-        return null;
-      }
+      if (!text) return null;
 
       const fallbackTag = tags[Math.min(index, tags.length - 1)] || tags[0] || DEFAULT_SPEAKER_TAGS[0];
       return createLine({
@@ -118,6 +139,39 @@ function replaceTag(lines: TranscriptLine[], previousTag: string, nextTag: strin
       ? { ...line, speakerTag: nextTag }
       : line
   ));
+}
+
+function resizeTextarea(element: HTMLTextAreaElement | null) {
+  if (!element) return;
+  element.style.height = '0px';
+  element.style.height = `${Math.max(element.scrollHeight, 22)}px`;
+}
+
+function splitLineAtCursor(lines: TranscriptLine[], lineId: string, cursorPos: number) {
+  const index = lines.findIndex(line => line.id === lineId);
+  if (index < 0) return lines;
+
+  const line = lines[index];
+  const safeCursor = Math.max(0, Math.min(cursorPos, line.text.length));
+  const before = line.text.slice(0, safeCursor).trimEnd();
+  const after = line.text.slice(safeCursor).trimStart();
+  const currentText = before || line.text.trim();
+  const nextText = before && after ? after : '';
+
+  const nextLine = createLine({
+    speakerTag: line.speakerTag,
+    text: nextText,
+    startMs: line.endMs ?? line.startMs,
+    endMs: line.endMs,
+    source: 'manual',
+  });
+
+  return [
+    ...lines.slice(0, index),
+    { ...line, text: currentText },
+    nextLine,
+    ...lines.slice(index + 1),
+  ];
 }
 
 function useSessionEditor(session: SpeechSession | null) {
@@ -178,6 +232,7 @@ function SpeechApp() {
   const [draftLines, setDraftLines] = useState<TranscriptLine[]>([]);
   const [newDraftTag, setNewDraftTag] = useState('');
   const [newSessionTag, setNewSessionTag] = useState('');
+  const [contextMenu, setContextMenu] = useState<TranscriptContextMenuState | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -248,6 +303,27 @@ function SpeechApp() {
       realtimeRef.current?.stop({ silent: true });
     };
   }, [recordedAudioUrl]);
+
+  useEffect(() => {
+    if (!contextMenu) return undefined;
+
+    const closeMenu = () => setContextMenu(null);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setContextMenu(null);
+      }
+    };
+
+    window.addEventListener('click', closeMenu);
+    window.addEventListener('scroll', closeMenu, true);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('click', closeMenu);
+      window.removeEventListener('scroll', closeMenu, true);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [contextMenu]);
 
   function currentRecordingOffsetMs() {
     if (recordStartedAtRef.current === null) return null;
@@ -359,7 +435,7 @@ function SpeechApp() {
             speechStartedAtRef.current = null;
             speechStoppedAtRef.current = null;
           },
-          onEvent: (eventName) => {
+          onEvent: eventName => {
             if (eventName === 'speech started') {
               speechStartedAtRef.current = currentRecordingOffsetMs();
             }
@@ -406,30 +482,13 @@ function SpeechApp() {
     )));
   }
 
-  function addDraftLine(afterLineId?: string) {
-    setDraftLines(previous => {
-      const nextLine = createLine({
+  function addDraftLine() {
+    setDraftLines(previous => [
+      ...previous,
+      createLine({
         speakerTag: draftSpeakerTags[0] || DEFAULT_SPEAKER_TAGS[0],
-      });
-      if (!afterLineId) {
-        return [...previous, nextLine];
-      }
-
-      const index = previous.findIndex(line => line.id === afterLineId);
-      if (index < 0) {
-        return [...previous, nextLine];
-      }
-
-      return [
-        ...previous.slice(0, index + 1),
-        nextLine,
-        ...previous.slice(index + 1),
-      ];
-    });
-  }
-
-  function removeDraftLine(lineId: string) {
-    setDraftLines(previous => previous.filter(line => line.id !== lineId));
+      }),
+    ]);
   }
 
   function addDraftSpeakerTag() {
@@ -470,31 +529,13 @@ function SpeechApp() {
     sessionEditor.setDirty(true);
   }
 
-  function addSessionLine(afterLineId?: string) {
-    sessionEditor.setLines(previous => {
-      const nextLine = createLine({
+  function addSessionLine() {
+    sessionEditor.setLines(previous => [
+      ...previous,
+      createLine({
         speakerTag: sessionEditor.speakerTags[0] || DEFAULT_SPEAKER_TAGS[0],
-      });
-      if (!afterLineId) {
-        return [...previous, nextLine];
-      }
-
-      const index = previous.findIndex(line => line.id === afterLineId);
-      if (index < 0) {
-        return [...previous, nextLine];
-      }
-
-      return [
-        ...previous.slice(0, index + 1),
-        nextLine,
-        ...previous.slice(index + 1),
-      ];
-    });
-    sessionEditor.setDirty(true);
-  }
-
-  function removeSessionLine(lineId: string) {
-    sessionEditor.setLines(previous => previous.filter(line => line.id !== lineId));
+      }),
+    ]);
     sessionEditor.setDirty(true);
   }
 
@@ -528,6 +569,69 @@ function SpeechApp() {
       return nextTags;
     });
     sessionEditor.setDirty(true);
+  }
+
+  function openTranscriptContextMenu(
+    scope: TranscriptScope,
+    line: TranscriptLine,
+    event: ReactMouseEvent<HTMLElement>,
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const target = event.target as HTMLTextAreaElement | HTMLElement;
+    const cursorPos = target instanceof HTMLTextAreaElement
+      ? target.selectionStart ?? line.text.length
+      : line.text.length;
+
+    setContextMenu({
+      scope,
+      lineId: line.id,
+      x: event.clientX,
+      y: event.clientY,
+      cursorPos,
+    });
+  }
+
+  function splitDraftLine(lineId: string, cursorPos: number) {
+    setDraftLines(previous => splitLineAtCursor(previous, lineId, cursorPos));
+    setContextMenu(null);
+  }
+
+  function deleteDraftLine(lineId: string) {
+    setDraftLines(previous => previous.filter(line => line.id !== lineId));
+    setContextMenu(null);
+  }
+
+  function assignDraftSpeaker(lineId: string, speakerTag: string) {
+    setDraftLines(previous => previous.map(line => (
+      line.id === lineId
+        ? { ...line, speakerTag }
+        : line
+    )));
+    setContextMenu(null);
+  }
+
+  function splitSessionLine(lineId: string, cursorPos: number) {
+    sessionEditor.setLines(previous => splitLineAtCursor(previous, lineId, cursorPos));
+    sessionEditor.setDirty(true);
+    setContextMenu(null);
+  }
+
+  function deleteSessionLine(lineId: string) {
+    sessionEditor.setLines(previous => previous.filter(line => line.id !== lineId));
+    sessionEditor.setDirty(true);
+    setContextMenu(null);
+  }
+
+  function assignSessionSpeaker(lineId: string, speakerTag: string) {
+    sessionEditor.setLines(previous => previous.map(line => (
+      line.id === lineId
+        ? { ...line, speakerTag }
+        : line
+    )));
+    sessionEditor.setDirty(true);
+    setContextMenu(null);
   }
 
   async function handleCreateSession() {
@@ -674,17 +778,17 @@ function SpeechApp() {
     onRemove: (tag: string) => void,
   ) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div className="flex flex-wrap gap-2">
-          {speakerTags.map(tag => (
-            <div key={tag} className="speech-tag-chip">
+          {speakerTags.map((tag, index) => (
+            <div key={tag} className="speech-tag-chip" style={getSpeakerTone(index)}>
               <input
                 value={tag}
                 onChange={event => onRename(tag, event.target.value)}
                 className="speech-tag-input"
               />
               <button type="button" className="speech-tag-remove" onClick={() => onRemove(tag)}>
-                ×
+                x
               </button>
             </div>
           ))}
@@ -699,11 +803,11 @@ function SpeechApp() {
                 onAdd();
               }
             }}
-            placeholder="Add speaker tag"
+            placeholder="Add tag"
             className="speech-inline-input"
           />
           <button type="button" className="speech-soft-button" onClick={onAdd}>
-            Add Tag
+            Add
           </button>
         </div>
       </div>
@@ -711,65 +815,121 @@ function SpeechApp() {
   }
 
   function renderTranscriptLines(
+    scope: TranscriptScope,
     lines: TranscriptLine[],
     speakerTags: string[],
     onLineChange: (lineId: string, patch: Partial<TranscriptLine>) => void,
-    onAddLine: (afterLineId?: string) => void,
-    onRemoveLine: (lineId: string) => void,
     onSeek: (line: TranscriptLine) => void,
   ) {
     if (lines.length === 0) {
       return (
-        <div className="rounded-3xl border border-dashed border-stone-300 bg-stone-50/80 px-4 py-6 text-sm text-stone-500">
-          No lines yet. Record some speech or add the first line manually.
-        </div>
+        <button
+          type="button"
+          className="speech-empty-lines"
+          onClick={() => {
+            if (scope === 'draft') {
+              addDraftLine();
+            } else {
+              addSessionLine();
+            }
+          }}
+        >
+          No lines yet. Click to add the first line.
+        </button>
       );
     }
 
     return (
-      <div className="space-y-3">
-        {lines.map(line => (
-          <div key={line.id} className="speech-line">
-            <div className="speech-line-speaker">
-              <select
-                value={line.speakerTag}
-                onChange={event => onLineChange(line.id, { speakerTag: event.target.value })}
-                className="speech-line-select"
-              >
-                {speakerTags.map(tag => (
-                  <option key={tag} value={tag}>{tag}</option>
-                ))}
-              </select>
-              <button
-                type="button"
-                className="speech-time-link"
-                onClick={() => onSeek(line)}
-                disabled={line.startMs === null}
-              >
-                {formatTimestamp(line.startMs)}
-              </button>
-            </div>
-            <div className="speech-line-body">
+      <div className="space-y-2">
+        {lines.map(line => {
+          const tagIndex = Math.max(0, speakerTags.indexOf(line.speakerTag));
+          return (
+            <div
+              key={line.id}
+              className="speech-line"
+              onContextMenu={event => openTranscriptContextMenu(scope, line, event)}
+            >
+              <div className="speech-line-meta">
+                <span className="speech-line-tag" style={getSpeakerTone(tagIndex)}>
+                  {line.speakerTag}
+                </span>
+                <button
+                  type="button"
+                  className="speech-time-link"
+                  onClick={() => onSeek(line)}
+                  disabled={line.startMs === null}
+                >
+                  {formatTimestamp(line.startMs)}
+                </button>
+              </div>
               <textarea
                 value={line.text}
                 onChange={event => onLineChange(line.id, { text: event.target.value })}
+                onInput={event => resizeTextarea(event.currentTarget)}
+                ref={resizeTextarea}
+                onContextMenu={event => openTranscriptContextMenu(scope, line, event)}
                 className="speech-line-textarea"
-                rows={2}
+                rows={1}
               />
-              <div className="speech-line-actions">
-                <button type="button" className="speech-soft-button" onClick={() => onAddLine(line.id)}>
-                  Add Line
-                </button>
-                <button type="button" className="speech-soft-button" onClick={() => onRemoveLine(line.id)}>
-                  Remove
-                </button>
-                <div className="text-xs text-stone-400">
-                  {line.endMs !== null ? `to ${formatTimestamp(line.endMs)}` : 'time pending'}
-                </div>
-              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+      </div>
+    );
+  }
+
+  function renderTranscriptContextMenu() {
+    if (!contextMenu) return null;
+
+    const speakerTags = contextMenu.scope === 'draft' ? draftSpeakerTags : sessionEditor.speakerTags;
+    const onSplit = () => {
+      if (contextMenu.scope === 'draft') {
+        splitDraftLine(contextMenu.lineId, contextMenu.cursorPos);
+        return;
+      }
+      splitSessionLine(contextMenu.lineId, contextMenu.cursorPos);
+    };
+    const onDelete = () => {
+      if (contextMenu.scope === 'draft') {
+        deleteDraftLine(contextMenu.lineId);
+        return;
+      }
+      deleteSessionLine(contextMenu.lineId);
+    };
+    const onAssignSpeaker = (speakerTag: string) => {
+      if (contextMenu.scope === 'draft') {
+        assignDraftSpeaker(contextMenu.lineId, speakerTag);
+        return;
+      }
+      assignSessionSpeaker(contextMenu.lineId, speakerTag);
+    };
+
+    return (
+      <div
+        className="speech-context-menu"
+        style={{ left: contextMenu.x, top: contextMenu.y }}
+        onClick={event => event.stopPropagation()}
+      >
+        <button type="button" className="speech-context-item" onClick={onSplit}>
+          Split here
+        </button>
+        <button type="button" className="speech-context-item is-danger" onClick={onDelete}>
+          Delete line
+        </button>
+        <div className="speech-context-label">Speaker</div>
+        <div className="speech-context-speakers">
+          {speakerTags.map((tag, index) => (
+            <button
+              key={tag}
+              type="button"
+              className="speech-context-speaker"
+              style={getSpeakerTone(index)}
+              onClick={() => onAssignSpeaker(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
       </div>
     );
   }
@@ -881,12 +1041,7 @@ function SpeechApp() {
 
                   <div className="flex-1">
                     {recordedAudioUrl ? (
-                      <audio
-                        ref={draftAudioRef}
-                        controls
-                        className="w-full min-w-0"
-                        src={recordedAudioUrl}
-                      />
+                      <audio ref={draftAudioRef} controls className="w-full min-w-0" src={recordedAudioUrl} />
                     ) : (
                       <div className="h-14 rounded-2xl border border-stone-200 bg-white/70" />
                     )}
@@ -902,7 +1057,7 @@ function SpeechApp() {
                     <div className="text-xs uppercase tracking-[0.16em] text-stone-500">speaker mode later</div>
                   </div>
                   <div className="mt-2 text-sm text-stone-600">
-                    First version keeps manual speaker tags now and leaves room for future diarization.
+                    Right-click a line to split it, switch speaker, or delete it.
                   </div>
                   {realtimeInterim.trim() && (
                     <div className="mt-4 rounded-2xl bg-white/85 px-4 py-3 text-sm italic text-stone-700">
@@ -914,19 +1069,14 @@ function SpeechApp() {
             </section>
 
             <section className="speech-card mb-6 p-6">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <div className="text-lg font-semibold text-stone-900">Draft Transcript</div>
-                  <div className="mt-1 text-sm text-stone-500">
-                    Each line keeps a manual speaker tag and a coarse audio timestamp for jump-back playback.
-                  </div>
+              <div>
+                <div className="text-lg font-semibold text-stone-900">Draft Transcript</div>
+                <div className="mt-1 text-sm text-stone-500">
+                  Compact classroom-note layout. Speaker tag and time stay small; the line text stays dense.
                 </div>
-                <button type="button" className="speech-soft-button" onClick={() => addDraftLine()}>
-                  Add First Line
-                </button>
               </div>
 
-              <div className="mt-5">
+              <div className="mt-4">
                 {renderSpeakerTags(
                   draftSpeakerTags,
                   newDraftTag,
@@ -939,11 +1089,10 @@ function SpeechApp() {
 
               <div className="mt-5">
                 {renderTranscriptLines(
+                  'draft',
                   draftLines,
                   draftSpeakerTags,
                   updateDraftLine,
-                  addDraftLine,
-                  removeDraftLine,
                   line => seekAudio(draftAudioRef.current, line.startMs),
                 )}
               </div>
@@ -1001,19 +1150,14 @@ function SpeechApp() {
                   </div>
 
                   <div className="speech-card p-6">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div>
-                        <div className="text-lg font-semibold text-stone-900">Transcript Lines</div>
-                        <div className="mt-1 text-sm text-stone-500">
-                          Left column stays narrow for speaker tags. Timestamp buttons jump back to the original audio.
-                        </div>
+                    <div>
+                      <div className="text-lg font-semibold text-stone-900">Transcript Lines</div>
+                      <div className="mt-1 text-sm text-stone-500">
+                        Right-click a line to split, switch speaker, or delete it.
                       </div>
-                      <button type="button" className="speech-soft-button" onClick={() => addSessionLine()}>
-                        Add Line
-                      </button>
                     </div>
 
-                    <div className="mt-5">
+                    <div className="mt-4">
                       {renderSpeakerTags(
                         sessionEditor.speakerTags,
                         newSessionTag,
@@ -1026,11 +1170,10 @@ function SpeechApp() {
 
                     <div className="mt-5">
                       {renderTranscriptLines(
+                        'session',
                         sessionEditor.lines,
                         sessionEditor.speakerTags,
                         updateSessionLine,
-                        addSessionLine,
-                        removeSessionLine,
                         line => seekAudio(sessionAudioRef.current, line.startMs),
                       )}
                     </div>
@@ -1198,6 +1341,8 @@ function SpeechApp() {
           onClick={() => setHistoryOpen(false)}
         />
       )}
+
+      {renderTranscriptContextMenu()}
     </div>
   );
 }
