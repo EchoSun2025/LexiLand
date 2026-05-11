@@ -2672,6 +2672,12 @@ writes / wrote / written / write`;
     fileInputRef.current?.click();
   };
 
+  const handleOpenSpeechModule = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('module', 'speech');
+    window.location.href = url.toString();
+  };
+
   const inferSavedDocumentFormat = (doc: {
     format?: 'plain' | 'markdown';
     content?: string;
@@ -3954,6 +3960,15 @@ writes / wrote / written / write`;
                     onClick={handleNewDocument}
                   >
                     <span>+ New document</span>
+                  </div>
+                  <div
+                    className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
+                    onClick={handleOpenSpeechModule}
+                  >
+                    <span>STT notes</span>
+                    <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                      STT
+                    </span>
                   </div>
                   <div
                     className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"

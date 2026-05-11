@@ -14,6 +14,8 @@ import {
   type TranscriptLine,
 } from './speechApi';
 import { SpeechRealtimeTranscriber } from './speechRealtime';
+import { tokenizeMarkdownParagraphs } from './utils';
+import { saveDocument } from './db';
 
 const DEFAULT_SPEAKER_TAGS = ['Teacher', 'Student A', 'Student B', 'Me'];
 const MAX_SPEECH_CARDS = 3;
@@ -53,6 +55,25 @@ function formatDateTime(dateString: string) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return dateString;
   return date.toLocaleString();
+}
+
+function buildSessionMarkdown(session: SpeechSession) {
+  const transcriptLines = session.transcriptLines.length > 0
+    ? session.transcriptLines
+      .map(line => `- **${line.speakerTag}** [${formatTimestamp(line.startMs)}] ${line.text}`)
+      .join('\n')
+    : session.transcript;
+
+  return [
+    `# STT`,
+    '',
+    `## ${session.title}`,
+    '',
+    `Created: ${formatDateTime(session.createdAt)}`,
+    '',
+    transcriptLines,
+    '',
+  ].join('\n');
 }
 
 function formatTimestamp(ms: number | null) {
@@ -777,11 +798,23 @@ function SpeechApp() {
         provider: 'openai',
       });
 
+      const createdSession = response.session;
+      const markdownContent = buildSessionMarkdown(createdSession);
+      await saveDocument({
+        id: `speech-doc-${createdSession.id}`,
+        type: 'text',
+        format: 'markdown',
+        title: `${formatDate(createdSession.createdAt)}-${createdSession.title}.md`,
+        content: markdownContent,
+        paragraphs: tokenizeMarkdownParagraphs(markdownContent),
+        createdAt: new Date(createdSession.createdAt).getTime(),
+      });
+
       setSessions(response.sessions);
       setDueCards(response.dueCards);
-      setCurrentSessionId(response.session.id);
+      setCurrentSessionId(createdSession.id);
       resetDraftComposer();
-      setNotice('Speech session created. Manual speaker tags and audio-linked lines are ready below.');
+      setNotice('Speech session created. Markdown note added to Reader outline.');
       setHistoryOpen(false);
     } catch (createError: any) {
       setError(createError.message || 'Failed to create speech session.');
@@ -898,8 +931,8 @@ function SpeechApp() {
     onRemove: (tag: string) => void,
   ) {
     return (
-      <div className="space-y-2">
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {speakerTags.map((tag, index) => (
             <div key={tag} className="speech-tag-chip" style={getSpeakerTone(index)}>
               <input
@@ -913,23 +946,21 @@ function SpeechApp() {
             </div>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <input
-            value={pendingTag}
-            onChange={event => setPendingTag(event.target.value)}
-            onKeyDown={event => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                onAdd();
-              }
-            }}
-            placeholder="Add tag"
-            className="speech-inline-input"
-          />
-          <button type="button" className="speech-soft-button" onClick={onAdd}>
-            Add
-          </button>
-        </div>
+        <input
+          value={pendingTag}
+          onChange={event => setPendingTag(event.target.value)}
+          onKeyDown={event => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              onAdd();
+            }
+          }}
+          placeholder="Add tag"
+          className="speech-inline-input"
+        />
+        <button type="button" className="speech-soft-button" onClick={onAdd}>
+          Add
+        </button>
       </div>
     );
   }
@@ -1160,13 +1191,13 @@ function SpeechApp() {
               </div>
             )}
 
-            <section className="speech-card speech-hero mb-6 p-6">
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                  <div className="flex flex-wrap gap-3">
+            <section className="speech-card speech-hero speech-toolbar mb-6 p-4">
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      className={`rounded-2xl px-5 py-3 text-sm font-semibold text-white ${
+                      className={`rounded-2xl px-4 py-2 text-sm font-semibold text-white ${
                         isRecording ? 'bg-stone-700' : 'bg-orange-600 hover:bg-orange-700'
                       }`}
                       onClick={isRecording ? stopRecording : startRecording}
@@ -1176,7 +1207,7 @@ function SpeechApp() {
                     </button>
                     <button
                       type="button"
-                      className="rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+                      className="rounded-2xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
                       onClick={handleCreateSession}
                       disabled={creating || isRecording}
                     >
@@ -1184,28 +1215,39 @@ function SpeechApp() {
                     </button>
                   </div>
 
-                  <div className="flex-1">
+                  <div className="min-w-[220px] flex-1">
                     {recordedAudioUrl ? (
-                      <audio ref={draftAudioRef} controls className="w-full min-w-0" src={recordedAudioUrl} />
+                      <audio ref={draftAudioRef} controls className="w-full min-w-0 h-10" src={recordedAudioUrl} />
                     ) : (
-                      <div className="h-14 rounded-2xl border border-stone-200 bg-white/70" />
+                      <div className="h-10 rounded-2xl border border-stone-200 bg-white/70" />
                     )}
                   </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {renderSpeakerTags(
+                    draftSpeakerTags,
+                    newDraftTag,
+                    setNewDraftTag,
+                    addDraftSpeakerTag,
+                    renameDraftSpeakerTag,
+                    removeDraftSpeakerTag,
+                  )}
                 </div>
 
                 <div className="speech-realtime-panel">
                   <div className="flex items-center gap-3">
                     <div className={`speech-live-dot ${isRealtimeActive ? 'is-live' : ''}`} />
-                    <div className="text-sm font-semibold text-stone-800">
+                    <div className="text-xs font-semibold text-stone-800">
                       {isRecording ? 'Live capture active' : 'Ready for live capture'}
                     </div>
                     <div className="text-xs uppercase tracking-[0.16em] text-stone-500">speaker mode later</div>
                   </div>
-                  <div className="mt-2 text-sm text-stone-600">
+                  <div className="mt-1 text-xs text-stone-600">
                     Right-click a line to split it, switch speaker, or delete it.
                   </div>
                   {realtimeInterim.trim() && (
-                    <div className="mt-4 rounded-2xl bg-white/85 px-4 py-3 text-sm italic text-stone-700">
+                    <div className="mt-2 rounded-2xl bg-white/85 px-3 py-2 text-sm italic text-stone-700">
                       {realtimeInterim}
                     </div>
                   )}
@@ -1219,17 +1261,6 @@ function SpeechApp() {
                 <div className="mt-1 text-sm text-stone-500">
                   Compact classroom-note layout. Speaker tag and time stay small; the line text stays dense.
                 </div>
-              </div>
-
-              <div className="mt-4">
-                {renderSpeakerTags(
-                  draftSpeakerTags,
-                  newDraftTag,
-                  setNewDraftTag,
-                  addDraftSpeakerTag,
-                  renameDraftSpeakerTag,
-                  removeDraftSpeakerTag,
-                )}
               </div>
 
               <div className="mt-5">

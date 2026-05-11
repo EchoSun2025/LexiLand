@@ -36,6 +36,12 @@
     radial-gradient(circle at right top, rgba(255, 182, 115, 0.24), transparent 35%);
 }
 
+.speech-toolbar {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 25;
+}
+
 .speech-title {
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   letter-spacing: -0.02em;
@@ -86,7 +92,7 @@
   border: 1px solid rgba(16, 185, 129, 0.16);
   border-radius: 20px;
   background: linear-gradient(180deg, rgba(236, 253, 245, 0.92), rgba(255, 255, 255, 0.9));
-  padding: 14px;
+  padding: 10px 12px;
 }
 
 .speech-live-dot {
@@ -120,11 +126,11 @@
 }
 
 .speech-inline-input {
-  min-width: 140px;
+  min-width: 110px;
   border: 1px solid rgba(123, 87, 55, 0.14);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.9);
-  padding: 0.42rem 0.75rem;
+  padding: 0.35rem 0.65rem;
   font-size: 0.75rem;
   color: #45352a;
   outline: none;
@@ -337,5 +343,9 @@
 
   .speech-main {
     padding: 16px;
+  }
+
+  .speech-toolbar {
+    top: 0.5rem;
   }
 }
