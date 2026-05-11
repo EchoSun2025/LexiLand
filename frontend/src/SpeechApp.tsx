@@ -35,6 +35,10 @@ type TranscriptContextMenuState = {
   cursorPos: number;
 };
 
+type TranscriptUndoState = {
+  lines: TranscriptLine[];
+};
+
 function formatDate(dateString: string) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return dateString;
@@ -174,6 +178,29 @@ function splitLineAtCursor(lines: TranscriptLine[], lineId: string, cursorPos: n
   ];
 }
 
+function cloneLines(lines: TranscriptLine[]): TranscriptLine[] {
+  return lines.map(line => ({ ...line }));
+}
+
+function mergeLineUp(lines: TranscriptLine[], lineId: string) {
+  const index = lines.findIndex(line => line.id === lineId);
+  if (index <= 0) return lines;
+
+  const current = lines[index];
+  const previous = lines[index - 1];
+  const mergedText = `${previous.text.trimEnd()} ${current.text.trimStart()}`.trim();
+
+  return [
+    ...lines.slice(0, index - 1),
+    {
+      ...previous,
+      text: mergedText,
+      endMs: current.endMs ?? previous.endMs,
+    },
+    ...lines.slice(index + 1),
+  ];
+}
+
 function useSessionEditor(session: SpeechSession | null) {
   const [title, setTitle] = useState('');
   const [speakerTags, setSpeakerTags] = useState<string[]>([...DEFAULT_SPEAKER_TAGS]);
@@ -233,6 +260,8 @@ function SpeechApp() {
   const [newDraftTag, setNewDraftTag] = useState('');
   const [newSessionTag, setNewSessionTag] = useState('');
   const [contextMenu, setContextMenu] = useState<TranscriptContextMenuState | null>(null);
+  const [draftUndoStack, setDraftUndoStack] = useState<TranscriptUndoState[]>([]);
+  const [sessionUndoStack, setSessionUndoStack] = useState<TranscriptUndoState[]>([]);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -295,6 +324,10 @@ function SpeechApp() {
   }, [currentSession]);
 
   useEffect(() => {
+    setSessionUndoStack([]);
+  }, [currentSession?.id]);
+
+  useEffect(() => {
     return () => {
       if (recordedAudioUrl) {
         URL.revokeObjectURL(recordedAudioUrl);
@@ -332,6 +365,7 @@ function SpeechApp() {
 
   function resetDraftComposer() {
     setDraftLines([]);
+    setDraftUndoStack([]);
     setRealtimeInterim('');
     setRecordedAudio(null);
     setRecordedMimeType('audio/webm');
@@ -414,6 +448,9 @@ function SpeechApp() {
         realtimeRef.current = new SpeechRealtimeTranscriber({
           onStatus: () => {},
           onInterim: text => {
+            if (text.trim() && speechStartedAtRef.current === null) {
+              speechStartedAtRef.current = currentRecordingOffsetMs();
+            }
             setRealtimeInterim(text);
           },
           onFinal: text => {
@@ -491,6 +528,10 @@ function SpeechApp() {
     ]);
   }
 
+  function pushDraftUndoSnapshot(lines: TranscriptLine[]) {
+    setDraftUndoStack(previous => [...previous.slice(-19), { lines: cloneLines(lines) }]);
+  }
+
   function addDraftSpeakerTag() {
     const candidate = newDraftTag.trim();
     if (!candidate) return;
@@ -527,6 +568,10 @@ function SpeechApp() {
         : line
     )));
     sessionEditor.setDirty(true);
+  }
+
+  function pushSessionUndoSnapshot(lines: TranscriptLine[]) {
+    setSessionUndoStack(previous => [...previous.slice(-19), { lines: cloneLines(lines) }]);
   }
 
   function addSessionLine() {
@@ -594,42 +639,101 @@ function SpeechApp() {
   }
 
   function splitDraftLine(lineId: string, cursorPos: number) {
-    setDraftLines(previous => splitLineAtCursor(previous, lineId, cursorPos));
+    setDraftLines(previous => {
+      pushDraftUndoSnapshot(previous);
+      return splitLineAtCursor(previous, lineId, cursorPos);
+    });
     setContextMenu(null);
   }
 
   function deleteDraftLine(lineId: string) {
-    setDraftLines(previous => previous.filter(line => line.id !== lineId));
+    setDraftLines(previous => {
+      pushDraftUndoSnapshot(previous);
+      return previous.filter(line => line.id !== lineId);
+    });
     setContextMenu(null);
   }
 
   function assignDraftSpeaker(lineId: string, speakerTag: string) {
-    setDraftLines(previous => previous.map(line => (
-      line.id === lineId
-        ? { ...line, speakerTag }
-        : line
-    )));
+    setDraftLines(previous => {
+      pushDraftUndoSnapshot(previous);
+      return previous.map(line => (
+        line.id === lineId
+          ? { ...line, speakerTag }
+          : line
+      ));
+    });
+    setContextMenu(null);
+  }
+
+  function mergeDraftLineUp(lineId: string) {
+    setDraftLines(previous => {
+      pushDraftUndoSnapshot(previous);
+      return mergeLineUp(previous, lineId);
+    });
+    setContextMenu(null);
+  }
+
+  function undoDraftAction() {
+    setDraftUndoStack(previous => {
+      const snapshot = previous[previous.length - 1];
+      if (snapshot) {
+        setDraftLines(cloneLines(snapshot.lines));
+      }
+      return previous.slice(0, -1);
+    });
     setContextMenu(null);
   }
 
   function splitSessionLine(lineId: string, cursorPos: number) {
-    sessionEditor.setLines(previous => splitLineAtCursor(previous, lineId, cursorPos));
+    sessionEditor.setLines(previous => {
+      pushSessionUndoSnapshot(previous);
+      return splitLineAtCursor(previous, lineId, cursorPos);
+    });
     sessionEditor.setDirty(true);
     setContextMenu(null);
   }
 
   function deleteSessionLine(lineId: string) {
-    sessionEditor.setLines(previous => previous.filter(line => line.id !== lineId));
+    sessionEditor.setLines(previous => {
+      pushSessionUndoSnapshot(previous);
+      return previous.filter(line => line.id !== lineId);
+    });
     sessionEditor.setDirty(true);
     setContextMenu(null);
   }
 
   function assignSessionSpeaker(lineId: string, speakerTag: string) {
-    sessionEditor.setLines(previous => previous.map(line => (
-      line.id === lineId
-        ? { ...line, speakerTag }
-        : line
-    )));
+    sessionEditor.setLines(previous => {
+      pushSessionUndoSnapshot(previous);
+      return previous.map(line => (
+        line.id === lineId
+          ? { ...line, speakerTag }
+          : line
+      ));
+    });
+    sessionEditor.setDirty(true);
+    setContextMenu(null);
+  }
+
+  function mergeSessionLineUp(lineId: string) {
+    sessionEditor.setLines(previous => {
+      pushSessionUndoSnapshot(previous);
+      return mergeLineUp(previous, lineId);
+    });
+    sessionEditor.setDirty(true);
+    setContextMenu(null);
+  }
+
+  function undoSessionAction() {
+    setSessionUndoStack(previous => {
+      const snapshot = previous[previous.length - 1];
+      if (snapshot) {
+        sessionEditor.setLines(cloneLines(snapshot.lines));
+        sessionEditor.setDirty(true);
+      }
+      return previous.slice(0, -1);
+    });
     sessionEditor.setDirty(true);
     setContextMenu(null);
   }
@@ -881,13 +985,32 @@ function SpeechApp() {
   function renderTranscriptContextMenu() {
     if (!contextMenu) return null;
 
+    const scopedLines = contextMenu.scope === 'draft' ? draftLines : sessionEditor.lines;
     const speakerTags = contextMenu.scope === 'draft' ? draftSpeakerTags : sessionEditor.speakerTags;
+    const currentIndex = scopedLines.findIndex(line => line.id === contextMenu.lineId);
+    const canMergeUp = currentIndex > 0;
+    const canUndo = contextMenu.scope === 'draft' ? draftUndoStack.length > 0 : sessionUndoStack.length > 0;
+    const onUndo = () => {
+      if (contextMenu.scope === 'draft') {
+        undoDraftAction();
+        return;
+      }
+      undoSessionAction();
+    };
     const onSplit = () => {
       if (contextMenu.scope === 'draft') {
         splitDraftLine(contextMenu.lineId, contextMenu.cursorPos);
         return;
       }
       splitSessionLine(contextMenu.lineId, contextMenu.cursorPos);
+    };
+    const onMergeUp = () => {
+      if (!canMergeUp) return;
+      if (contextMenu.scope === 'draft') {
+        mergeDraftLineUp(contextMenu.lineId);
+        return;
+      }
+      mergeSessionLineUp(contextMenu.lineId);
     };
     const onDelete = () => {
       if (contextMenu.scope === 'draft') {
@@ -910,8 +1033,14 @@ function SpeechApp() {
         style={{ left: contextMenu.x, top: contextMenu.y }}
         onClick={event => event.stopPropagation()}
       >
+        <button type="button" className="speech-context-item" onClick={onUndo} disabled={!canUndo}>
+          Undo
+        </button>
         <button type="button" className="speech-context-item" onClick={onSplit}>
           Split here
+        </button>
+        <button type="button" className="speech-context-item" onClick={onMergeUp} disabled={!canMergeUp}>
+          Merge up
         </button>
         <button type="button" className="speech-context-item is-danger" onClick={onDelete}>
           Delete line

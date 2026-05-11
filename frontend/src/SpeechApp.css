@@ -173,35 +173,36 @@
 }
 
 .speech-line {
-  padding: 0.2rem 0;
+  padding: 0.08rem 0;
 }
 
 .speech-line-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem;
-  margin-bottom: 0.14rem;
+  gap: 0.45rem;
+  margin-bottom: 0.02rem;
 }
 
 .speech-line-tag {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  padding: 0.1rem 0.48rem;
-  font-size: 12px;
+  padding: 0.04rem 0.4rem;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.2;
 }
 
 .speech-time-link {
   border: none;
   background: transparent;
   padding: 0;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: #8a7c6e;
   cursor: pointer;
+  line-height: 1.1;
 }
 
 .speech-time-link:disabled {
@@ -211,14 +212,14 @@
 
 .speech-line-textarea {
   width: 100%;
-  min-height: 22px;
+  min-height: 19px;
   resize: none;
   overflow: hidden;
   border: none;
   background: transparent;
   padding: 0;
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.32;
   color: #2f261f;
   outline: none;
 }
@@ -247,6 +248,15 @@
 
 .speech-context-item:hover {
   background: rgba(255, 245, 234, 0.95);
+}
+
+.speech-context-item:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.speech-context-item:disabled:hover {
+  background: transparent;
 }
 
 .speech-context-item.is-danger {
