@@ -161,18 +161,28 @@ function splitLineAtCursor(lines: TranscriptLine[], lineId: string, cursorPos: n
   const after = line.text.slice(safeCursor).trimStart();
   const currentText = before || line.text.trim();
   const nextText = before && after ? after : '';
+  const textLength = Math.max(line.text.trim().length, 1);
+  const splitRatio = Math.max(0.1, Math.min(0.9, safeCursor / textLength));
+  const hasRange = line.startMs !== null && line.endMs !== null && line.endMs > line.startMs;
+  const splitMs = hasRange
+    ? Math.round(line.startMs! + ((line.endMs! - line.startMs!) * splitRatio))
+    : (line.endMs ?? line.startMs);
 
   const nextLine = createLine({
     speakerTag: line.speakerTag,
     text: nextText,
-    startMs: line.endMs ?? line.startMs,
+    startMs: splitMs,
     endMs: line.endMs,
     source: 'manual',
   });
 
   return [
     ...lines.slice(0, index),
-    { ...line, text: currentText },
+    {
+      ...line,
+      text: currentText,
+      endMs: splitMs,
+    },
     nextLine,
     ...lines.slice(index + 1),
   ];
@@ -456,24 +466,30 @@ function SpeechApp() {
           onFinal: text => {
             const trimmed = text.trim();
             if (!trimmed) return;
-            const startMs = speechStartedAtRef.current ?? currentRecordingOffsetMs();
             const endMs = speechStoppedAtRef.current ?? currentRecordingOffsetMs();
-            setDraftLines(previous => [
-              ...previous,
-              createLine({
-                speakerTag: draftSpeakerTags[0] || DEFAULT_SPEAKER_TAGS[0],
-                text: trimmed,
-                startMs,
-                endMs,
-                source: 'realtime',
-              }),
-            ]);
+            setDraftLines(previous => {
+              const previousEndMs = previous[previous.length - 1]?.endMs;
+              const fallbackStartMs = previous.length === 0 ? 0 : (previousEndMs ?? speechStartedAtRef.current ?? 0);
+              const startMs = fallbackStartMs;
+              const resolvedEndMs = endMs !== null && endMs >= startMs ? endMs : startMs;
+
+              return [
+                ...previous,
+                createLine({
+                  speakerTag: draftSpeakerTags[0] || DEFAULT_SPEAKER_TAGS[0],
+                  text: trimmed,
+                  startMs,
+                  endMs: resolvedEndMs,
+                  source: 'realtime',
+                }),
+              ];
+            });
             setRealtimeInterim('');
             speechStartedAtRef.current = null;
             speechStoppedAtRef.current = null;
           },
           onEvent: eventName => {
-            if (eventName === 'speech started') {
+            if (eventName === 'speech started' && speechStartedAtRef.current === null) {
               speechStartedAtRef.current = currentRecordingOffsetMs();
             }
             if (eventName === 'speech stopped') {
