@@ -773,6 +773,27 @@ function App() {
   }, [currentDocument, currentTranscriptSpeakerTags, transcriptActiveSpeakerTag]);
 
   useEffect(() => {
+    if (!currentDocument || currentDocument.format !== 'transcript') return;
+    if (!isTranscriptRecording && !isTranscriptRealtimeActive && !transcriptInterim) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const scrollContainer = document.getElementById('main-scroll-container');
+      if (!scrollContainer) return;
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [
+    currentDocument,
+    currentTranscriptLines.length,
+    transcriptInterim,
+    isTranscriptRecording,
+    isTranscriptRealtimeActive,
+  ]);
+
+  useEffect(() => {
     if (currentDocument?.id === transcriptUndoDocumentId) return;
     setTranscriptUndoStack([]);
   }, [currentDocument?.id, transcriptUndoDocumentId]);
@@ -4785,7 +4806,12 @@ writes / wrote / written / write`;
                           Tag
                         </button>
                         {currentTranscriptAudioUrl && (
-                          <audio ref={transcriptAudioRef} controls src={currentTranscriptAudioUrl} className="h-8 max-w-[240px]" />
+                          <audio
+                            ref={transcriptAudioRef}
+                            controls
+                            src={currentTranscriptAudioUrl}
+                            className="h-8 w-[28rem] max-w-full shrink-0"
+                          />
                         )}
                         {isTranscriptRealtimeActive && (
                           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
