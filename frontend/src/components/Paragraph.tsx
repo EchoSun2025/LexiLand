@@ -4,7 +4,7 @@ import type { MouseEvent, ReactNode } from 'react';
 import Sentence from './Sentence';
 import Word from './Word';
 
-type RenderMode = 'default' | 'markdown';
+type RenderMode = 'default' | 'markdown' | 'compact';
 
 type MarkdownInlineSegment = {
   text: string;
@@ -31,7 +31,7 @@ interface ParagraphProps {
   onMarkKnown?: (word: string) => void;
   onSentenceContextMenu?: (
     e: MouseEvent,
-    payload: { text: string; pIndex: number; sIndex: number; focusWords: string[] }
+    payload: { text: string; pIndex: number; sIndex: number; focusWords: string[]; startIndex: number; endIndex: number }
   ) => void;
   sentenceCardKeys: Set<string>;
   onSentenceCardClick?: (sentenceText: string) => void;
@@ -209,7 +209,7 @@ export default function Paragraph({
   }
 
   return (
-    <div className="relative leading-relaxed mb-2 rounded-lg p-1.5 hover:bg-gray-50 group">
+    <div className={`relative group ${renderMode === 'compact' ? 'leading-[1.35] mb-1 px-0 py-0' : 'leading-relaxed mb-2 rounded-lg p-1.5 hover:bg-gray-50'}`}>
       {paragraph.sentences.map((sentence, index) => {
         const globalSentenceIndex = sentencesBeforeThisPara + index;
         const isCurrentSentence = currentSentenceIndex === globalSentenceIndex;

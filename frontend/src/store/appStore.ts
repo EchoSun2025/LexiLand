@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Paragraph } from '../utils/tokenize';
 import type { WordAnnotation } from '../api';
+import type { TranscriptLine } from '../speechApi';
 
 export type LearningCardType = 'word' | 'phrase' | 'sentence' | 'paragraph' | 'grammar';
 
@@ -54,12 +55,16 @@ export interface Document {
   id: string;
   title: string;
   type: 'text' | 'epub';
-  format?: 'plain' | 'markdown';
+  format?: 'plain' | 'markdown' | 'transcript';
   content?: string;
   paragraphs?: Paragraph[];
   chapters?: Chapter[];
   currentChapterId?: string;
   author?: string;
+  transcriptLines?: TranscriptLine[];
+  speakerTags?: string[];
+  speechAudioUrl?: string | null;
+  speechSessionId?: string | null;
   createdAt: number;
 }
 

@@ -48,12 +48,16 @@ export interface SavedDocument {
   id: string;
   title: string;
   type?: 'text' | 'epub';
-  format?: 'plain' | 'markdown';
+  format?: 'plain' | 'markdown' | 'transcript';
   content?: string;
   paragraphs?: any[];
   chapters?: any[];
   currentChapterId?: string;
   author?: string;
+  transcriptLines?: any[];
+  speakerTags?: string[];
+  speechAudioUrl?: string | null;
+  speechSessionId?: string | null;
   createdAt: number;
   lastOpenedAt: number;
 }

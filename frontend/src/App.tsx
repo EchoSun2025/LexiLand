@@ -13,6 +13,8 @@ import { exportLLIFString } from './services/llifConverter'
 import { getWordEmoji, getAllEmojiKeywords } from './utils/emojiHelper'
 import { applyMeaningToAnnotation, findAnnotationEntry, findBestMeaningIdForSentence, getEncounteredSurfaceForms, mergeAnnotationMeanings } from './utils/wordMeanings'
 import { logWordDebug, shouldDebugWord } from './utils/wordDebug'
+import { createSpeechSession, resolveSpeechAssetUrl, updateSpeechTranscript, type TranscriptLine } from './speechApi'
+import { SpeechRealtimeTranscriber } from './speechRealtime'
 
 const keywordToEmoji = getAllEmojiKeywords();
 const collapsedCommonEmojis = Array.from(new Set(Array.from(keywordToEmoji.values()))).slice(0, 120);
@@ -21,6 +23,18 @@ const SAMPLE_LEMMA_TEST_TITLE = 'sample lemma test';
 type ViewMode = 'read' | 'review';
 type ReviewSortMode = 'stats' | 'date' | 'alphabet';
 type ReviewStatsRange = 'week' | 'month';
+type TranscriptUndoState = {
+  lines: TranscriptLine[];
+};
+
+const DEFAULT_TRANSCRIPT_SPEAKER_TAGS = ['Teacher', 'Student A', 'Student B', 'Me'];
+const TRANSCRIPT_SPEAKER_TONES = [
+  { color: '#8a5b35', backgroundColor: 'rgba(232, 210, 190, 0.42)' },
+  { color: '#21646e', backgroundColor: 'rgba(191, 229, 235, 0.42)' },
+  { color: '#556a1c', backgroundColor: 'rgba(218, 234, 184, 0.45)' },
+  { color: '#7c3362', backgroundColor: 'rgba(235, 199, 223, 0.42)' },
+  { color: '#934b1a', backgroundColor: 'rgba(248, 211, 180, 0.44)' },
+] as const;
 
 type ReviewCardItem =
   | {
@@ -62,6 +76,172 @@ type ReviewDisplayRow =
       key: string;
       item: ReviewCardItem;
     };
+
+function createTranscriptLine(input: Partial<TranscriptLine> = {}): TranscriptLine {
+  return {
+    id: input.id || `line_${crypto.randomUUID().slice(0, 8)}`,
+    speakerTag: input.speakerTag || DEFAULT_TRANSCRIPT_SPEAKER_TAGS[0],
+    text: (input.text || '').trim(),
+    startMs: typeof input.startMs === 'number' ? input.startMs : null,
+    endMs: typeof input.endMs === 'number' ? input.endMs : null,
+    source: input.source || 'manual',
+  };
+}
+
+function cloneTranscriptLines(lines: TranscriptLine[]): TranscriptLine[] {
+  return lines.map(line => ({ ...line }));
+}
+
+function normalizeTranscriptSpeakerTags(tags: string[]) {
+  const cleaned = tags.map(tag => tag.trim()).filter(Boolean);
+  const unique = Array.from(new Set(cleaned)).slice(0, 8);
+  return unique.length > 0 ? unique : [...DEFAULT_TRANSCRIPT_SPEAKER_TAGS];
+}
+
+function normalizeTranscriptLines(lines: TranscriptLine[], speakerTags: string[]) {
+  const resolvedTags = normalizeTranscriptSpeakerTags(speakerTags);
+  return lines
+    .map((line, index) => {
+      const text = line.text.trim();
+      if (!text) return null;
+
+      const fallbackTag = resolvedTags[Math.min(index, resolvedTags.length - 1)] || resolvedTags[0] || DEFAULT_TRANSCRIPT_SPEAKER_TAGS[0];
+      return createTranscriptLine({
+        ...line,
+        text,
+        speakerTag: resolvedTags.includes(line.speakerTag) ? line.speakerTag : fallbackTag,
+      });
+    })
+    .filter((line): line is TranscriptLine => Boolean(line));
+}
+
+function buildTranscriptContent(lines: TranscriptLine[]) {
+  return lines.map(line => line.text).join('\n');
+}
+
+function buildTranscriptParagraphs(lines: TranscriptLine[]) {
+  return lines.map((line) => {
+    const [paragraph] = tokenizeParagraphs(line.text.trim());
+    return paragraph;
+  }).filter((paragraph): paragraph is ParagraphType => Boolean(paragraph));
+}
+
+function materializeTranscriptDocument(document: Document): Document {
+  const transcriptLines = normalizeTranscriptLines(document.transcriptLines || [], document.speakerTags || []);
+  const speakerTags = normalizeTranscriptSpeakerTags([
+    ...(document.speakerTags || []),
+    ...transcriptLines.map(line => line.speakerTag),
+  ]);
+
+  return {
+    ...document,
+    type: 'text',
+    format: 'transcript',
+    transcriptLines,
+    speakerTags,
+    content: buildTranscriptContent(transcriptLines),
+    paragraphs: buildTranscriptParagraphs(transcriptLines),
+  };
+}
+
+function formatTranscriptTimestamp(ms: number | null) {
+  if (ms === null || !Number.isFinite(ms)) return '--:--';
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function formatTranscriptTitle(now: Date) {
+  const datePart = now.toLocaleDateString('en-CA');
+  const timePart = now.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).replace(':', '-');
+  return `STT ${datePart} ${timePart}`;
+}
+
+function getTranscriptSpeakerTone(index: number): CSSProperties {
+  const tone = TRANSCRIPT_SPEAKER_TONES[index % TRANSCRIPT_SPEAKER_TONES.length];
+  return {
+    color: tone.color,
+    backgroundColor: tone.backgroundColor,
+  };
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error('Failed to convert audio blob to data URL.'));
+    };
+    reader.onerror = () => reject(reader.error || new Error('Failed to read audio blob.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function splitTranscriptLineAtSentence(lines: TranscriptLine[], lineId: string, sentenceStartIndex: number) {
+  const index = lines.findIndex(line => line.id === lineId);
+  if (index < 0) return lines;
+
+  const line = lines[index];
+  const safeIndex = Math.max(0, Math.min(sentenceStartIndex, line.text.length));
+  if (safeIndex <= 0 || safeIndex >= line.text.length) {
+    return lines;
+  }
+
+  const before = line.text.slice(0, safeIndex).trimEnd();
+  const after = line.text.slice(safeIndex).trimStart();
+  if (!before || !after) {
+    return lines;
+  }
+
+  const hasRange = line.startMs !== null && line.endMs !== null && line.endMs > line.startMs;
+  const splitRatio = Math.max(0.1, Math.min(0.9, safeIndex / Math.max(line.text.length, 1)));
+  const splitMs = hasRange
+    ? Math.round(line.startMs! + ((line.endMs! - line.startMs!) * splitRatio))
+    : (line.endMs ?? line.startMs);
+
+  return [
+    ...lines.slice(0, index),
+    {
+      ...line,
+      text: before,
+      endMs: splitMs,
+    },
+    createTranscriptLine({
+      speakerTag: line.speakerTag,
+      text: after,
+      startMs: splitMs,
+      endMs: line.endMs,
+      source: 'manual',
+    }),
+    ...lines.slice(index + 1),
+  ];
+}
+
+function mergeTranscriptLineUp(lines: TranscriptLine[], lineId: string) {
+  const index = lines.findIndex(line => line.id === lineId);
+  if (index <= 0) return lines;
+
+  const current = lines[index];
+  const previous = lines[index - 1];
+  const mergedText = `${previous.text.trimEnd()} ${current.text.trimStart()}`.trim();
+
+  return [
+    ...lines.slice(0, index - 1),
+    {
+      ...previous,
+      text: mergedText,
+      endMs: current.endMs ?? previous.endMs,
+    },
+    ...lines.slice(index + 1),
+  ];
+}
 
 function getStoredBoolean(key: string, fallback: boolean): boolean {
   const stored = localStorage.getItem(key);
@@ -196,6 +376,8 @@ function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const documentsRef = useRef<Document[]>(documents);
+  const currentDocumentIdRef = useRef<string | null>(currentDocumentId);
   const [showNewDocModal, setShowNewDocModal] = useState(false);
   const [newDocTitle, setNewDocTitle] = useState('');
   const [newDocContent, setNewDocContent] = useState('');
@@ -230,6 +412,17 @@ function App() {
         : [],
     [currentDocument?.format, displayParagraphs],
   );
+  const currentTranscriptLines = currentDocument?.format === 'transcript'
+    ? (currentDocument.transcriptLines || [])
+    : [];
+  const currentTranscriptSpeakerTags = currentDocument?.format === 'transcript'
+    ? normalizeTranscriptSpeakerTags(currentDocument.speakerTags || [])
+    : [...DEFAULT_TRANSCRIPT_SPEAKER_TAGS];
+  const transcriptCanRecord = typeof window !== 'undefined'
+    && typeof navigator !== 'undefined'
+    && Boolean(navigator.mediaDevices?.getUserMedia)
+    && typeof MediaRecorder !== 'undefined';
+  const transcriptCanRealtimeTranscribe = SpeechRealtimeTranscriber.isSupported();
 
   // Speech synthesis state
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -286,7 +479,18 @@ function App() {
   const [phraseTranslationInserts, setPhraseTranslationInserts] = useState<Map<string, boolean>>(new Map()); // 闂傚倸鍊搁崐鐑芥倿閿曗偓椤啴宕稿Δ鈧惌妤呭箹濞ｎ剙濡奸柣顓燁殜閺屽秷顧侀柛鎾村哺婵＄敻宕熼姘祮濠碘槅鍨靛▍锝嗗閸曨厾纾藉ù锝勭矙閸濇椽鏌ｉ悢鍙夋珔妞ゆ洩缍侀獮蹇撶暆閳ь剟鎮块埀顒勬⒑閸濆嫭宸濋柛鐔该埞鎴犫偓锝庡亐閹锋椽姊洪棃鈺佺槣闁告ê澧介弫顔尖槈閵忊€充缓濡炪倖鐗楃粙鎴澝归閿亾鐟欏嫭绌跨紓宥勭閻ｇ兘宕￠悙鈺傤潔濠电偛妫楃换瀣уΔ鍛拻濞达絽鎼敮鍫曟煙閼恒儳鐭掗柕鍡楀€圭粋鎺斺偓锝庝簽閿?
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // 闂傚倸鍊峰ù鍥х暦閸偅鍙忕€规洖娲ㄩ惌鍡椕归敐鍫綈婵炲懐濮撮湁闁绘ê妯婇崕鎰版煕鐎ｅ吀閭柡灞剧洴閸╁嫰宕橀浣割潓婵＄偑鍊戦崕閬嶆偋閹捐钃熼柡鍥风磿閻も偓婵犵數濮撮崐鎼佸煕婢跺瞼纾?
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; pIndex: number; sIndex: number; sentenceText?: string; focusWords?: string[] } | null>(null); // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画闂佹寧姊婚弲顐ょ不閹€鏀介柣妯哄级閹兼劙鏌＄€ｂ晝鍔嶉柕鍥ゅ楠炴﹢宕￠悙鍏哥棯闂備焦鎮堕崐鏍哄Ο鍏煎床婵犻潧娲ㄧ弧鈧梺绋挎湰绾板秴鈻撻鐘电＝濞达絾褰冩禍?
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    pIndex: number;
+    sIndex: number;
+    sentenceText?: string;
+    focusWords?: string[];
+    sentenceStartIndex?: number;
+    sentenceEndIndex?: number;
+    transcriptLineId?: string;
+    transcriptLineIndex?: number;
+  } | null>(null); // 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画闂佹寧姊婚弲顐ょ不閹€鏀介柣妯哄级閹兼劙鏌＄€ｂ晝鍔嶉柕鍥ゅ楠炴﹢宕￠悙鍏哥棯闂備焦鎮堕崐鏍哄Ο鍏煎床婵犻潧娲ㄧ弧鈧梺绋挎湰绾板秴鈻撻鐘电＝濞达絾褰冩禍?
   const [expandedCardKeys, setExpandedCardKeys] = useState<Set<string>>(new Set());
   const [collapsedImageMenu, setCollapsedImageMenu] = useState<{ panel: 'emoji' | 'web'; word: string; cardLookupKey: string; top: number; left: number } | null>(null);
   const [collapsedEmojiSearchQuery, setCollapsedEmojiSearchQuery] = useState('');
@@ -305,7 +509,33 @@ function App() {
     width: window.innerWidth,
     height: window.innerHeight,
   }));
+  const [transcriptActiveSpeakerTag, setTranscriptActiveSpeakerTag] = useState(DEFAULT_TRANSCRIPT_SPEAKER_TAGS[0]);
+  const [transcriptNewTag, setTranscriptNewTag] = useState('');
+  const [transcriptStatus, setTranscriptStatus] = useState('Idle');
+  const [transcriptNotice, setTranscriptNotice] = useState<string | null>(null);
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  const [isTranscriptRecording, setIsTranscriptRecording] = useState(false);
+  const [isTranscriptRealtimeActive, setIsTranscriptRealtimeActive] = useState(false);
+  const [isTranscriptRealtimeStarting, setIsTranscriptRealtimeStarting] = useState(false);
+  const [isTranscriptCreatingSession, setIsTranscriptCreatingSession] = useState(false);
+  const [isTranscriptSavingSession, setIsTranscriptSavingSession] = useState(false);
+  const [transcriptInterim, setTranscriptInterim] = useState('');
+  const [transcriptUndoStack, setTranscriptUndoStack] = useState<TranscriptUndoState[]>([]);
+  const [transcriptUndoDocumentId, setTranscriptUndoDocumentId] = useState<string | null>(null);
+  const [draftTranscriptAudio, setDraftTranscriptAudio] = useState<Blob | null>(null);
+  const [draftTranscriptAudioUrl, setDraftTranscriptAudioUrl] = useState<string | null>(null);
+  const [draftTranscriptAudioMimeType, setDraftTranscriptAudioMimeType] = useState('audio/webm');
+  const [draftTranscriptAudioDocumentId, setDraftTranscriptAudioDocumentId] = useState<string | null>(null);
   const documentTouchStartRef = useRef<{ x: number; y: number; id: string } | null>(null);
+  const transcriptAudioRef = useRef<HTMLAudioElement | null>(null);
+  const transcriptMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const transcriptStreamRef = useRef<MediaStream | null>(null);
+  const transcriptChunksRef = useRef<Blob[]>([]);
+  const transcriptRealtimeRef = useRef<SpeechRealtimeTranscriber | null>(null);
+  const transcriptRecordingDocumentIdRef = useRef<string | null>(null);
+  const transcriptRecordStartedAtRef = useRef<number | null>(null);
+  const transcriptSpeechStartedAtRef = useRef<number | null>(null);
+  const transcriptSpeechStoppedAtRef = useRef<number | null>(null);
   const prevMarkedWordsSize = useRef<number>(0); // 闂傚倸鍊风粈渚€骞栭位鍥敃閿曗偓閻ょ偓绻涢幋娆忕仼闁绘帒鐏氶妵鍕箳閹存績鍋撻幖浣稿嚑婵炴垯鍨洪悡鏇㈡煏閸繃濯奸柛搴＄箻閺屽秹鎸婃径妯烩枅濡ょ姷鍋為…鍥╁垝閻㈠灚鍠嗛柛鏇ㄥ墯濮ｅ骸鈹戦敍鍕杭闁稿﹥鐗犲畷婵嬪即閵忕姈褔鏌熼梻瀵割槮缂?markedWords 婵犵數濮烽弫鍛婃叏娴兼潙鍨傜憸鐗堝笚閸嬪鏌曡箛瀣偓鏇犵矆閸愨斂浜滈煫鍥ㄦ尰閸ｈ姤淇?
 
   const closeCard = (cardKey: string) => {
@@ -318,6 +548,133 @@ function App() {
 
   const expandSingleCard = (cardKey: string) => {
     setExpandedCardKeys(new Set([cardKey]));
+  };
+
+  const currentTranscriptAudioUrl = currentDocument?.format === 'transcript'
+    ? (currentDocument.id === draftTranscriptAudioDocumentId
+      ? draftTranscriptAudioUrl
+      : resolveSpeechAssetUrl(currentDocument.speechAudioUrl || null))
+    : null;
+
+  const replaceDocumentById = (
+    documentId: string,
+    updater: (document: Document) => Document,
+    options: { preserveCurrentSelection?: boolean } = {},
+  ) => {
+    const { preserveCurrentSelection = true } = options;
+    const existingIndex = documentsRef.current.findIndex(doc => doc.id === documentId);
+    if (existingIndex < 0) return null;
+
+    const existing = documentsRef.current[existingIndex];
+    const updated = updater(existing);
+    const normalized = updated.format === 'transcript' ? materializeTranscriptDocument(updated) : updated;
+    const nextDocuments = [...documentsRef.current];
+    nextDocuments[existingIndex] = normalized;
+    loadDocuments(nextDocuments, preserveCurrentSelection ? currentDocumentIdRef.current : normalized.id);
+    return normalized;
+  };
+
+  const createTranscriptDocument = () => {
+    const now = new Date();
+    const document = materializeTranscriptDocument({
+      id: `stt-${now.getTime()}`,
+      type: 'text',
+      format: 'transcript',
+      title: formatTranscriptTitle(now),
+      content: '',
+      paragraphs: [],
+      transcriptLines: [],
+      speakerTags: [...DEFAULT_TRANSCRIPT_SPEAKER_TAGS],
+      speechAudioUrl: null,
+      speechSessionId: null,
+      createdAt: now.getTime(),
+    });
+    addDocument(document);
+    setTranscriptActiveSpeakerTag(document.speakerTags?.[0] || DEFAULT_TRANSCRIPT_SPEAKER_TAGS[0]);
+    setTranscriptStatus('Ready');
+    setTranscriptNotice(null);
+    setTranscriptError(null);
+    setTranscriptInterim('');
+  };
+
+  const pushTranscriptUndoSnapshot = (documentId: string, lines: TranscriptLine[]) => {
+    const snapshot = { lines: cloneTranscriptLines(lines) };
+    setTranscriptUndoDocumentId(documentId);
+    setTranscriptUndoStack(previous => (
+      transcriptUndoDocumentId === documentId
+        ? [...previous.slice(-19), snapshot]
+        : [snapshot]
+    ));
+  };
+
+  const updateTranscriptDocument = (
+    documentId: string,
+    updater: (document: Document, lines: TranscriptLine[]) => TranscriptLine[],
+    options: { pushUndo?: boolean } = {},
+  ) => {
+    replaceDocumentById(documentId, existing => {
+      if (existing.format !== 'transcript') return existing;
+      const currentLines = cloneTranscriptLines(existing.transcriptLines || []);
+      if (options.pushUndo) {
+        pushTranscriptUndoSnapshot(documentId, currentLines);
+      }
+      return {
+        ...existing,
+        transcriptLines: updater(existing, currentLines),
+      };
+    });
+  };
+
+  const updateTranscriptSpeakerTags = (documentId: string, speakerTags: string[]) => {
+    replaceDocumentById(documentId, existing => (
+      existing.format !== 'transcript'
+        ? existing
+        : {
+            ...existing,
+            speakerTags: normalizeTranscriptSpeakerTags(speakerTags),
+          }
+    ));
+  };
+
+  const currentTranscriptRecordingOffsetMs = () => {
+    if (transcriptRecordStartedAtRef.current === null) return null;
+    return Math.max(0, Math.round(performance.now() - transcriptRecordStartedAtRef.current));
+  };
+
+  const resetDraftTranscriptAudio = () => {
+    setDraftTranscriptAudio(null);
+    setDraftTranscriptAudioMimeType('audio/webm');
+    setDraftTranscriptAudioDocumentId(null);
+    setDraftTranscriptAudioUrl(previousUrl => {
+      if (previousUrl) {
+        URL.revokeObjectURL(previousUrl);
+      }
+      return null;
+    });
+  };
+
+  const stopTranscriptRealtime = () => {
+    transcriptRealtimeRef.current?.stop();
+    setIsTranscriptRealtimeActive(false);
+    setIsTranscriptRealtimeStarting(false);
+    setTranscriptInterim('');
+  };
+
+  const stopTranscriptRecording = () => {
+    if (!transcriptMediaRecorderRef.current) return;
+    transcriptMediaRecorderRef.current.stop();
+    transcriptMediaRecorderRef.current = null;
+    setIsTranscriptRecording(false);
+    setTranscriptStatus('Processing...');
+    stopTranscriptRealtime();
+  };
+
+  const seekTranscriptAudio = (startMs: number | null) => {
+    if (!transcriptAudioRef.current) return;
+    if (startMs !== null && Number.isFinite(startMs)) {
+      transcriptAudioRef.current.currentTime = Math.max(0, startMs / 1000);
+    }
+    void transcriptAudioRef.current.play().catch(() => {});
   };
 
   
@@ -400,6 +757,35 @@ function App() {
       documentTouchStartRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    documentsRef.current = documents;
+  }, [documents]);
+
+  useEffect(() => {
+    currentDocumentIdRef.current = currentDocumentId;
+  }, [currentDocumentId]);
+
+  useEffect(() => {
+    if (!currentDocument || currentDocument.format !== 'transcript') return;
+    if (currentTranscriptSpeakerTags.includes(transcriptActiveSpeakerTag)) return;
+    setTranscriptActiveSpeakerTag(currentTranscriptSpeakerTags[0] || DEFAULT_TRANSCRIPT_SPEAKER_TAGS[0]);
+  }, [currentDocument, currentTranscriptSpeakerTags, transcriptActiveSpeakerTag]);
+
+  useEffect(() => {
+    if (currentDocument?.id === transcriptUndoDocumentId) return;
+    setTranscriptUndoStack([]);
+  }, [currentDocument?.id, transcriptUndoDocumentId]);
+
+  useEffect(() => {
+    return () => {
+      if (draftTranscriptAudioUrl) {
+        URL.revokeObjectURL(draftTranscriptAudioUrl);
+      }
+      transcriptStreamRef.current?.getTracks().forEach(track => track.stop());
+      transcriptRealtimeRef.current?.stop({ silent: true });
+    };
+  }, [draftTranscriptAudioUrl]);
 
   useEffect(() => {
     setReviewSelectedBucketKey(null);
@@ -1282,6 +1668,73 @@ function App() {
     addToCardHistory('sentence', annotation.phrase || sentenceText);
     closeCard(`sentence-${sentenceKey}`);
   };
+
+  const handleTranscriptUndo = () => {
+    if (!currentDocument || currentDocument.format !== 'transcript' || currentDocument.id !== transcriptUndoDocumentId) {
+      return;
+    }
+
+    setTranscriptUndoStack(previous => {
+      const snapshot = previous[previous.length - 1];
+      if (snapshot) {
+        replaceDocumentById(currentDocument.id, existing => (
+          existing.format !== 'transcript'
+            ? existing
+            : {
+                ...existing,
+                transcriptLines: cloneTranscriptLines(snapshot.lines),
+              }
+        ));
+      }
+      return previous.slice(0, -1);
+    });
+    setContextMenu(null);
+  };
+
+  const handleTranscriptSplit = () => {
+    if (!currentDocument || currentDocument.format !== 'transcript' || !contextMenu?.transcriptLineId) return;
+    const splitIndex = contextMenu.sentenceStartIndex ?? 0;
+    updateTranscriptDocument(
+      currentDocument.id,
+      (_document, lines) => splitTranscriptLineAtSentence(lines, contextMenu.transcriptLineId!, splitIndex),
+      { pushUndo: true },
+    );
+    setContextMenu(null);
+  };
+
+  const handleTranscriptMergeUp = () => {
+    if (!currentDocument || currentDocument.format !== 'transcript' || !contextMenu?.transcriptLineId) return;
+    updateTranscriptDocument(
+      currentDocument.id,
+      (_document, lines) => mergeTranscriptLineUp(lines, contextMenu.transcriptLineId!),
+      { pushUndo: true },
+    );
+    setContextMenu(null);
+  };
+
+  const handleTranscriptDeleteLine = () => {
+    if (!currentDocument || currentDocument.format !== 'transcript' || !contextMenu?.transcriptLineId) return;
+    updateTranscriptDocument(
+      currentDocument.id,
+      (_document, lines) => lines.filter(line => line.id !== contextMenu.transcriptLineId),
+      { pushUndo: true },
+    );
+    setContextMenu(null);
+  };
+
+  const handleTranscriptAssignSpeaker = (speakerTag: string) => {
+    if (!currentDocument || currentDocument.format !== 'transcript' || !contextMenu?.transcriptLineId) return;
+    updateTranscriptDocument(
+      currentDocument.id,
+      (_document, lines) => lines.map(line => (
+        line.id === contextMenu.transcriptLineId
+          ? { ...line, speakerTag }
+          : line
+      )),
+      { pushUndo: true },
+    );
+    setContextMenu(null);
+  };
   
   // Handle context menu (right-click to add bookmark)
   const handleContextMenu = (
@@ -1290,9 +1743,25 @@ function App() {
     sIndex: number,
     sentenceText?: string,
     focusWords?: string[],
+    sentenceStartIndex?: number,
+    sentenceEndIndex?: number,
   ) => {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, pIndex, sIndex, sentenceText, focusWords });
+    const transcriptLine = currentDocument?.format === 'transcript'
+      ? currentDocument.transcriptLines?.[pIndex]
+      : undefined;
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      pIndex,
+      sIndex,
+      sentenceText,
+      focusWords,
+      sentenceStartIndex,
+      sentenceEndIndex,
+      transcriptLineId: transcriptLine?.id,
+      transcriptLineIndex: transcriptLine ? pIndex : undefined,
+    });
   };
 
   const handleDocumentTouchStart = (e: ReactTouchEvent<HTMLElement>, documentId: string) => {
@@ -2570,18 +3039,26 @@ ${sortedWords.join(' ')}
       if (cancelled || savedDocs.length === 0 || documents.length > 0) return;
       const restoredDocs = savedDocs
         .filter((doc) => doc.type === 'text' || doc.type === 'epub')
-        .map((doc) => ({
-          id: doc.id,
-          type: doc.type || 'text',
-          format: inferSavedDocumentFormat(doc),
-          title: doc.title,
-          content: doc.content,
-          paragraphs: doc.paragraphs,
-          chapters: doc.chapters,
-          currentChapterId: doc.currentChapterId,
-          author: doc.author,
-          createdAt: doc.createdAt,
-        })) as Document[];
+        .map((doc) => {
+          const format = inferSavedDocumentFormat(doc);
+          const restoredDoc: Document = {
+            id: doc.id,
+            type: doc.type || 'text',
+            format,
+            title: doc.title,
+            content: doc.content,
+            paragraphs: doc.paragraphs,
+            chapters: doc.chapters,
+            currentChapterId: doc.currentChapterId,
+            author: doc.author,
+            transcriptLines: doc.transcriptLines as TranscriptLine[] | undefined,
+            speakerTags: doc.speakerTags,
+            speechAudioUrl: doc.speechAudioUrl,
+            speechSessionId: doc.speechSessionId,
+            createdAt: doc.createdAt,
+          };
+          return format === 'transcript' ? materializeTranscriptDocument(restoredDoc) : restoredDoc;
+        }) as Document[];
       if (restoredDocs.length > 0) {
         const storedCurrentId = localStorage.getItem('currentDocumentId');
         const currentId = storedCurrentId && restoredDocs.some((doc) => doc.id === storedCurrentId)
@@ -2668,22 +3145,256 @@ writes / wrote / written / write`;
     setNewDocContent('');
   };
 
+  const handleTranscriptAddTag = () => {
+    if (!currentDocument || currentDocument.format !== 'transcript') return;
+    const candidate = transcriptNewTag.trim();
+    if (!candidate) return;
+    const nextTags = normalizeTranscriptSpeakerTags([...currentTranscriptSpeakerTags, candidate]);
+    updateTranscriptSpeakerTags(currentDocument.id, nextTags);
+    setTranscriptActiveSpeakerTag(nextTags.includes(candidate) ? candidate : nextTags[0]);
+    setTranscriptNewTag('');
+  };
+
+  const startTranscriptRealtime = async (documentId: string) => {
+    if (!transcriptCanRealtimeTranscribe) {
+      setTranscriptStatus('Recording audio...');
+      return;
+    }
+
+    try {
+      setTranscriptInterim('');
+      setIsTranscriptRealtimeStarting(true);
+
+      if (!transcriptRealtimeRef.current) {
+        transcriptRealtimeRef.current = new SpeechRealtimeTranscriber({
+          onStatus: status => setTranscriptStatus(status),
+          onInterim: text => {
+            if (text.trim() && transcriptSpeechStartedAtRef.current === null) {
+              transcriptSpeechStartedAtRef.current = currentTranscriptRecordingOffsetMs();
+            }
+            setTranscriptInterim(text);
+          },
+          onFinal: text => {
+            const trimmed = text.trim();
+            if (!trimmed) return;
+
+            const targetDocumentId = transcriptRecordingDocumentIdRef.current || documentId;
+            const endMs = transcriptSpeechStoppedAtRef.current ?? currentTranscriptRecordingOffsetMs();
+            replaceDocumentById(targetDocumentId, existing => {
+              if (existing.format !== 'transcript') return existing;
+              const previousLines = existing.transcriptLines || [];
+              const previousEndMs = previousLines[previousLines.length - 1]?.endMs;
+              const startMs = previousLines.length === 0 ? 0 : (previousEndMs ?? transcriptSpeechStartedAtRef.current ?? 0);
+              const resolvedEndMs = endMs !== null && endMs >= startMs ? endMs : startMs;
+
+              return {
+                ...existing,
+                transcriptLines: [
+                  ...previousLines,
+                  createTranscriptLine({
+                    speakerTag: transcriptActiveSpeakerTag,
+                    text: trimmed,
+                    startMs,
+                    endMs: resolvedEndMs,
+                    source: 'realtime',
+                  }),
+                ],
+              };
+            });
+
+            setTranscriptInterim('');
+            setTranscriptStatus('Listening...');
+            transcriptSpeechStartedAtRef.current = null;
+            transcriptSpeechStoppedAtRef.current = null;
+          },
+          onEvent: eventName => {
+            if (eventName === 'speech started' && transcriptSpeechStartedAtRef.current === null) {
+              transcriptSpeechStartedAtRef.current = currentTranscriptRecordingOffsetMs();
+            }
+            if (eventName === 'speech stopped') {
+              transcriptSpeechStoppedAtRef.current = currentTranscriptRecordingOffsetMs();
+            }
+          },
+          onError: error => {
+            const message = error instanceof Error ? error.message : 'Realtime transcription failed.';
+            setTranscriptError(message);
+            setTranscriptStatus(message);
+            setTranscriptInterim('');
+            setIsTranscriptRealtimeActive(false);
+            setIsTranscriptRealtimeStarting(false);
+          },
+        });
+      }
+
+      await transcriptRealtimeRef.current.start({
+        language: 'en',
+        prompt: 'Transcribe live classroom or meeting speech. Keep each utterance short, clean, and lightly punctuated.',
+      });
+
+      setIsTranscriptRealtimeActive(true);
+      setTranscriptStatus('Listening...');
+    } catch (error: any) {
+      setTranscriptError(error.message || 'Failed to start realtime transcription.');
+      setTranscriptStatus(error.message || 'Realtime transcription failed.');
+      setIsTranscriptRealtimeActive(false);
+    } finally {
+      setIsTranscriptRealtimeStarting(false);
+    }
+  };
+
+  const startTranscriptRecording = async () => {
+    if (!currentDocument || currentDocument.format !== 'transcript') return;
+    if (currentDocument.speechSessionId) {
+      setTranscriptError('Create a new STT note to record new audio.');
+      return;
+    }
+    if (!transcriptCanRecord) {
+      setTranscriptError('This browser does not support in-browser recording.');
+      return;
+    }
+
+    try {
+      setTranscriptError(null);
+      setTranscriptNotice(null);
+      setTranscriptStatus('Starting microphone...');
+      setTranscriptInterim('');
+      resetDraftTranscriptAudio();
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      transcriptStreamRef.current = stream;
+      transcriptChunksRef.current = [];
+      transcriptRecordingDocumentIdRef.current = currentDocument.id;
+      transcriptRecordStartedAtRef.current = performance.now();
+      transcriptSpeechStartedAtRef.current = null;
+      transcriptSpeechStoppedAtRef.current = null;
+
+      const recorder = new MediaRecorder(stream);
+      transcriptMediaRecorderRef.current = recorder;
+      setDraftTranscriptAudioMimeType(recorder.mimeType || 'audio/webm');
+      setDraftTranscriptAudioDocumentId(currentDocument.id);
+
+      recorder.ondataavailable = event => {
+        if (event.data.size > 0) {
+          transcriptChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(transcriptChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        setDraftTranscriptAudio(blob);
+        setDraftTranscriptAudioMimeType(blob.type || recorder.mimeType || 'audio/webm');
+        setDraftTranscriptAudioDocumentId(transcriptRecordingDocumentIdRef.current);
+        setDraftTranscriptAudioUrl(previousUrl => {
+          if (previousUrl) {
+            URL.revokeObjectURL(previousUrl);
+          }
+          return URL.createObjectURL(blob);
+        });
+        stream.getTracks().forEach(track => track.stop());
+        transcriptStreamRef.current = null;
+        transcriptRecordStartedAtRef.current = null;
+        transcriptSpeechStartedAtRef.current = null;
+        transcriptSpeechStoppedAtRef.current = null;
+        transcriptRecordingDocumentIdRef.current = null;
+        setTranscriptStatus('Recording saved');
+      };
+
+      recorder.start();
+      setIsTranscriptRecording(true);
+      setTranscriptStatus('Recording...');
+      await startTranscriptRealtime(currentDocument.id);
+    } catch (error: any) {
+      setTranscriptError(error.message || 'Failed to access microphone.');
+      setTranscriptStatus(error.message || 'Microphone unavailable.');
+    }
+  };
+
+  const handleTranscriptCreateSession = async () => {
+    if (!currentDocument || currentDocument.format !== 'transcript') return;
+
+    const normalizedLines = normalizeTranscriptLines(currentTranscriptLines, currentTranscriptSpeakerTags);
+    if (normalizedLines.length === 0 && !(draftTranscriptAudio && draftTranscriptAudioDocumentId === currentDocument.id)) {
+      setTranscriptError('Record or capture at least one transcript line first.');
+      return;
+    }
+
+    try {
+      setIsTranscriptCreatingSession(true);
+      setTranscriptError(null);
+      setTranscriptNotice(null);
+      const audioDataUrl = draftTranscriptAudio && draftTranscriptAudioDocumentId === currentDocument.id
+        ? await blobToDataUrl(draftTranscriptAudio)
+        : undefined;
+      const response = await createSpeechSession({
+        transcript: normalizedLines.map(line => line.text).join('\n') || undefined,
+        transcriptLines: normalizedLines.length > 0 ? normalizedLines : undefined,
+        speakerTags: currentTranscriptSpeakerTags,
+        audioDataUrl,
+        audioMimeType: audioDataUrl ? draftTranscriptAudioMimeType : undefined,
+        provider: 'openai',
+      });
+
+      replaceDocumentById(currentDocument.id, existing => ({
+        ...existing,
+        title: existing.title || response.session.title,
+        transcriptLines: response.session.transcriptLines.length > 0 ? response.session.transcriptLines : normalizedLines,
+        speakerTags: response.session.speakerTags,
+        speechSessionId: response.session.id,
+        speechAudioUrl: resolveSpeechAssetUrl(response.session.audioUrl),
+      }));
+      resetDraftTranscriptAudio();
+      setTranscriptStatus('Session created');
+      setTranscriptNotice('Session created. Transcript now lives directly in Reader.');
+    } catch (error: any) {
+      setTranscriptError(error.message || 'Failed to create speech session.');
+    } finally {
+      setIsTranscriptCreatingSession(false);
+    }
+  };
+
+  const handleTranscriptSaveSession = async () => {
+    if (!currentDocument || currentDocument.format !== 'transcript' || !currentDocument.speechSessionId) return;
+    const normalizedLines = normalizeTranscriptLines(currentTranscriptLines, currentTranscriptSpeakerTags);
+    if (normalizedLines.length === 0) {
+      setTranscriptError('At least one transcript line is required.');
+      return;
+    }
+
+    try {
+      setIsTranscriptSavingSession(true);
+      setTranscriptError(null);
+      setTranscriptNotice(null);
+      const response = await updateSpeechTranscript(currentDocument.speechSessionId, {
+        title: currentDocument.title,
+        transcriptLines: normalizedLines,
+        speakerTags: currentTranscriptSpeakerTags,
+      });
+
+      replaceDocumentById(currentDocument.id, existing => ({
+        ...existing,
+        title: response.session.title,
+        transcriptLines: response.session.transcriptLines,
+        speakerTags: response.session.speakerTags,
+      }));
+      setTranscriptStatus('Transcript saved');
+      setTranscriptNotice('Transcript changes saved.');
+    } catch (error: any) {
+      setTranscriptError(error.message || 'Failed to save transcript.');
+    } finally {
+      setIsTranscriptSavingSession(false);
+    }
+  };
+
   const handleFileImport = () => {
     fileInputRef.current?.click();
   };
 
-  const handleOpenSpeechModule = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('module', 'speech');
-    window.location.href = url.toString();
-  };
-
   const inferSavedDocumentFormat = (doc: {
-    format?: 'plain' | 'markdown';
+    format?: 'plain' | 'markdown' | 'transcript';
     content?: string;
     paragraphs?: Array<{ blockType?: string }>;
-  }): 'plain' | 'markdown' => {
-    if (doc.format === 'plain' || doc.format === 'markdown') {
+  }): 'plain' | 'markdown' | 'transcript' => {
+    if (doc.format === 'plain' || doc.format === 'markdown' || doc.format === 'transcript') {
       return doc.format;
     }
 
@@ -3059,18 +3770,6 @@ writes / wrote / written / write`;
     if (!collapsedImageMenu) return;
     setCollapsedImageMenu({ ...collapsedImageMenu, panel: 'web' });
   };
-
-  const blobToDataUrl = (blob: Blob): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result;
-        if (typeof result === 'string') resolve(result);
-        else reject(new Error('Failed to convert blob to data URL'));
-      };
-      reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
-      reader.readAsDataURL(blob);
-    });
 
   const handleCollapsedOpenGoogleImages = () => {
     const q = (collapsedGoogleKeyword.trim() || `${collapsedImageMenu?.word || ''} photo`);
@@ -3925,11 +4624,13 @@ writes / wrote / written / write`;
                         <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
                           doc.type === 'epub'
                             ? 'bg-amber-100 text-amber-800'
+                            : doc.format === 'transcript'
+                              ? 'bg-emerald-100 text-emerald-700'
                             : doc.format === 'markdown'
                               ? 'bg-zinc-100 text-zinc-700'
                               : 'bg-sky-100 text-sky-700'
                         }`}>
-                          {doc.type === 'epub' ? 'EPUB' : doc.format === 'markdown' ? 'MD' : 'TXT'}
+                          {doc.type === 'epub' ? 'EPUB' : doc.format === 'transcript' ? 'STT' : doc.format === 'markdown' ? 'MD' : 'TXT'}
                         </span>
                         <span className="truncate" title={doc.title}>{doc.title}</span>
                       </span>
@@ -3963,7 +4664,7 @@ writes / wrote / written / write`;
                   </div>
                   <div
                     className="px-3 py-2 rounded-lg hover:bg-hover flex items-center justify-between cursor-pointer text-sm"
-                    onClick={handleOpenSpeechModule}
+                    onClick={createTranscriptDocument}
                   >
                     <span>STT notes</span>
                     <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700">
@@ -4016,6 +4717,162 @@ writes / wrote / written / write`;
           >
             {viewMode === 'read' ? (currentDocument ? (
               <>
+                {currentDocument.format === 'transcript' ? (
+                  <>
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                        STT
+                      </span>
+                      <div className="text-2xl font-extrabold">{currentDocument.title}</div>
+                    </div>
+                    <div className="text-xs text-muted mb-3 leading-relaxed">
+                      {currentTranscriptLines.length} lines
+                      {currentDocument.speechSessionId && <span className="ml-2">Session saved</span>}
+                    </div>
+                    <div className="sticky top-0 z-20 -mx-3 mb-3 border-y border-border bg-white/95 px-3 py-2 backdrop-blur">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <button
+                          onClick={isTranscriptRecording ? stopTranscriptRecording : () => void startTranscriptRecording()}
+                          disabled={!transcriptCanRecord || Boolean(currentDocument.speechSessionId && !isTranscriptRecording)}
+                          className={`px-3 py-1.5 rounded-lg border font-semibold ${
+                            isTranscriptRecording
+                              ? 'border-red-500 bg-red-50 text-red-700'
+                              : 'border-border hover:bg-hover disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed'
+                          }`}
+                        >
+                          {isTranscriptRecording ? 'Stop' : 'Record'}
+                        </button>
+                        <button
+                          onClick={currentDocument.speechSessionId ? () => void handleTranscriptSaveSession() : () => void handleTranscriptCreateSession()}
+                          disabled={isTranscriptCreatingSession || isTranscriptSavingSession || isTranscriptRecording}
+                          className="px-3 py-1.5 rounded-lg border border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-300 disabled:cursor-not-allowed font-semibold"
+                        >
+                          {currentDocument.speechSessionId
+                            ? (isTranscriptSavingSession ? 'Saving...' : 'Save Transcript')
+                            : (isTranscriptCreatingSession ? 'Creating...' : 'Create Session')}
+                        </button>
+                        <div className="flex flex-wrap items-center gap-1">
+                          {currentTranscriptSpeakerTags.map((tag, index) => (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => setTranscriptActiveSpeakerTag(tag)}
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors ${
+                                transcriptActiveSpeakerTag === tag ? 'ring-1 ring-offset-1 ring-stone-300' : ''
+                              }`}
+                              style={getTranscriptSpeakerTone(index)}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          value={transcriptNewTag}
+                          onChange={(e) => setTranscriptNewTag(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleTranscriptAddTag();
+                            }
+                          }}
+                          placeholder="Add tag"
+                          className="h-8 w-24 rounded-lg border border-border px-2 text-xs"
+                        />
+                        <button
+                          onClick={handleTranscriptAddTag}
+                          className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-hover font-semibold"
+                        >
+                          Tag
+                        </button>
+                        {currentTranscriptAudioUrl && (
+                          <audio ref={transcriptAudioRef} controls src={currentTranscriptAudioUrl} className="h-8 max-w-[240px]" />
+                        )}
+                        {isTranscriptRealtimeActive && (
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                            Live
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1 truncate text-[11px] text-muted" title={transcriptInterim || transcriptStatus}>
+                          {isTranscriptRealtimeStarting ? 'Connecting...' : transcriptInterim || transcriptStatus}
+                        </div>
+                      </div>
+                      {(transcriptError || transcriptNotice) && (
+                        <div className={`mt-1 text-[11px] ${transcriptError ? 'text-red-600' : 'text-emerald-700'}`}>
+                          {transcriptError || transcriptNotice}
+                        </div>
+                      )}
+                    </div>
+
+                    {displayParagraphs.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-border px-4 py-6 text-sm text-muted">
+                        Start recording from the toolbar. Transcript lines will appear here in Reader.
+                      </div>
+                    ) : (
+                      displayParagraphs.map((paragraph: ParagraphType, pIdx: number) => {
+                        const line = currentTranscriptLines[pIdx];
+                        if (!line) return null;
+
+                        return (
+                          <div
+                            key={line.id}
+                            data-paragraph-index={pIdx}
+                            onContextMenu={(e) => handleContextMenu(e, pIdx, 0, line.text)}
+                            className="relative mb-3"
+                          >
+                            <div className="mb-0.5 flex items-center justify-between gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setTranscriptActiveSpeakerTag(line.speakerTag)}
+                                className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                style={getTranscriptSpeakerTone(currentTranscriptSpeakerTags.indexOf(line.speakerTag))}
+                              >
+                                {line.speakerTag}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => seekTranscriptAudio(line.startMs)}
+                                disabled={!currentTranscriptAudioUrl}
+                                className="text-[11px] text-stone-500 hover:text-stone-800 disabled:text-stone-300"
+                              >
+                                {formatTranscriptTimestamp(line.startMs)}
+                              </button>
+                            </div>
+                            <div className="text-[1.02rem] leading-[1.38] text-stone-900">
+                              <Paragraph
+                                paragraph={paragraph}
+                                renderMode="compact"
+                                paragraphIndex={pIdx}
+                                knownWords={knownWords}
+                                markedWords={markedWords}
+                                phraseMarkedRanges={phraseMarkedRanges}
+                                annotatedPhraseRanges={annotatedPhraseRanges}
+                                underlinePhraseRanges={underlinePhraseRanges}
+                                learntWords={learntWords}
+                                annotations={annotations}
+                                phraseAnnotations={phraseAnnotations}
+                                phraseTranslationInserts={phraseTranslationInserts}
+                                sentenceCardKeys={sentenceCardKeys}
+                                showIPA={showIPA}
+                                showChinese={showChinese}
+                                autoMark={autoMark}
+                                autoPronounceSetting={autoPronounceSetting}
+                                onWordClick={handleWordClick}
+                                onPhraseClick={handlePhraseClick}
+                                onSentenceCardClick={handleSentenceCardClick}
+                                onMarkKnown={handleMarkKnown}
+                                onSentenceContextMenu={(e, payload) => handleContextMenu(e, payload.pIndex, payload.sIndex, payload.text, payload.focusWords, payload.startIndex, payload.endIndex)}
+                                currentSentenceIndex={currentSentenceIndex}
+                                currentWordIndex={currentWordIndex}
+                                sentencesBeforeThisPara={0}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </>
+                ) : (
+                  <>
                 <div className="text-2xl font-extrabold mb-2 flex items-center justify-between">
                   {/* Previous chapter button */}
                   {currentDocument.type === 'epub' && currentDocument.chapters && currentDocument.currentChapterId && (() => {
@@ -4156,7 +5013,7 @@ writes / wrote / written / write`;
                       onPhraseClick={handlePhraseClick}
                       onSentenceCardClick={handleSentenceCardClick}
                       onMarkKnown={handleMarkKnown}
-                      onSentenceContextMenu={(e, payload) => handleContextMenu(e, payload.pIndex, payload.sIndex, payload.text, payload.focusWords)}
+                      onSentenceContextMenu={(e, payload) => handleContextMenu(e, payload.pIndex, payload.sIndex, payload.text, payload.focusWords, payload.startIndex, payload.endIndex)}
                       currentSentenceIndex={currentSentenceIndex}
                       currentWordIndex={currentWordIndex}
                       sentencesBeforeThisPara={sentencesBeforeThisPara}
@@ -4190,6 +5047,8 @@ writes / wrote / written / write`;
                     </div>
                   );
                 })()}
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -5052,16 +5911,67 @@ writes / wrote / written / write`;
             >
               Add Bookmark
             </button>
-            <button
-              onClick={() => {
-                handlePlayFromParagraph(contextMenu.pIndex);
-                setContextMenu(null);
-              }}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-            >
-              Play from here
-            </button>
-            {isSpeaking && (
+            {currentDocument?.format === 'transcript' && contextMenu.transcriptLineId ? (
+              <>
+                <button
+                  onClick={() => {
+                    seekTranscriptAudio(currentTranscriptLines[contextMenu.transcriptLineIndex || 0]?.startMs ?? null);
+                    setContextMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                >
+                  Play original audio
+                </button>
+                <button
+                  onClick={handleTranscriptSplit}
+                  disabled={!contextMenu.sentenceStartIndex}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 disabled:text-gray-300 flex items-center gap-2"
+                >
+                  Split here
+                </button>
+                <button
+                  onClick={handleTranscriptMergeUp}
+                  disabled={!contextMenu.transcriptLineIndex}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 disabled:text-gray-300 flex items-center gap-2"
+                >
+                  Merge up
+                </button>
+                <button
+                  onClick={handleTranscriptDeleteLine}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                >
+                  Delete line
+                </button>
+                <button
+                  onClick={handleTranscriptUndo}
+                  disabled={transcriptUndoStack.length === 0 || transcriptUndoDocumentId !== currentDocument.id}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 disabled:text-gray-300 flex items-center gap-2"
+                >
+                  Undo
+                </button>
+                <div className="px-4 pt-1 pb-2 text-[11px] text-stone-500">Speaker</div>
+                {currentTranscriptSpeakerTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => handleTranscriptAssignSpeaker(tag)}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  handlePlayFromParagraph(contextMenu.pIndex);
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                Play from here
+              </button>
+            )}
+            {isSpeaking && currentDocument?.format !== 'transcript' && (
               <button
                 onClick={() => {
                   handleStopReading();

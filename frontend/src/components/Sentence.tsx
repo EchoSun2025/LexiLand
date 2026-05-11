@@ -26,7 +26,7 @@ interface SentenceProps {
   onMarkKnown?: (word: string) => void;
   onSentenceContextMenu?: (
     e: MouseEvent,
-    payload: { text: string; pIndex: number; sIndex: number; focusWords: string[] }
+    payload: { text: string; pIndex: number; sIndex: number; focusWords: string[]; startIndex: number; endIndex: number }
   ) => void;
   hasSentenceCard?: boolean;
   onSentenceCardClick?: (sentenceText: string) => void;
@@ -62,6 +62,8 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
       pIndex: paragraphIndex,
       sIndex: sentenceIndex,
       focusWords,
+      startIndex: sentence.startIndex,
+      endIndex: sentence.endIndex,
     });
   };
 
@@ -110,6 +112,8 @@ export default function Sentence({ sentence, paragraphIndex, sentenceIndex, know
           pIndex: paragraphIndex,
           sIndex: sentenceIndex,
           focusWords,
+          startIndex: sentence.startIndex,
+          endIndex: sentence.endIndex,
         });
       }}
       onTouchStart={handleTouchStart}
